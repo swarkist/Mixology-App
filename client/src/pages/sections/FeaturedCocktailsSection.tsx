@@ -1,13 +1,14 @@
 import { SearchIcon } from "lucide-react";
 import React from "react";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const FeaturedCocktailsSection = (): JSX.Element => {
   // Navigation menu items
   const navItems = [
-    { label: "Recipes", href: "#" },
-    { label: "Ingredients", href: "#" },
+    { label: "Recipes", href: "/cocktails" },
+    { label: "Ingredients", href: "/ingredients" },
     { label: "Community", href: "#" },
     { label: "About", href: "#" },
   ];
@@ -32,13 +33,21 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
         {/* Navigation links */}
         <div className="flex items-center gap-9">
           {navItems.map((item, index) => (
-            <a
-              key={index}
-              href={item.href}
-              className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica]"
-            >
-              {item.label}
-            </a>
+            item.href.startsWith('/') ? (
+              <Link key={index} href={item.href}>
+                <a className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors">
+                  {item.label}
+                </a>
+              </Link>
+            ) : (
+              <a
+                key={index}
+                href={item.href}
+                className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
+              >
+                {item.label}
+              </a>
+            )
           ))}
         </div>
       </div>
