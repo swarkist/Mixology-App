@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a full-stack web application for cocktail recipes and mixology. The application features a modern React frontend with shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM. The current implementation includes a cocktail browsing interface with sections for featured cocktails, ingredient filtering, and popular recipes.
+This is a full-stack web application for cocktail recipes and mixology. The application features a modern React frontend with shadcn/ui components, an Express.js backend, and PostgreSQL database with Drizzle ORM. The application now includes a complete navigation system with multiple pages: home page with cocktail browsing, dedicated cocktail list page, detailed recipe pages, and a comprehensive ingredients page with filtering and selection capabilities.
 
 ## User Preferences
 
@@ -38,8 +38,13 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Structure
 - **Main App**: React app with query client provider and routing
 - **UI Components**: Comprehensive shadcn/ui component library
-- **Pages**: Modular page structure with section-based components
-- **Styling**: CSS variables system with light/dark theme support
+- **Pages**: Multi-page application with routing between:
+  - Home page (Frame with FilterByIngredientSection)
+  - Cocktail list page with search and filtering
+  - Individual cocktail recipe pages
+  - Ingredients page with category filtering and selection
+- **Navigation**: Responsive navigation system (desktop header + mobile bottom nav)
+- **Styling**: CSS variables system with consistent dark theme (#161611) and gold accents (#f2c40c)
 - **Fonts**: Plus Jakarta Sans as primary font family
 
 ### Backend Structure
@@ -105,6 +110,14 @@ Preferred communication style: Simple, everyday language.
 - **Local Development**: Concurrent frontend and backend servers
 - **Hot Reloading**: Vite HMR for frontend, nodemon equivalent for backend
 - **Database Development**: Local or cloud PostgreSQL instance
+
+### Recent Updates (July 2025)
+- **Multi-page Architecture**: Added complete routing system with Wouter
+- **Ingredients Page**: Comprehensive ingredient browser with category filtering, search, and ingredient selection
+- **Cocktail List Page**: Dedicated cocktail browsing with grid/list views and advanced filtering
+- **Recipe Detail Pages**: Individual cocktail pages with ingredients, instructions, and pro tips
+- **Navigation System**: Responsive navigation with desktop header and mobile bottom navigation
+- **Interactive Features**: Ingredient selection, recipe filtering, hover effects, and smooth transitions
 
 ### Replit-Specific Features
 - **Development Banner**: Replit development environment integration
