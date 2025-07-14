@@ -1,4 +1,4 @@
-import { SearchIcon } from "lucide-react";
+import { SearchIcon, ChevronDown } from "lucide-react";
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -144,10 +144,10 @@ export const FilterByIngredientSection = (): JSX.Element => {
             {filterIngredients.map((ingredient, index) => (
               <Badge
                 key={`ingredient-${index}`}
-                className="h-8 pl-4 pr-2 py-0 bg-[#383528] hover:bg-[#4a4735] text-white font-medium text-sm cursor-pointer"
+                className="h-8 pl-4 pr-2 py-0 bg-[#383528] hover:bg-[#4a4735] text-white font-medium text-sm cursor-pointer flex items-center gap-2"
               >
                 {ingredient}
-                <span className="ml-2 w-5 h-5 bg-[url(/figmaAssets/vector---0-1.svg)] bg-[100%_100%]" />
+                <ChevronDown className="w-4 h-4 text-white" />
               </Badge>
             ))}
           </div>
