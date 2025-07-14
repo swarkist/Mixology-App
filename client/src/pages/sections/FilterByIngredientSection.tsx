@@ -90,10 +90,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
               <h1 className="font-extrabold text-white md:text-5xl text-center tracking-tight [font-family:'Plus_Jakarta_Sans',Helvetica] text-[47px]">
                 Mixology With Some Twists
               </h1>
-              <p className="text-white text-center [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                My bar where I pull recipes and tweak them to fit my flavor
-                pallet (sweet to tangy).
-              </p>
+              <p className="text-white text-center [font-family:'Plus_Jakarta_Sans',Helvetica]">My bar where I pull recipes and tweak them to fit my flavor pallet.</p>
             </div>
 
             {/* SearchIcon Bar */}
