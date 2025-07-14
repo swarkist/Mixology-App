@@ -35,9 +35,9 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
           {navItems.map((item, index) => (
             item.href.startsWith('/') ? (
               <Link key={index} href={item.href}>
-                <a className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors">
+                <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
                   {item.label}
-                </a>
+                </span>
               </Link>
             ) : (
               <a

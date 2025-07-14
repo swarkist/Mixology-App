@@ -73,18 +73,6 @@ export const FilterByIngredientSection = (): JSX.Element => {
 
   return (
     <>
-      {/* Desktop Navigation */}
-      <div className="hidden md:block sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
-        <div className="flex items-center justify-between p-4 max-w-6xl mx-auto">
-          <Link href="/">
-            <h1 className="text-xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Mixology
-            </h1>
-          </Link>
-          <DesktopNavigation />
-        </div>
-      </div>
-
       <section className="flex justify-center px-4 md:px-8 lg:px-40 py-5 w-full pb-20 md:pb-5">
       <div className="flex flex-col max-w-[960px] w-full">
         {/* Hero Banner */}
