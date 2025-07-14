@@ -101,8 +101,8 @@ export const FilterByIngredientSection = (): JSX.Element => {
                   <SearchIcon className="h-5 w-5 text-[#bab59b]" />
                 </div>
                 <Input
-                  className="flex-1 h-full bg-[#26261c] border-t border-b border-[#544f3a] rounded-none text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#bab59b]"
-                  placeholder="SearchIcon for recipes or ingredients"
+                  className="flex-1 h-full bg-[#26261c] border-t border-b border-l-0 border-[#544f3a] rounded-none text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#bab59b]"
+                  placeholder="Search for recipes or ingredients"
                 />
                 <div className="bg-[#26261c] border-r border-t border-b border-[#544f3a] rounded-r-lg p-2">
                   <Button className="h-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-lg">Search</Button>
