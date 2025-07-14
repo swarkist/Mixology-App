@@ -77,7 +77,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
           <div 
             className="relative w-full h-[480px] rounded-lg overflow-hidden"
             style={{
-              backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url(/hero-background.png)`,
+              backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%), url(/hero-bg-new.png)`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat'
