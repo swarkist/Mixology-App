@@ -1,4 +1,4 @@
-import { Search, Filter, ArrowLeft, Grid, List } from "lucide-react";
+import { Search, Filter, ArrowLeft, Grid, List, Plus } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -148,6 +148,10 @@ export const CocktailList = (): JSX.Element => {
             <Button variant="outline" className="border-[#544f3a] text-white hover:bg-[#2a2920]">
               <Filter className="w-4 h-4 mr-2" />
               Filters
+            </Button>
+            <Button className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Cocktail
             </Button>
           </div>
 
