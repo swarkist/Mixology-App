@@ -1,5 +1,6 @@
 import { SearchIcon, ChevronDown } from "lucide-react";
 import React from "react";
+import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -118,25 +119,24 @@ export const FilterByIngredientSection = (): JSX.Element => {
           </h2>
           <div className="flex flex-wrap gap-3 p-4">
             {featuredCocktails.map((cocktail, index) => (
-              <Card
-                key={`featured-${index}`}
-                className="flex-1 min-w-60 bg-transparent border-0"
-              >
-                <CardContent className="p-0 space-y-4">
-                  <div
-                    className="w-full h-[330px] rounded-lg bg-cover bg-center"
-                    style={{ backgroundImage: `url(${cocktail.image})` }}
-                  />
-                  <div className="space-y-1">
-                    <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {cocktail.name}
-                    </h3>
-                    <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {cocktail.description}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+              <Link key={`featured-${index}`} href="/recipe/featured">
+                <Card className="flex-1 min-w-60 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                  <CardContent className="p-0 space-y-4">
+                    <div
+                      className="w-full h-[330px] rounded-lg bg-cover bg-center"
+                      style={{ backgroundImage: `url(${cocktail.image})` }}
+                    />
+                    <div className="space-y-1">
+                      <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {cocktail.name}
+                      </h3>
+                      <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {cocktail.description}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         </div>
@@ -167,25 +167,24 @@ export const FilterByIngredientSection = (): JSX.Element => {
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {popularRecipes.slice(0, 5).map((recipe, index) => (
-                <Card
-                  key={`recipe-${index}`}
-                  className="w-full bg-transparent border-0"
-                >
-                  <CardContent className="p-0 space-y-3">
-                    <div
-                      className="w-full h-[235px] rounded-lg bg-cover bg-center"
-                      style={{ backgroundImage: `url(${recipe.image})` }}
-                    />
-                    <div className="space-y-1 pb-3">
-                      <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {recipe.name}
-                      </h3>
-                      <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {recipe.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link key={`recipe-${index}`} href="/recipe/popular">
+                  <Card className="w-full bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                    <CardContent className="p-0 space-y-3">
+                      <div
+                        className="w-full h-[235px] rounded-lg bg-cover bg-center"
+                        style={{ backgroundImage: `url(${recipe.image})` }}
+                      />
+                      <div className="space-y-1 pb-3">
+                        <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          {recipe.name}
+                        </h3>
+                        <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          {recipe.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
 
