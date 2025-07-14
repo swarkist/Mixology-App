@@ -74,7 +74,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
       <div className="flex flex-col max-w-[960px] w-full">
         {/* Hero Banner */}
         <div className="w-full mb-6">
-          <div className="relative w-full h-[480px] rounded-lg overflow-hidden bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.4)_100%),url(..//figmaAssets/depth-6--frame-0.png)_50%_50%_/_cover]">
+          <div className="relative w-full h-[480px] rounded-lg overflow-hidden bg-[linear-gradient(90deg,rgba(0,0,0,0.1)_0%,rgba(0,0,0,0.4)_100%),url(/hero-background.png)_50%_50%_/_cover]">
             <div className="flex flex-col items-center gap-2 absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/3 w-full max-w-[633px] px-4">
               <h1 className="font-extrabold text-white text-4xl md:text-5xl text-center tracking-tight leading-tight [font-family:'Plus_Jakarta_Sans',Helvetica]">
                 Mixology With Some Twists
