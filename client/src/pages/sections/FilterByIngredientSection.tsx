@@ -114,9 +114,16 @@ export const FilterByIngredientSection = (): JSX.Element => {
 
         {/* Featured Cocktails Section */}
         <div className="mb-4">
-          <h2 className="px-4 pt-5 pb-3 font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Featured Cocktails
-          </h2>
+          <div className="flex items-center justify-between px-4 pt-5 pb-3">
+            <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Featured Cocktails
+            </h2>
+            <Link href="/cocktails">
+              <Button variant="outline" size="sm" className="border-[#544f3a] text-white hover:bg-[#2a2920] hover:text-[#f2c40c]">
+                View All
+              </Button>
+            </Link>
+          </div>
           <div className="flex flex-wrap gap-3 p-4">
             {featuredCocktails.map((cocktail, index) => (
               <Link key={`featured-${index}`} href="/recipe/featured">
@@ -161,9 +168,16 @@ export const FilterByIngredientSection = (): JSX.Element => {
 
         {/* Popular Recipes Section */}
         <div>
-          <h2 className="px-4 pt-5 pb-3 font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Popular Recipes
-          </h2>
+          <div className="flex items-center justify-between px-4 pt-5 pb-3">
+            <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Popular Recipes
+            </h2>
+            <Link href="/cocktails">
+              <Button variant="outline" size="sm" className="border-[#544f3a] text-white hover:bg-[#2a2920] hover:text-[#f2c40c]">
+                View All
+              </Button>
+            </Link>
+          </div>
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {popularRecipes.slice(0, 5).map((recipe, index) => (
