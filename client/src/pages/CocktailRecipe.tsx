@@ -165,7 +165,7 @@ export const CocktailRecipe = (): JSX.Element => {
           <Button className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold">
             Start Making This Cocktail
           </Button>
-          <Button variant="outline" className="border-[#4a4735] text-white hover:bg-[#2a2920] hover:text-white">
+          <Button variant="outline" className="border-[#4a4735] !text-white hover:bg-[#2a2920] hover:!text-white bg-transparent">
             Save Recipe
           </Button>
         </div>
