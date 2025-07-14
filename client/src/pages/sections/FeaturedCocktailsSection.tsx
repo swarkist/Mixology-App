@@ -9,8 +9,8 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
   const navItems = [
     { label: "Recipes", href: "/cocktails" },
     { label: "Ingredients", href: "/ingredients" },
+    { label: "My Bar", href: "#" },
     { label: "Bulk Upload", href: "/bulk-upload" },
-    { label: "About", href: "#" },
   ];
 
   return (
@@ -32,8 +32,8 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
 
         {/* Navigation links */}
         <div className="flex items-center gap-9">
-          {navItems.map((item, index) => (
-            item.href.startsWith('/') ? (
+          {navItems.map((item, index) =>
+            item.href.startsWith("/") ? (
               <Link key={index} href={item.href}>
                 <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
                   {item.label}
@@ -47,8 +47,8 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
               >
                 {item.label}
               </a>
-            )
-          ))}
+            ),
+          )}
         </div>
       </div>
 
