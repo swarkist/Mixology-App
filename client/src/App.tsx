@@ -11,6 +11,7 @@ import { CocktailList } from "@/pages/CocktailList";
 import { Ingredients } from "@/pages/Ingredients";
 import { AddCocktail } from "@/pages/AddCocktail";
 import { AddIngredient } from "@/pages/AddIngredient";
+import { BulkUpload } from "@/pages/BulkUpload";
 
 function Router() {
   return (
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/add-cocktail" component={AddCocktail} />
       <Route path="/ingredients" component={Ingredients} />
       <Route path="/add-ingredient" component={AddIngredient} />
+      <Route path="/bulk-upload" component={BulkUpload} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />

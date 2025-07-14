@@ -9,7 +9,7 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
   const navItems = [
     { label: "Recipes", href: "/cocktails" },
     { label: "Ingredients", href: "/ingredients" },
-    { label: "Community", href: "#" },
+    { label: "Bulk Upload", href: "/bulk-upload" },
     { label: "About", href: "#" },
   ];
 
