@@ -10,6 +10,7 @@ import { CocktailRecipe } from "@/pages/CocktailRecipe";
 import { CocktailList } from "@/pages/CocktailList";
 import { Ingredients } from "@/pages/Ingredients";
 import { AddCocktail } from "@/pages/AddCocktail";
+import { AddIngredient } from "@/pages/AddIngredient";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/cocktails" component={CocktailList} />
       <Route path="/add-cocktail" component={AddCocktail} />
       <Route path="/ingredients" component={Ingredients} />
+      <Route path="/add-ingredient" component={AddIngredient} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
