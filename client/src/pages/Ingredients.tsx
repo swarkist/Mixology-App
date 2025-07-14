@@ -126,6 +126,10 @@ export const Ingredients = (): JSX.Element => {
               <Filter className="w-4 h-4 mr-2" />
               Filters
             </Button>
+            <Button className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]">
+              <Plus className="w-4 h-4 mr-2" />
+              Add Ingredient
+            </Button>
           </div>
 
           {/* Category Filter */}
