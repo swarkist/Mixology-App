@@ -10,7 +10,7 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
     { label: "Recipes", href: "/cocktails" },
     { label: "Ingredients", href: "/ingredients" },
     { label: "My Bar", href: "#" },
-    { label: "Bulk Upload", href: "/bulk-upload" },
+    /* { label: "Bulk Upload", href: "/bulk-upload" }, */
   ];
 
   return (
