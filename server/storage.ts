@@ -42,6 +42,7 @@ export interface IStorage {
   getCocktailsByIngredients(ingredientIds: number[], matchAll?: boolean): Promise<Cocktail[]>;
   createCocktail(cocktail: CocktailForm): Promise<Cocktail>;
   updateCocktail(id: number, cocktail: Partial<InsertCocktail>): Promise<Cocktail>;
+  deleteCocktail(id: number): Promise<boolean>;
   toggleFeatured(cocktailId: number): Promise<Cocktail>;
   incrementPopularity(cocktailId: number): Promise<Cocktail>;
   resetPopularity(cocktailId: number): Promise<Cocktail>;
@@ -401,6 +402,40 @@ export class MemStorage implements IStorage {
     cocktail.updatedAt = new Date();
     this.cocktails.set(cocktailId, cocktail);
     return cocktail;
+  }
+
+  async deleteCocktail(id: number): Promise<boolean> {
+    const cocktail = this.cocktails.get(id);
+    if (!cocktail) return false;
+    
+    // Remove the cocktail
+    this.cocktails.delete(id);
+    
+    // Remove associated ingredients
+    Array.from(this.cocktailIngredients.keys()).forEach(key => {
+      const ci = this.cocktailIngredients.get(key);
+      if (ci && ci.cocktailId === id) {
+        this.cocktailIngredients.delete(key);
+      }
+    });
+    
+    // Remove associated instructions
+    Array.from(this.cocktailInstructions.keys()).forEach(key => {
+      const inst = this.cocktailInstructions.get(key);
+      if (inst && inst.cocktailId === id) {
+        this.cocktailInstructions.delete(key);
+      }
+    });
+    
+    // Remove associated tags
+    Array.from(this.cocktailTags.keys()).forEach(key => {
+      const ct = this.cocktailTags.get(key);
+      if (ct && ct.cocktailId === id) {
+        this.cocktailTags.delete(key);
+      }
+    });
+    
+    return true;
   }
 
   async getCocktailWithDetails(id: number): Promise<{

@@ -375,4 +375,42 @@ export class FirebaseStorage implements IStorage {
     const snapshot = await this.tagsCollection.get();
     return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Tag));
   }
+
+  async deleteCocktail(id: number): Promise<boolean> {
+    try {
+      const docRef = this.cocktailsCollection.doc(id.toString());
+      const docSnapshot = await docRef.get();
+      
+      if (!docSnapshot.exists) {
+        return false;
+      }
+      
+      // Delete the cocktail document
+      await docRef.delete();
+      
+      // Delete associated ingredients
+      const ingredientsSnapshot = await this.cocktailIngredientsCollection.where('cocktailId', '==', id).get();
+      const ingredientDeletePromises = ingredientsSnapshot.docs.map(doc => doc.ref.delete());
+      
+      // Delete associated instructions
+      const instructionsSnapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', id).get();
+      const instructionDeletePromises = instructionsSnapshot.docs.map(doc => doc.ref.delete());
+      
+      // Delete associated tags (cocktail-tag relationships)
+      const tagsSnapshot = await this.cocktailTagsCollection.where('cocktailId', '==', id).get();
+      const tagDeletePromises = tagsSnapshot.docs.map(doc => doc.ref.delete());
+      
+      // Execute all deletions
+      await Promise.all([
+        ...ingredientDeletePromises,
+        ...instructionDeletePromises,
+        ...tagDeletePromises
+      ]);
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting cocktail:', error);
+      return false;
+    }
+  }
 }

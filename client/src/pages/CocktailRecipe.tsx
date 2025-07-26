@@ -1,47 +1,106 @@
-import { ArrowLeft, Clock, Users, Star, Heart, Share } from "lucide-react";
-import { Link } from "wouter";
+import { ArrowLeft, Clock, Users, Star, Heart, Share, Trash2 } from "lucide-react";
+import { Link, useRoute, useLocation } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export const CocktailRecipe = (): JSX.Element => {
-  // Sample recipe data - you can replace this with actual data from your backend
-  const recipe = {
-    name: "Classic Martini",
-    description: "A timeless cocktail with a sophisticated taste and perfect balance of gin and vermouth.",
-    image: "/figmaAssets/depth-7--frame-0-3.png",
-    difficulty: "Easy",
-    prepTime: "2 minutes",
-    servings: 1,
-    rating: 4.8,
-    category: "Classic",
-    ingredients: [
-      { amount: "2.5 oz", ingredient: "Gin" },
-      { amount: "0.5 oz", ingredient: "Dry Vermouth" },
-      { amount: "1", ingredient: "Lemon twist or olive for garnish" },
-      { amount: "Ice", ingredient: "For stirring" }
-    ],
-    instructions: [
-      "Fill a mixing glass with ice cubes.",
-      "Add gin and dry vermouth to the mixing glass.",
-      "Stir the mixture gently for about 30 seconds to chill and dilute.",
-      "Strain the cocktail into a chilled martini glass.",
-      "Garnish with a lemon twist or olive.",
-      "Serve immediately and enjoy!"
-    ],
-    tips: [
-      "Always use a chilled glass for the best experience",
-      "The ratio can be adjusted to taste - some prefer a drier martini with less vermouth",
-      "Quality gin makes a significant difference in the final taste"
-    ]
+  const [match, params] = useRoute("/cocktail/:id");
+  const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+  
+  const cocktailId = params?.id ? parseInt(params.id) : null;
+
+  // Fetch cocktail details
+  const { data: cocktailDetails, isLoading, error } = useQuery({
+    queryKey: ['/api/cocktails', cocktailId],
+    queryFn: () => apiRequest(`/api/cocktails/${cocktailId}`),
+    enabled: !!cocktailId,
+  });
+
+  // Delete cocktail mutation
+  const deleteMutation = useMutation({
+    mutationFn: () => apiRequest(`/api/cocktails/${cocktailId}`, {
+      method: 'DELETE',
+    }),
+    onSuccess: () => {
+      toast({
+        title: "Recipe deleted",
+        description: "The cocktail recipe has been removed successfully.",
+      });
+      // Invalidate queries and redirect
+      queryClient.invalidateQueries({ queryKey: ['/api/cocktails'] });
+      setLocation('/cocktails');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete the recipe. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete this recipe? This action cannot be undone.")) {
+      deleteMutation.mutate();
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#161611] text-white p-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse space-y-6">
+            <div className="h-8 bg-[#383529] rounded w-1/4"></div>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="h-[400px] bg-[#383529] rounded"></div>
+              <div className="space-y-4">
+                <div className="h-6 bg-[#383529] rounded w-1/2"></div>
+                <div className="h-8 bg-[#383529] rounded w-3/4"></div>
+                <div className="h-4 bg-[#383529] rounded w-full"></div>
+                <div className="h-4 bg-[#383529] rounded w-2/3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !cocktailDetails) {
+    return (
+      <div className="min-h-screen bg-[#161611] text-white p-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-[#383629] border-[#544f3b]">
+            <CardContent className="p-8 text-center">
+              <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                Recipe not found or failed to load.
+              </p>
+              <Link href="/cocktails">
+                <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                  Back to Recipes
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  const { cocktail, ingredients, instructions } = cocktailDetails;
 
   return (
     <div className="min-h-screen bg-[#161611] text-white">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
-          <Link href="/">
+          <Link href="/cocktails">
             <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Recipes
@@ -62,42 +121,53 @@ export const CocktailRecipe = (): JSX.Element => {
         {/* Hero Section */}
         <div className="grid md:grid-cols-2 gap-6 items-start">
           <div
-            className="w-full h-[400px] rounded-lg bg-cover bg-center"
-            style={{ backgroundImage: `url(${recipe.image})` }}
-          />
+            className="w-full h-[400px] rounded-lg bg-cover bg-center bg-[#383529]"
+            style={{ 
+              backgroundImage: cocktail.imageUrl ? `url(${cocktail.imageUrl})` : 'none',
+              backgroundColor: !cocktail.imageUrl ? '#383529' : undefined
+            }}
+          >
+            {!cocktail.imageUrl && (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-[#bab59b] text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  No Image
+                </span>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-4">
             <div>
               <Badge className="mb-2 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]">
-                {recipe.category}
+                Cocktail Recipe
               </Badge>
               <h1 className="text-3xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                {recipe.name}
+                {cocktail.name}
               </h1>
               <p className="text-[#bab59b] mt-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                {recipe.description}
+                {cocktail.description || "A delicious cocktail recipe."}
               </p>
             </div>
 
             <div className="flex items-center gap-4 text-sm text-[#bab59b]">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 fill-[#f2c40c] text-[#f2c40c]" />
-                <span>{recipe.rating}</span>
+                <span>{cocktail.popularityCount || 0} likes</span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="w-4 h-4" />
-                <span>{recipe.prepTime}</span>
+                <span>5 minutes</span>
               </div>
               <div className="flex items-center gap-1">
                 <Users className="w-4 h-4" />
-                <span>{recipe.servings} serving</span>
+                <span>1 serving</span>
               </div>
             </div>
 
             <div className="p-4 bg-[#2a2920] rounded-lg">
-              <h3 className="font-semibold text-white mb-2">Difficulty Level</h3>
+              <h3 className="font-semibold text-white mb-2">Status</h3>
               <Badge variant="outline" className="border-[#4a4735] text-white">
-                {recipe.difficulty}
+                {cocktail.isFeatured ? 'Featured Recipe' : 'Standard Recipe'}
               </Badge>
             </div>
           </div>
@@ -110,12 +180,18 @@ export const CocktailRecipe = (): JSX.Element => {
               Ingredients
             </h2>
             <div className="grid gap-3">
-              {recipe.ingredients.map((item, index) => (
-                <div key={index} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
-                  <span className="text-white font-medium">{item.ingredient}</span>
-                  <span className="text-[#f2c40c] font-semibold">{item.amount}</span>
+              {ingredients && ingredients.length > 0 ? (
+                ingredients.map((item, index) => (
+                  <div key={index} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
+                    <span className="text-white font-medium">{item.ingredient.name}</span>
+                    <span className="text-[#f2c40c] font-semibold">{item.amount}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-[#bab59b] text-center p-4">
+                  No ingredients listed for this recipe.
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -127,35 +203,51 @@ export const CocktailRecipe = (): JSX.Element => {
               Instructions
             </h2>
             <div className="space-y-4">
-              {recipe.instructions.map((step, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex-shrink-0 w-8 h-8 bg-[#f2c40c] text-[#161611] rounded-full flex items-center justify-center font-bold text-sm">
-                    {index + 1}
+              {instructions && instructions.length > 0 ? (
+                instructions.map((step, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 bg-[#f2c40c] text-[#161611] rounded-full flex items-center justify-center font-bold text-sm">
+                      {index + 1}
+                    </div>
+                    <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] pt-1">
+                      {step.instruction}
+                    </p>
                   </div>
-                  <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] pt-1">
-                    {step}
-                  </p>
+                ))
+              ) : (
+                <div className="text-[#bab59b] text-center p-4">
+                  No instructions provided for this recipe.
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Tips Section */}
+        {/* Tips Section - Pro tip: Always use fresh ingredients for best results */}
         <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardContent className="p-6">
             <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
               Pro Tips
             </h2>
             <div className="space-y-3">
-              {recipe.tips.map((tip, index) => (
-                <div key={index} className="flex gap-3">
-                  <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
-                  <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                    {tip}
-                  </p>
-                </div>
-              ))}
+              <div className="flex gap-3">
+                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
+                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Always use fresh ingredients for the best taste
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
+                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Chill your glassware before serving for a professional touch
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
+                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Experiment with garnishes to add your personal flair
+                </p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -165,8 +257,14 @@ export const CocktailRecipe = (): JSX.Element => {
           <Button className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold">
             Start Making This Cocktail
           </Button>
-          <Button variant="outline" className="border-[#4a4735] !text-white hover:bg-[#2a2920] hover:!text-white bg-transparent">
-            Save Recipe
+          <Button 
+            variant="outline" 
+            onClick={handleDelete}
+            disabled={deleteMutation.isPending}
+            className="border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
           </Button>
         </div>
       </div>

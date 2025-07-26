@@ -206,6 +206,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/cocktails/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const success = await storage.deleteCocktail?.(id);
+      if (success) {
+        res.json({ message: "Cocktail deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Cocktail not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Error deleting cocktail", error });
+    }
+  });
+
   // =================== SEARCH ===================
   app.get("/api/search", async (req, res) => {
     const { q, type } = req.query;

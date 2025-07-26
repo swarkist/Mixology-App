@@ -157,6 +157,10 @@ export class FirebaseStorageAdapter implements IStorage {
     return updated;
   }
 
+  async deleteCocktail(id: number): Promise<boolean> {
+    return this.firebase.deleteCocktail(id);
+  }
+
   async toggleFeatured(cocktailId: number): Promise<Cocktail> {
     const cocktail = await this.firebase.getCocktailById(cocktailId);
     if (!cocktail) throw new Error('Cocktail not found');
