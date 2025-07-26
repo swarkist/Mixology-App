@@ -1,88 +1,138 @@
-import React from "react";
-import { Separator } from "@/components/ui/separator";
+import React, { useState } from "react";
+import { TrendingUp, Filter, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import type { Cocktail } from "@shared/schema";
+import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 
 export const PopularRecipesSection = (): JSX.Element => {
-  // Footer navigation links data
-  const footerLinks = [
-    { title: "About" },
-    { title: "Contact" },
-    { title: "Privacy Policy" },
-    { title: "Terms of Service" },
-  ];
+  const [spiritFilter, setSpiritFilter] = useState<string>("all");
 
-  // Social media icons data
-  const socialIcons = [
-    { icon: "twitter", ariaLabel: "Twitter" },
-    { icon: "instagram", ariaLabel: "Instagram" },
-    { icon: "facebook", ariaLabel: "Facebook" },
-  ];
+  // Fetch popular cocktails
+  const { data: popularCocktails, isLoading: popularLoading } = useQuery<Cocktail[]>({
+    queryKey: ["/api/cocktails?popular=true"],
+  });
+
+  // Filter cocktails by spirit if a filter is selected
+  // Note: This is a simple implementation. In a real app, you'd filter by ingredients on the backend
+  const filteredCocktails = popularCocktails?.slice(0, 6) || [];
 
   return (
-    <footer className="flex justify-center w-full">
-      <div className="flex flex-col max-w-[960px] w-full">
-        <div className="flex flex-col gap-6 px-5 py-10 w-full">
-          {/* Navigation Links */}
-          <nav className="flex flex-wrap items-center justify-between gap-[24px_24px] w-full">
-            {footerLinks.map((link, index) => (
-              <div key={index} className="flex flex-col w-40 items-center">
-                <a
-                  href="#"
-                  className="font-normal text-[#bab59b] text-base text-center leading-6 w-full [font-family:'Plus_Jakarta_Sans',Helvetica] tracking-[0] hover:text-white transition-colors"
-                >
-                  {link.title}
-                </a>
-              </div>
-            ))}
-          </nav>
-
-          {/* Social Media Icons */}
-          <div className="flex justify-center gap-4">
-            {socialIcons.map((social, index) => (
-              <a
-                key={index}
-                href="#"
-                aria-label={social.ariaLabel}
-                className="text-[#bab59b] hover:text-white transition-colors"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  {social.icon === "twitter" && (
-                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-                  )}
-                  {social.icon === "instagram" && (
-                    <>
-                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                    </>
-                  )}
-                  {social.icon === "facebook" && (
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                  )}
-                </svg>
-              </a>
-            ))}
+    <div className="px-10 py-8 bg-[#161611]">
+      {/* Section Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <TrendingUp className="h-6 w-6 text-[#f2c40c]" />
+          <h3 className="text-2xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+            Popular Recipes
+          </h3>
+        </div>
+        
+        {/* Spirit Filter */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-[#bab59b]" />
+            <span className="text-sm text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Filter by Spirit:
+            </span>
           </div>
-
-          {/* Divider Line */}
-          <Separator className="bg-[#bab59b] opacity-30" />
-
-          {/* Copyright Text */}
-          <div className="flex justify-center w-full">
-            <p className="[font-family:'Plus_Jakarta_Sans',Helvetica] font-normal text-[#bab59b] text-base text-center tracking-[0] leading-6">
-              © 2024 Mixology. All rights reserved.
-            </p>
-          </div>
+          <Select value={spiritFilter} onValueChange={setSpiritFilter}>
+            <SelectTrigger className="w-40 bg-[#383629] border-[#544f3b] text-white">
+              <SelectValue placeholder="All Spirits" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#383629] border-[#544f3b]">
+              <SelectItem value="all" className="text-white hover:bg-[#544f3b]">
+                All Spirits
+              </SelectItem>
+              {SPIRIT_SUBCATEGORIES.map((spirit) => (
+                <SelectItem 
+                  key={spirit} 
+                  value={spirit}
+                  className="text-white hover:bg-[#544f3b] capitalize"
+                >
+                  {spirit}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
-    </footer>
+
+      {/* Popular Cocktails Grid */}
+      {popularLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
+                <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : filteredCocktails.length > 0 ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {filteredCocktails.map((cocktail: Cocktail, index: number) => (
+              <Link key={cocktail.id} href={`/recipe/${cocktail.id}`}>
+                <Card className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-colors cursor-pointer">
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <Badge 
+                        variant="outline" 
+                        className="border-[#f2c40c] text-[#f2c40c] font-bold"
+                      >
+                        #{index + 1} Popular
+                      </Badge>
+                      <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                        <TrendingUp className="h-4 w-4" />
+                        <span>{cocktail.popularityCount} views</span>
+                      </div>
+                    </div>
+                    <h4 className="text-xl font-bold text-white mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                      {cocktail.name}
+                    </h4>
+                    {cocktail.description && (
+                      <p className="text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-2">
+                        {cocktail.description}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
+          </div>
+          
+          {/* View All Button */}
+          <div className="text-center">
+            <Link href="/cocktails?popular=true">
+              <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold">
+                View All Popular Recipes
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
+          </div>
+        </>
+      ) : (
+        <Card className="bg-[#383629] border-[#544f3b] mb-8">
+          <CardContent className="p-8 text-center">
+            <TrendingUp className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
+            <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              No popular recipes yet. Cocktails become popular when users click "Start Making This Cocktail"!
+            </p>
+            <Link href="/cocktails">
+              <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                Browse All Cocktails
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
