@@ -5,6 +5,7 @@ import {
   insertTagSchema, insertIngredientSchema, insertCocktailSchema,
   cocktailFormSchema, ingredientFormSchema 
 } from "@shared/schema";
+import firebaseTestRoutes from "./routes/firebase-test";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // =================== USERS ===================
@@ -232,6 +233,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Search error", error });
     }
   });
+
+  // Add Firebase test routes
+  app.use("/api", firebaseTestRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

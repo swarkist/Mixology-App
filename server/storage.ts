@@ -501,4 +501,10 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import Firebase adapter
+import { FirebaseStorageAdapter } from './storage/firebase-adapter';
+
+// Choose storage backend based on environment
+export const storage: IStorage = process.env.FIREBASE_PROJECT_ID 
+  ? new FirebaseStorageAdapter()
+  : new MemStorage();
