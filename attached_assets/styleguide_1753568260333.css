@@ -1,0 +1,430 @@
+<div className="flex flex-col justify-start items-start w-[1280px] bg-white">
+  <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 overflow-hidden bg-[#171712]">
+    <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0">
+      <div className="flex justify-between items-center self-stretch flex-grow-0 flex-shrink-0 px-10 py-3 border-t-0 border-r-0 border-b border-l-0 border-[#e5e8eb]">
+        <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 gap-4">
+          <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+            <div className="flex-grow w-4 relative overflow-hidden">
+              <div className="absolute left-[-1px] top-[-1px]" />
+              <div className="absolute left-[-1px] top-[-1px]" />
+              <div className="flex flex-col justify-start items-start absolute left-0 top-0">
+                <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[15px] h-[15px]" />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 text-lg font-bold text-left text-white">
+              Mixology
+            </p>
+          </div>
+        </div>
+        <div className="flex justify-end items-start flex-grow relative gap-8">
+          <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 h-10 gap-9">
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                Recipes
+              </p>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                Ingredients
+              </p>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                My Recipes
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-start items-start flex-grow-0 flex-shrink-0 gap-2">
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden gap-2 px-2.5 rounded-[20px] bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow relative">
+                <div className="self-stretch flex-grow relative overflow-hidden">
+                  <svg
+                    width={18}
+                    height={18}
+                    viewBox="0 0 18 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M16.9422 16.0578L13.0305 12.1469C15.3858 9.3192 15.1004 5.13911 12.3826 2.65779C9.66485 0.176469 5.47612 0.271665 2.87389 2.87389C0.271665 5.47612 0.176469 9.66485 2.65779 12.3826C5.13911 15.1004 9.3192 15.3858 12.1469 13.0305L16.0578 16.9422C16.302 17.1864 16.698 17.1864 16.9422 16.9422C17.1864 16.698 17.1864 16.302 16.9422 16.0578V16.0578ZM2.125 7.75C2.125 4.6434 4.6434 2.125 7.75 2.125C10.8566 2.125 13.375 4.6434 13.375 7.75C13.375 10.8566 10.8566 13.375 7.75 13.375C4.64483 13.3716 2.12844 10.8552 2.125 7.75V7.75Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-4 h-4 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden gap-2 px-2.5 rounded-[20px] bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow relative">
+                <div className="self-stretch flex-grow relative overflow-hidden">
+                  <svg
+                    width={12}
+                    height={17}
+                    viewBox="0 0 12 17"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M10.375 0.5H1.625C0.934644 0.5 0.375 1.05964 0.375 1.75V15.5C0.375113 15.7271 0.498455 15.9364 0.697156 16.0464C0.895856 16.1565 1.13863 16.1501 1.33125 16.0297L6 13.1117L10.6695 16.0297C10.8621 16.1497 11.1046 16.1558 11.303 16.0458C11.5015 15.9358 11.6247 15.7269 11.625 15.5V1.75C11.625 1.05964 11.0654 0.5 10.375 0.5V0.5ZM10.375 1.75V10.6227L6.33047 8.09531C6.1278 7.96864 5.87064 7.96864 5.66797 8.09531L1.625 10.6219V1.75H10.375ZM6.33047 11.8453C6.1278 11.7186 5.87064 11.7186 5.66797 11.8453L1.625 14.3727V12.0961L6 9.36172L10.375 12.0961V14.3727L6.33047 11.8453Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-[11px] h-4 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex-grow-0 flex-shrink-0 w-10 h-10 relative overflow-hidden rounded-[20px] bg-[url('depth-4,-frame-2.png')] bg-cover bg-no-repeat bg-center" />
+        </div>
+      </div>
+      <div className="flex justify-center items-start self-stretch flex-grow px-40 py-5">
+        <div className="flex flex-col justify-start items-start flex-grow overflow-hidden">
+          <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0 p-4">
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-72 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 w-72 text-[32px] font-bold text-left text-white">
+                Style Guide
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Colors
+            </p>
+          </div>
+          <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-5 p-4">
+            <div
+              className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-10 h-10 overflow-hidden rounded-[20px] bg-[#f2f2f2] border-[3px] border-[#171712]"
+              style={{ boxShadow: "0px 0px 0px 0 #fff" }}
+            />
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-10 h-10 rounded-[20px] bg-[#1a1a1a] border border-[#544f3b]" />
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-10 h-10 rounded-[20px] bg-[#d4b038] border border-[#544f3b]" />
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-10 h-10 rounded-[20px] bg-white border border-[#544f3b]" />
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Typography
+            </p>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 h-[60px] relative px-4 pt-5 pb-3">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-[22px] font-bold text-left text-white">
+              Heading 1
+            </p>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 h-[47px] relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Heading 2
+            </p>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-4 pt-1 pb-3">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-base text-left text-white">
+              Body Text
+            </p>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-4 pt-1 pb-3">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-sm text-left text-[#bab59c]">
+              Meta Text
+            </p>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Buttons
+            </p>
+          </div>
+          <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0">
+            <div className="flex justify-start items-start flex-grow gap-3 px-4 py-3">
+              <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden px-4 rounded-[20px] bg-[#f5d13d]">
+                <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative overflow-hidden">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-bold text-center text-[#171712]">
+                    Primary
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden px-4 rounded-[20px] bg-[#383629]">
+                <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative overflow-hidden">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-bold text-center text-white">
+                    Secondary
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0">
+            <div className="flex justify-start items-start flex-grow gap-3 px-4 py-3">
+              <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden px-4 rounded-[20px]">
+                <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative overflow-hidden">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-bold text-center text-white">
+                    Tertiary
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden px-4 rounded-[20px] bg-[#f5d13d]">
+                <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative overflow-hidden">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-bold text-center text-[#171712]">
+                    Icon Button
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 h-[47px] relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Input Fields
+            </p>
+          </div>
+          <div className="flex justify-start items-end flex-grow-0 flex-shrink-0 gap-4 px-4 py-3">
+            <div className="flex flex-col justify-start items-start flex-grow">
+              <div className="flex justify-start items-center self-stretch flex-grow-0 flex-shrink-0 h-14 relative overflow-hidden p-4 rounded-xl bg-[#383629]">
+                <p className="flex-grow-0 flex-shrink-0 text-base text-left text-[#bab59c]">
+                  Single Field
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-start items-end flex-grow-0 flex-shrink-0 gap-4 px-4 py-3">
+            <div className="flex flex-col justify-start items-start flex-grow">
+              <div className="flex justify-start items-center self-stretch flex-grow-0 flex-shrink-0 h-14 relative overflow-hidden p-4 rounded-xl bg-[#383629]">
+                <p className="flex-grow-0 flex-shrink-0 text-base text-left text-[#bab59c]">
+                  Field 1
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow">
+              <div className="flex justify-start items-center self-stretch flex-grow-0 flex-shrink-0 h-14 relative overflow-hidden p-4 rounded-xl bg-[#383629]">
+                <p className="flex-grow-0 flex-shrink-0 text-base text-left text-[#bab59c]">
+                  Field 2
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-start items-end flex-grow-0 flex-shrink-0 gap-4 px-4 py-3">
+            <div className="flex flex-col justify-start items-start flex-grow">
+              <div className="flex justify-start items-start self-stretch flex-grow w-[448px] h-36 overflow-hidden p-4 rounded-xl bg-[#383629]" />
+            </div>
+          </div>
+          <div className="flex justify-start items-end flex-grow-0 flex-shrink-0 gap-4 px-4 py-3">
+            <div className="flex flex-col justify-start items-start flex-grow relative">
+              <div className="self-stretch flex-grow-0 flex-shrink-0 h-14 relative overflow-hidden rounded-xl bg-[#383629]">
+                <svg
+                  width={12}
+                  height={20}
+                  viewBox="0 0 12 20"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute left-[423px] top-4"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M11.0306 13.9694C11.1715 14.1101 11.2506 14.3009 11.2506 14.5C11.2506 14.6991 11.1715 14.8899 11.0306 15.0306L6.53063 19.5306C6.38995 19.6715 6.19906 19.7506 6 19.7506C5.80094 19.7506 5.61005 19.6715 5.46938 19.5306L0.969375 15.0306C0.676319 14.7376 0.676319 14.2624 0.969375 13.9694C1.26243 13.6763 1.73757 13.6763 2.03063 13.9694L6 17.9397L9.96938 13.9694C10.1101 13.8285 10.3009 13.7494 10.5 13.7494C10.6991 13.7494 10.8899 13.8285 11.0306 13.9694V13.9694ZM2.03063 6.03063L6 2.06031L9.96938 6.03063C10.2624 6.32368 10.7376 6.32368 11.0306 6.03063C11.3237 5.73757 11.3237 5.26243 11.0306 4.96938L6.53063 0.469375C6.38995 0.328542 6.19906 0.24941 6 0.24941C5.80094 0.24941 5.61005 0.328542 5.46938 0.469375L0.969375 4.96938C0.676319 5.26243 0.676319 5.73757 0.969375 6.03063C1.26243 6.32368 1.73757 6.32368 2.03063 6.03063V6.03063Z"
+                    fill="#BAB59C"
+                  />
+                </svg>
+                <p className="absolute left-[9px] top-4 text-base text-left text-white">Dropdown</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 h-[47px] relative px-4 pt-4 pb-2">
+            <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-lg font-bold text-left text-white">
+              Other UI Elements
+            </p>
+          </div>
+          <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 pl-3 pr-4 py-3">
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="flex-grow-0 flex-shrink-0 w-[63px] h-[22px] text-sm font-medium text-left text-white">
+                  Choice 1
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[59px] relative">
+                <p className="flex-grow-0 flex-shrink-0 w-[66px] text-sm font-medium text-left text-white">
+                  Choice 2
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-[60px] text-sm font-medium text-left text-white">
+                  Choice 3
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 pl-3 pr-4 py-3">
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Filter 1
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.063599 1.69797 0.063599 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219V1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Filter 2
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.063599 1.69797 0.063599 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219V1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Filter 3
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.063599 1.69797 0.063599 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219V1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 pl-3 pr-4 py-3">
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-8 text-sm font-medium text-left text-white">
+                  Tag 1
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-[35px] text-sm font-medium text-left text-white">
+                  Tag 2
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 px-4 rounded-2xl bg-[#383629]">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-[35px] text-sm font-medium text-left text-white">
+                  Tag 3
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 p-4">
+            <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0">
+              <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-base font-medium text-left text-white">
+                  Progress Bar
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 rounded bg-[#544f3b]">
+              <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[557px] h-2 rounded bg-white" />
+            </div>
+            <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 w-[928px] text-sm text-left text-[#bab59c]">
+                60%
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0">
+            <div className="flex justify-between items-center self-stretch flex-grow p-4">
+              <div className="flex justify-between items-center flex-grow">
+                <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-base font-medium text-left text-white">
+                    Slider
+                  </p>
+                </div>
+              </div>
+              <div className="flex justify-start items-center flex-grow h-4 gap-4">
+                <div className="flex justify-start items-start flex-grow h-1 rounded-sm bg-[#544f3b]">
+                  <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-[211px] h-1 rounded-sm bg-white" />
+                </div>
+                <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm text-left text-white">
+                    50
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0">
+            <div className="flex justify-between items-start self-stretch flex-grow p-4">
+              <div className="flex flex-col justify-start items-start flex-grow relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-[464px] text-base font-medium text-left text-white">
+                  Range Slider
+                </p>
+              </div>
+              <div className="flex justify-start items-start flex-grow h-[38px] pt-1.5">
+                <div className="flex justify-start items-start flex-grow h-1 pl-[416px] pr-[104px] rounded-sm bg-[#544f3b]">
+                  <div className="flex flex-col justify-start items-start flex-grow w-px h-1 rounded-sm bg-white" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>;

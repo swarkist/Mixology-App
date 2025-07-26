@@ -1,0 +1,3541 @@
+{
+  "metadata": {
+    "exportedAt": "2025-07-13T16:58:45.045Z",
+    "componentName": "Stitch Design",
+    "totalElements": 163,
+    "nestingDepth": 10,
+    "plugin": "Figma to JSON Exporter"
+  },
+  "designTokens": {
+    "colors": {
+      "color-rgb(255, 255, 255)": "rgb(255, 255, 255)",
+      "color-rgb(23, 23, 18)": "rgb(23, 23, 18)",
+      "color-rgb(56, 54, 41)": "rgb(56, 54, 41)",
+      "color-rgb(242, 242, 242)": "rgb(242, 242, 242)",
+      "color-rgb(26, 26, 26)": "rgb(26, 26, 26)",
+      "color-rgb(212, 176, 56)": "rgb(212, 176, 56)",
+      "color-rgb(186, 181, 156)": "rgb(186, 181, 156)",
+      "color-rgb(245, 209, 61)": "rgb(245, 209, 61)",
+      "color-rgb(84, 79, 59)": "rgb(84, 79, 59)"
+    },
+    "fonts": {
+      "plus-jakarta-sans": {
+        "family": "Plus Jakarta Sans",
+        "sizes": {
+          "size-18": "18px",
+          "size-14": "14px",
+          "size-32": "32px",
+          "size-22": "22px",
+          "size-16": "16px"
+        },
+        "weights": {
+          "weight-700": "700",
+          "weight-500": "500",
+          "weight-400": "400"
+        }
+      }
+    },
+    "spacing": {
+      "padding-top-12": "12px",
+      "padding-right-40": "40px",
+      "padding-bottom-12": "12px",
+      "padding-left-40": "40px",
+      "gap-16": "16px",
+      "gap-32": "32px",
+      "gap-36": "36px",
+      "gap-8": "8px",
+      "padding-right-10": "10px",
+      "padding-left-10": "10px",
+      "padding-top-20": "20px",
+      "padding-right-160": "160px",
+      "padding-bottom-20": "20px",
+      "padding-left-160": "160px",
+      "padding-top-16": "16px",
+      "padding-right-16": "16px",
+      "padding-bottom-16": "16px",
+      "padding-left-16": "16px",
+      "gap-12": "12px",
+      "padding-bottom-8": "8px",
+      "gap-20": "20px",
+      "padding-top-4": "4px",
+      "padding-left-12": "12px",
+      "padding-right-8": "8px",
+      "gap-24": "24px",
+      "padding-top-6": "6px",
+      "padding-right-104": "104px",
+      "padding-left-416": "416px"
+    },
+    "effects": {
+      "shadow-0-0": {
+        "x": 0,
+        "y": 0,
+        "blur": 0,
+        "color": "rgb(255, 255, 255)"
+      }
+    }
+  },
+  "structure": {
+    "name": "stitch-design",
+    "type": "FRAME",
+    "size": {
+      "w": 1280,
+      "h": 1604
+    },
+    "styles": {
+      "bg": "rgb(255, 255, 255)",
+      "layout": {
+        "direction": "column",
+        "gap": 0,
+        "align": {
+          "main": "start",
+          "cross": "start"
+        }
+      }
+    },
+    "children": [
+      {
+        "name": "depth-0--frame-0",
+        "type": "FRAME",
+        "size": {
+          "w": 1280,
+          "h": 1604
+        },
+        "styles": {
+          "bg": "rgb(23, 23, 18)",
+          "layout": {
+            "direction": "column",
+            "gap": 0,
+            "align": {
+              "main": "start",
+              "cross": "start"
+            }
+          }
+        },
+        "children": [
+          {
+            "name": "depth-1--frame-0",
+            "type": "FRAME",
+            "size": {
+              "w": 1280,
+              "h": 1604
+            },
+            "styles": {
+              "layout": {
+                "direction": "column",
+                "gap": 0,
+                "align": {
+                  "main": "start",
+                  "cross": "start"
+                }
+              }
+            },
+            "children": [
+              {
+                "name": "depth-2--frame-0",
+                "type": "FRAME",
+                "size": {
+                  "w": 1280,
+                  "h": 65
+                },
+                "styles": {
+                  "border": {
+                    "width": 1,
+                    "color": "rgb(229, 232, 235)"
+                  },
+                  "layout": {
+                    "direction": "row",
+                    "gap": 0,
+                    "align": {
+                      "main": "space-between",
+                      "cross": "center"
+                    },
+                    "padding": [
+                      12,
+                      40,
+                      12,
+                      40
+                    ]
+                  }
+                },
+                "children": [
+                  {
+                    "name": "depth-3--frame-0",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 113,
+                      "h": 23
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "row",
+                        "gap": 16,
+                        "align": {
+                          "main": "start",
+                          "cross": "center"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 16,
+                          "h": 16
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 16,
+                              "h": 16
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "vector---0",
+                                "type": "VECTOR",
+                                "size": {
+                                  "w": 16,
+                                  "h": 16
+                                },
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)"
+                                }
+                              },
+                              {
+                                "name": "vector---1",
+                                "type": "VECTOR",
+                                "size": {
+                                  "w": 16,
+                                  "h": 16
+                                },
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)"
+                                }
+                              },
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 15,
+                                  "h": 15
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 15,
+                                      "h": 15
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 81,
+                          "h": 23
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "mixology",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 81,
+                              "h": 23
+                            },
+                            "content": "Mixology",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "depth-3--frame-1",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 1087,
+                      "h": 40
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "row",
+                        "gap": 32,
+                        "align": {
+                          "main": "end",
+                          "cross": "start"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 281,
+                          "h": 40
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 36,
+                            "align": {
+                              "main": "start",
+                              "cross": "center"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 55,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "recipes",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 55,
+                                  "h": 21
+                                },
+                                "content": "Recipes",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 77,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "ingredients",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 77,
+                                  "h": 21
+                                },
+                                "content": "Ingredients",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 77,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "my-recipes",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 77,
+                                  "h": 21
+                                },
+                                "content": "My Recipes",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 88,
+                          "h": 40
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 8,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 20,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  10,
+                                  0,
+                                  10
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 16,
+                                          "h": 16
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 20,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  10,
+                                  0,
+                                  10
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 11,
+                                          "h": 16
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-2",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 40,
+                          "h": 40
+                        },
+                        "styles": {
+                          "radius": 20,
+                          "layout": {
+                            "direction": "row",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "depth-2--frame-1",
+                "type": "FRAME",
+                "size": {
+                  "w": 1280,
+                  "h": 1539
+                },
+                "styles": {
+                  "layout": {
+                    "direction": "row",
+                    "gap": 0,
+                    "align": {
+                      "main": "center",
+                      "cross": "start"
+                    },
+                    "padding": [
+                      20,
+                      160,
+                      20,
+                      160
+                    ]
+                  }
+                },
+                "children": [
+                  {
+                    "name": "depth-3--frame-0",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 960,
+                      "h": 1502
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "column",
+                        "gap": 0,
+                        "align": {
+                          "main": "start",
+                          "cross": "start"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 72
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "space-between",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              16,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 288,
+                              "h": 40
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "style-guide",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 288,
+                                  "h": 40
+                                },
+                                "content": "Style Guide",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 32,
+                                    "weight": "700",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "colors",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Colors",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-2",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 72
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 20,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              16,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(242, 242, 242)",
+                              "border": {
+                                "width": 3,
+                                "color": "rgb(23, 23, 18)"
+                              },
+                              "radius": 20,
+                              "shadow": {
+                                "x": 0,
+                                "y": 0,
+                                "blur": 0,
+                                "color": "rgb(255, 255, 255)"
+                              },
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(26, 26, 26)",
+                              "border": {
+                                "width": 1,
+                                "color": "rgb(84, 79, 59)"
+                              },
+                              "radius": 20,
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(212, 176, 56)",
+                              "border": {
+                                "width": 1,
+                                "color": "rgb(84, 79, 59)"
+                              },
+                              "radius": 20,
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "name": "depth-5--frame-3",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 40,
+                              "h": 40
+                            },
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "border": {
+                                "width": 1,
+                                "color": "rgb(84, 79, 59)"
+                              },
+                              "radius": 20,
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-3",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "typography",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Typography",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-4",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 60
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              20,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "heading-1",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 28
+                            },
+                            "content": "Heading 1",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 22,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-5",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "heading-2",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Heading 2",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-6",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 40
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              4,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "body-text",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 24
+                            },
+                            "content": "Body Text",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 16,
+                                "weight": "400",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-7",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 37
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              4,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "meta-text",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 21
+                            },
+                            "content": "Meta Text",
+                            "styles": {
+                              "bg": "rgb(186, 181, 156)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 14,
+                                "weight": "400",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-8",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "buttons",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Buttons",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-9",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 64
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 0,
+                            "align": {
+                              "main": "space-between",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 960,
+                              "h": 64
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                },
+                                "padding": [
+                                  12,
+                                  16,
+                                  12,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 85,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "bg": "rgb(245, 209, 61)",
+                                  "radius": 20,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "center",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      0,
+                                      16,
+                                      0,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 53,
+                                      "h": 21
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "primary",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 53,
+                                          "h": 21
+                                        },
+                                        "content": "Primary",
+                                        "styles": {
+                                          "bg": "rgb(23, 23, 18)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 14,
+                                            "weight": "700",
+                                            "align": "center"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 107,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 20,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "center",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      0,
+                                      16,
+                                      0,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 75,
+                                      "h": 21
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "secondary",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 75,
+                                          "h": 21
+                                        },
+                                        "content": "Secondary",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 14,
+                                            "weight": "700",
+                                            "align": "center"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-10",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 64
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 0,
+                            "align": {
+                              "main": "space-between",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 960,
+                              "h": 64
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                },
+                                "padding": [
+                                  12,
+                                  16,
+                                  12,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 84,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "radius": 20,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "center",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      0,
+                                      16,
+                                      0,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 52,
+                                      "h": 21
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "tertiary",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 52,
+                                          "h": 21
+                                        },
+                                        "content": "Tertiary",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 14,
+                                            "weight": "700",
+                                            "align": "center"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 112,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "bg": "rgb(245, 209, 61)",
+                                  "radius": 20,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "center",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      0,
+                                      16,
+                                      0,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 80,
+                                      "h": 21
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "icon-button",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 80,
+                                          "h": 21
+                                        },
+                                        "content": "Icon Button",
+                                        "styles": {
+                                          "bg": "rgb(23, 23, 18)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 14,
+                                            "weight": "700",
+                                            "align": "center"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-11",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "input-fields",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Input Fields",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-12",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 480,
+                          "h": 80
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 16,
+                            "align": {
+                              "main": "start",
+                              "cross": "end"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 448,
+                              "h": 56
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 448,
+                                  "h": 56
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 12,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      16,
+                                      16,
+                                      16,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "single-field",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 90,
+                                      "h": 24
+                                    },
+                                    "content": "Single  Field",
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-13",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 480,
+                          "h": 80
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 16,
+                            "align": {
+                              "main": "start",
+                              "cross": "end"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 216,
+                              "h": 56
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 216,
+                                  "h": 56
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 12,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      16,
+                                      16,
+                                      16,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "field-1",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 49,
+                                      "h": 24
+                                    },
+                                    "content": "Field  1",
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 216,
+                              "h": 56
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 216,
+                                  "h": 56
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 12,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      16,
+                                      16,
+                                      16,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "field-2",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 53,
+                                      "h": 24
+                                    },
+                                    "content": "Field  2",
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-14",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 480,
+                          "h": 168
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 16,
+                            "align": {
+                              "main": "start",
+                              "cross": "end"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 448,
+                              "h": 144
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 448,
+                                  "h": 144
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 12,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      16,
+                                      16,
+                                      16,
+                                      16
+                                    ]
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-15",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 480,
+                          "h": 80
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 16,
+                            "align": {
+                              "main": "start",
+                              "cross": "end"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 448,
+                              "h": 56
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 448,
+                                  "h": 56
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "radius": 12,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      16,
+                                      16,
+                                      16,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "vector---0",
+                                    "type": "VECTOR",
+                                    "size": {
+                                      "w": 24,
+                                      "h": 3
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)"
+                                    }
+                                  },
+                                  {
+                                    "name": "dropdown",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 82,
+                                      "h": 24
+                                    },
+                                    "content": "Dropdown",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-16",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 47
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              8,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "other-ui-elements",
+                            "type": "TEXT",
+                            "size": {
+                              "w": 928,
+                              "h": 23
+                            },
+                            "content": "Other UI Elements",
+                            "styles": {
+                              "bg": "rgb(255, 255, 255)",
+                              "text": {
+                                "family": "Plus Jakarta Sans",
+                                "size": 18,
+                                "weight": "700",
+                                "align": "left"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-17",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 56
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              12
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 88,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 56,
+                                  "h": 22
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "choice-1",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 63,
+                                      "h": 22
+                                    },
+                                    "content": "Choice 1",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 91,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 59,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "choice-2",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 66,
+                                      "h": 21
+                                    },
+                                    "content": "Choice 2",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 92,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 60,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "choice-3",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 60,
+                                      "h": 21
+                                    },
+                                    "content": "Choice 3",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-18",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 56
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              12
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 94,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 42,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "filter-1",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 42,
+                                      "h": 21
+                                    },
+                                    "content": "Filter 1",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 97,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 45,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "filter-2",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 45,
+                                      "h": 21
+                                    },
+                                    "content": "Filter 2",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 97,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 45,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "filter-3",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 45,
+                                      "h": 21
+                                    },
+                                    "content": "Filter 3",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-19",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 56
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              12
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 64,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 32,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "tag-1",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 32,
+                                      "h": 21
+                                    },
+                                    "content": "Tag 1",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 67,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 35,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "tag-2",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 35,
+                                      "h": 21
+                                    },
+                                    "content": "Tag 2",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 67,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 16,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  16,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 35,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "tag-3",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 35,
+                                      "h": 21
+                                    },
+                                    "content": "Tag 3",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-20",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 109
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              16,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 24
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 24,
+                                "align": {
+                                  "main": "space-between",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 98,
+                                  "h": 24
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "progress-bar",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 98,
+                                      "h": 24
+                                    },
+                                    "content": "Progress Bar",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 8
+                            },
+                            "styles": {
+                              "bg": "rgb(84, 79, 59)",
+                              "radius": 4,
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 557,
+                                  "h": 8
+                                },
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "radius": 4,
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "60-",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 928,
+                                  "h": 21
+                                },
+                                "content": "60%",
+                                "styles": {
+                                  "bg": "rgb(186, 181, 156)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "400",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-21",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 56
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 960,
+                              "h": 56
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "space-between",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  16,
+                                  16,
+                                  16,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 464,
+                                  "h": 24
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "space-between",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 45,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "slider",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 45,
+                                          "h": 24
+                                        },
+                                        "content": "Slider",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 464,
+                                  "h": 16
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 16,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 429,
+                                      "h": 4
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(84, 79, 59)",
+                                      "radius": 2,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 211,
+                                          "h": 4
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "radius": 2,
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "start"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 19,
+                                      "h": 21
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "50",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 19,
+                                          "h": 21
+                                        },
+                                        "content": "50",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 14,
+                                            "weight": "400",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-22",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 70
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 960,
+                              "h": 70
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "space-between",
+                                  "cross": "start"
+                                },
+                                "padding": [
+                                  16,
+                                  16,
+                                  16,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 464,
+                                  "h": 24
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "range-slider",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 464,
+                                      "h": 24
+                                    },
+                                    "content": "Range Slider",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "500",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 464,
+                                  "h": 38
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      6,
+                                      0,
+                                      0,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 464,
+                                      "h": 4
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(84, 79, 59)",
+                                      "radius": 2,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        },
+                                        "padding": [
+                                          0,
+                                          104,
+                                          0,
+                                          416
+                                        ]
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "depth-8--frame-1",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 1,
+                                          "h": 4
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "radius": 2,
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "start"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "components": 0,
+    "instances": 0,
+    "frames": 119,
+    "texts": 36,
+    "hasAutoLayout": true,
+    "hasEffects": true
+  }
+}
