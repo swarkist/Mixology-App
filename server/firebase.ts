@@ -4,20 +4,24 @@ import { getFirestore } from 'firebase-admin/firestore';
 // Initialize Firebase Admin SDK
 if (!admin.apps.length) {
   // Check if we have service account credentials
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     try {
       // Use service account key (recommended for production)
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
-        projectId: process.env.FIREBASE_PROJECT_ID,
+        projectId: serviceAccount.project_id,
       });
     } catch (error) {
-      console.error('Failed to parse Firebase service account key:', error);
-      // Fall back to using just project ID
-      admin.initializeApp({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-      });
+      console.error('Failed to parse Firebase service account JSON:', error);
+      // Fall back to using just project ID if available
+      if (process.env.FIREBASE_PROJECT_ID) {
+        admin.initializeApp({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+        });
+      } else {
+        throw new Error('Firebase configuration failed: No valid credentials provided');
+      }
     }
   } else if (process.env.FIREBASE_PROJECT_ID) {
     // Use project ID only (works in some environments with default credentials)
