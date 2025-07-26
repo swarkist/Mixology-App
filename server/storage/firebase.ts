@@ -12,13 +12,55 @@ export class FirebaseStorage implements IStorage {
   // Cocktail operations
   async getAllCocktails(): Promise<Cocktail[]> {
     const snapshot = await this.cocktailsCollection.get();
-    return snapshot.docs.map((doc: any) => ({ id: parseInt(doc.id), ...doc.data() } as Cocktail));
+    return snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      // Try to parse doc.id as number, if it fails or is NaN, use a generated ID
+      let id = parseInt(doc.id);
+      if (isNaN(id)) {
+        // For existing documents without numeric IDs, generate a unique ID
+        id = Date.now() + Math.floor(Math.random() * 1000);
+      }
+      
+      // Ensure all required fields exist with default values
+      const cocktail: Cocktail = {
+        id,
+        name: data.name || 'Untitled Cocktail',
+        description: data.description || null,
+        imageUrl: data.imageUrl || data.photoUrl || null, // Handle both field names
+        isFeatured: data.isFeatured || false,
+        featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
+        popularityCount: data.popularityCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      };
+      
+      return cocktail;
+    });
   }
 
   async getCocktailById(id: number): Promise<Cocktail | null> {
     const doc = await this.cocktailsCollection.doc(id.toString()).get();
     if (!doc.exists) return null;
-    return { id: parseInt(doc.id), ...doc.data() } as Cocktail;
+    const data = doc.data() || {};
+    let parsedId = parseInt(doc.id);
+    if (isNaN(parsedId)) {
+      parsedId = id; // Use the requested ID if document ID is not numeric
+    }
+    
+    // Ensure all required fields exist with default values
+    const cocktail: Cocktail = {
+      id: parsedId,
+      name: data.name || 'Untitled Cocktail',
+      description: data.description || null,
+      imageUrl: data.imageUrl || data.photoUrl || null,
+      isFeatured: data.isFeatured || false,
+      featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
+      popularityCount: data.popularityCount || 0,
+      createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+      updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+    };
+    
+    return cocktail;
   }
 
   async createCocktail(cocktail: InsertCocktail): Promise<Cocktail> {
@@ -71,12 +113,52 @@ export class FirebaseStorage implements IStorage {
 
   async getFeaturedCocktails(): Promise<Cocktail[]> {
     const snapshot = await this.cocktailsCollection.where('isFeatured', '==', true).get();
-    return snapshot.docs.map((doc: any) => ({ id: parseInt(doc.id), ...doc.data() } as Cocktail));
+    return snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      let id = parseInt(doc.id);
+      if (isNaN(id)) {
+        id = Date.now() + Math.floor(Math.random() * 1000);
+      }
+      
+      const cocktail: Cocktail = {
+        id,
+        name: data.name || 'Untitled Cocktail',
+        description: data.description || null,
+        imageUrl: data.imageUrl || data.photoUrl || null,
+        isFeatured: data.isFeatured || false,
+        featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
+        popularityCount: data.popularityCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      };
+      
+      return cocktail;
+    });
   }
 
   async getPopularCocktails(): Promise<Cocktail[]> {
     const snapshot = await this.cocktailsCollection.orderBy('popularityCount', 'desc').limit(10).get();
-    return snapshot.docs.map((doc: any) => ({ id: parseInt(doc.id), ...doc.data() } as Cocktail));
+    return snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      let id = parseInt(doc.id);
+      if (isNaN(id)) {
+        id = Date.now() + Math.floor(Math.random() * 1000);
+      }
+      
+      const cocktail: Cocktail = {
+        id,
+        name: data.name || 'Untitled Cocktail',
+        description: data.description || null,
+        imageUrl: data.imageUrl || data.photoUrl || null,
+        isFeatured: data.isFeatured || false,
+        featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
+        popularityCount: data.popularityCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      };
+      
+      return cocktail;
+    });
   }
 
   async toggleCocktailFeatured(id: number, featured: boolean): Promise<Cocktail | null> {
@@ -103,13 +185,44 @@ export class FirebaseStorage implements IStorage {
   // Ingredient operations
   async getAllIngredients(): Promise<Ingredient[]> {
     const snapshot = await this.ingredientsCollection.get();
-    return snapshot.docs.map((doc: any) => ({ id: parseInt(doc.id), ...doc.data() } as Ingredient));
+    return snapshot.docs.map((doc: any) => {
+      const data = doc.data();
+      // Try to parse doc.id as number, if it fails or is NaN, use a generated ID
+      let id = parseInt(doc.id);
+      if (isNaN(id)) {
+        // For existing documents without numeric IDs, generate a unique ID
+        id = Date.now() + Math.floor(Math.random() * 1000);
+      }
+      
+      // Ensure all required fields exist with default values
+      const ingredient: Ingredient = {
+        id,
+        name: data.name || 'Untitled Ingredient',
+        category: data.category || 'other',
+        subCategory: data.subCategory || null,
+        description: data.description || null,
+        preferredBrand: data.preferredBrand || null,
+        abv: data.abv || null,
+        imageUrl: data.imageUrl || null,
+        inMyBar: data.inMyBar || false,
+        usedInRecipesCount: data.usedInRecipesCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      };
+      
+      return ingredient;
+    });
   }
 
   async getIngredientById(id: number): Promise<Ingredient | null> {
     const doc = await this.ingredientsCollection.doc(id.toString()).get();
     if (!doc.exists) return null;
-    return { id: parseInt(doc.id), ...doc.data() } as Ingredient;
+    const data = doc.data();
+    let parsedId = parseInt(doc.id);
+    if (isNaN(parsedId)) {
+      parsedId = id; // Use the requested ID if document ID is not numeric
+    }
+    return { id: parsedId, ...data } as Ingredient;
   }
 
   async createIngredient(ingredient: InsertIngredient): Promise<Ingredient> {
