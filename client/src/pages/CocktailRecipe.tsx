@@ -20,6 +20,7 @@ export const CocktailRecipe = (): JSX.Element => {
     queryKey: ['/api/cocktails', cocktailId],
     queryFn: () => apiRequest(`/api/cocktails/${cocktailId}`),
     enabled: !!cocktailId,
+    retry: false, // Don't retry for 404s on deleted cocktails
   });
 
   // Delete cocktail mutation
@@ -32,8 +33,11 @@ export const CocktailRecipe = (): JSX.Element => {
         title: "Recipe deleted",
         description: "The cocktail recipe has been removed successfully.",
       });
-      // Invalidate queries and redirect
+      // Invalidate all cocktail-related queries and redirect
       queryClient.invalidateQueries({ queryKey: ['/api/cocktails'] });
+      queryClient.removeQueries({ queryKey: ['/api/cocktails', cocktailId] });
+      // Force refetch cocktail list to ensure deleted items are removed
+      queryClient.refetchQueries({ queryKey: ['/api/cocktails'] });
       setLocation('/cocktails');
     },
     onError: () => {
