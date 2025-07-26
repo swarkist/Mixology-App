@@ -19,14 +19,8 @@ interface Ingredient {
 interface CocktailForm {
   name: string;
   description: string;
-  category: string;
-  difficulty: string;
-  prepTime: string;
-  servings: string;
   ingredients: Ingredient[];
   instructions: string[];
-  garnish: string;
-  glassType: string;
   tags: string[];
 }
 
@@ -148,32 +142,15 @@ export const AddCocktail = (): JSX.Element => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name" className="text-white">Cocktail Name *</Label>
-                  <Input
-                    id="name"
-                    {...register("name", { required: "Name is required" })}
-                    placeholder="e.g., Classic Mojito"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                  {errors.name && <span className="text-red-400 text-sm">{errors.name.message}</span>}
-                </div>
-                <div>
-                  <Label htmlFor="category" className="text-white">Category *</Label>
-                  <Select onValueChange={(value) => setValue("category", value)}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                      <SelectItem value="classic">Classic</SelectItem>
-                      <SelectItem value="refreshing">Refreshing</SelectItem>
-                      <SelectItem value="fruity">Fruity</SelectItem>
-                      <SelectItem value="tropical">Tropical</SelectItem>
-                      <SelectItem value="strong">Strong</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label htmlFor="name" className="text-white">Cocktail Name *</Label>
+                <Input
+                  id="name"
+                  {...register("name", { required: "Name is required" })}
+                  placeholder="e.g., Classic Mojito"
+                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                />
+                {errors.name && <span className="text-red-400 text-sm">{errors.name.message}</span>}
               </div>
 
               <div>
@@ -181,44 +158,10 @@ export const AddCocktail = (): JSX.Element => {
                 <Textarea
                   id="description"
                   {...register("description")}
-                  placeholder="Describe your cocktail..."
+                  placeholder="A brief description or story behind the cocktail..."
                   className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                   rows={3}
                 />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="difficulty" className="text-white">Difficulty</Label>
-                  <Select onValueChange={(value) => setValue("difficulty", value)}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
-                      <SelectValue placeholder="Select difficulty" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                      <SelectItem value="easy">Easy</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="hard">Hard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="prepTime" className="text-white">Prep Time</Label>
-                  <Input
-                    id="prepTime"
-                    {...register("prepTime")}
-                    placeholder="e.g., 5 min"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="servings" className="text-white">Servings</Label>
-                  <Input
-                    id="servings"
-                    {...register("servings")}
-                    placeholder="e.g., 1"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
