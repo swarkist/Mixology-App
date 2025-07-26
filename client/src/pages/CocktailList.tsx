@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import { SearchIcon, Star, TrendingUp, Grid, List, Filter, StarIcon } from "lucide-react";
+import { SearchIcon, Star, TrendingUp, Grid, List, Filter, StarIcon, Search, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/lib/queryClient";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
+import { DesktopNavigation, Navigation } from "@/components/Navigation";
 
 export const CocktailList = (): JSX.Element => {
   const [, setLocation] = useLocation();
@@ -117,7 +118,38 @@ export const CocktailList = (): JSX.Element => {
 
   return (
     <div className="min-h-screen bg-[#161611] text-white">
-      {/* Header */}
+      {/* Top Navigation Header */}
+      <header className="flex justify-between items-center px-10 py-3 border-b border-[#2a2920]">
+        <div className="flex items-center gap-4">
+          <Link href="/">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 bg-[#f2c40c] rounded-sm"></div>
+              <h1 className="text-lg font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">Mixology</h1>
+            </div>
+          </Link>
+        </div>
+        
+        <DesktopNavigation />
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="rounded-full w-10 h-10 bg-[#383629] hover:bg-[#444133]"
+          >
+            <Search className="w-4 h-4 text-white" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className="rounded-full w-10 h-10 bg-[#383629] hover:bg-[#444133]"
+          >
+            <User className="w-4 h-4 text-white" />
+          </Button>
+        </div>
+      </header>
+
+      {/* Page Header */}
       <div className="border-b border-[#544f3b] px-10 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -305,6 +337,9 @@ export const CocktailList = (): JSX.Element => {
           </Card>
         )}
       </div>
+      
+      {/* Mobile Navigation */}
+      <Navigation />
     </div>
   );
 };
