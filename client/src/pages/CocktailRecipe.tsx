@@ -224,34 +224,7 @@ export const CocktailRecipe = (): JSX.Element => {
           </CardContent>
         </Card>
 
-        {/* Tips Section - Pro tip: Always use fresh ingredients for best results */}
-        <Card className="bg-[#2a2920] border-[#4a4735]">
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Pro Tips
-            </h2>
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                  Always use fresh ingredients for the best taste
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                  Chill your glassware before serving for a professional touch
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <div className="w-2 h-2 bg-[#f2c40c] rounded-full mt-2 flex-shrink-0" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                  Experiment with garnishes to add your personal flair
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+
 
         {/* Action Buttons */}
         <div className="flex gap-4 pb-6">

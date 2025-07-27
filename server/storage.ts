@@ -41,7 +41,7 @@ export interface IStorage {
   getPopularCocktails(): Promise<Cocktail[]>;
   getCocktailsByIngredients(ingredientIds: number[], matchAll?: boolean): Promise<Cocktail[]>;
   createCocktail(cocktail: CocktailForm): Promise<Cocktail>;
-  updateCocktail(id: number, cocktail: Partial<InsertCocktail>): Promise<Cocktail>;
+  updateCocktail(id: number, cocktail: Partial<InsertCocktail> | CocktailForm): Promise<Cocktail>;
   deleteCocktail(id: number): Promise<boolean>;
   toggleFeatured(cocktailId: number): Promise<Cocktail>;
   incrementPopularity(cocktailId: number): Promise<Cocktail>;
@@ -364,13 +364,129 @@ export class MemStorage implements IStorage {
     return cocktail;
   }
 
-  async updateCocktail(id: number, update: Partial<InsertCocktail>): Promise<Cocktail> {
+  // Overloaded method signatures removed - handled by union type in interface
+  async updateCocktail(id: number, update: any): Promise<Cocktail> {
     const cocktail = this.cocktails.get(id);
     if (!cocktail) throw new Error(`Cocktail ${id} not found`);
     
-    const updated = { ...cocktail, ...update, updatedAt: new Date() };
-    this.cocktails.set(id, updated);
-    return updated;
+    // Check if this is a full form update (with ingredients, instructions, tags)
+    if (update.ingredients || update.instructions || update.tags) {
+      // Handle full cocktail form update
+      const updatedCocktail = { 
+        ...cocktail, 
+        name: update.name || cocktail.name,
+        description: update.description !== undefined ? update.description : cocktail.description,
+        imageUrl: update.image !== undefined ? update.image : cocktail.imageUrl,
+        updatedAt: new Date() 
+      };
+      this.cocktails.set(id, updatedCocktail);
+      
+      // Clear existing relationships
+      this.cocktailIngredients.forEach((value, key) => {
+        if (value.cocktailId === id) {
+          this.cocktailIngredients.delete(key);
+        }
+      });
+      this.cocktailInstructions.forEach((value, key) => {
+        if (value.cocktailId === id) {
+          this.cocktailInstructions.delete(key);
+        }
+      });
+      this.cocktailTags.forEach((value, key) => {
+        if (value.cocktailId === id) {
+          this.cocktailTags.delete(key);
+        }
+      });
+      
+      // Handle ingredients
+      if (update.ingredients) {
+        for (let i = 0; i < update.ingredients.length; i++) {
+          const ingredient = update.ingredients[i];
+          
+          // Find or create ingredient by name
+          let dbIngredient = Array.from(this.ingredients.values()).find(ing => 
+            ing.name.toLowerCase() === ingredient.name.toLowerCase()
+          );
+          
+          if (!dbIngredient) {
+            // Create new ingredient if it doesn't exist
+            const newIngredientId = this.currentIngredientId++;
+            dbIngredient = {
+              id: newIngredientId,
+              name: ingredient.name,
+              category: 'Other',
+              subcategory: null,
+              preferredBrand: null,
+              isInMyBar: false,
+              usageCount: 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            this.ingredients.set(newIngredientId, dbIngredient);
+          }
+          
+          const ingredientId = this.currentCocktailIngredientId++;
+          const cocktailIngredient: CocktailIngredient = {
+            id: ingredientId,
+            cocktailId: id,
+            ingredientId: dbIngredient.id,
+            amount: ingredient.amount,
+            unit: ingredient.unit,
+            order: i,
+          };
+          this.cocktailIngredients.set(ingredientId, cocktailIngredient);
+          await this.incrementIngredientUsage(dbIngredient.id);
+        }
+      }
+      
+      // Handle instructions
+      if (update.instructions) {
+        for (let i = 0; i < update.instructions.length; i++) {
+          const instructionId = this.currentCocktailInstructionId++;
+          const instruction: CocktailInstruction = {
+            id: instructionId,
+            cocktailId: id,
+            stepNumber: i + 1,
+            instruction: update.instructions[i],
+          };
+          this.cocktailInstructions.set(instructionId, instruction);
+        }
+      }
+      
+      // Handle tags
+      if (update.tags) {
+        for (const tagName of update.tags) {
+          // Find or create tag by name
+          let dbTag = Array.from(this.tags.values()).find(tag => 
+            tag.name.toLowerCase() === tagName.toLowerCase()
+          );
+          
+          if (!dbTag) {
+            // Create new tag if it doesn't exist
+            const newTagId = this.currentTagId++;
+            dbTag = {
+              id: newTagId,
+              name: tagName,
+              usageCount: 1,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            };
+            this.tags.set(newTagId, dbTag);
+          }
+          
+          const tagRelationId = this.currentCocktailTagId++;
+          this.cocktailTags.set(tagRelationId, { cocktailId: id, tagId: dbTag.id });
+          await this.incrementTagUsage(dbTag.id);
+        }
+      }
+      
+      return updatedCocktail;
+    } else {
+      // Handle simple field updates
+      const updated = { ...cocktail, ...update, updatedAt: new Date() };
+      this.cocktails.set(id, updated);
+      return updated;
+    }
   }
 
   async toggleFeatured(cocktailId: number): Promise<Cocktail> {
