@@ -199,6 +199,14 @@ export const CocktailList = (): JSX.Element => {
           </Button>
 
           <div className="flex ml-auto gap-2">
+            <Link href="/add-cocktail">
+              <Button
+                size="sm"
+                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold"
+              >
+                Add Cocktail
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
