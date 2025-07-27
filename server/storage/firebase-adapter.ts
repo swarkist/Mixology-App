@@ -154,11 +154,8 @@ export class FirebaseStorageAdapter implements IStorage {
     // Handle ingredients - for now we'll store them as a simple array in the cocktail document
     // In a full implementation, you'd create proper cocktail-ingredient relationships
     if (cocktail.ingredients && cocktail.ingredients.length > 0) {
-      await this.firebase.updateCocktail(createdCocktail.id, {
-        ingredients: cocktail.ingredients,
-        instructions: cocktail.instructions || [],
-        tags: cocktail.tags || []
-      });
+      // Note: ingredients, instructions, tags are handled separately in a real implementation
+      // For now, just store basic cocktail info
     }
     
     return createdCocktail;

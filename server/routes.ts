@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertTagSchema, insertIngredientSchema, insertCocktailSchema,
-  cocktailFormSchema, ingredientFormSchema 
+  cocktailFormSchema, ingredientFormSchema,
+  type Cocktail, type Ingredient
 } from "@shared/schema";
 import firebaseTestRoutes from "./routes/firebase-test";
 
@@ -232,7 +233,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const results = {
+      const results: {
+        cocktails: Cocktail[];
+        ingredients: Ingredient[];
+      } = {
         cocktails: [],
         ingredients: []
       };

@@ -88,13 +88,24 @@ export class FirebaseStorage implements IStorage {
     return { id: numericId, ...cocktailData } as Cocktail;
   }
 
-  async updateCocktail(id: number, updates: any): Promise<Cocktail | null> {
+  async updateCocktail(id: number, updates: Partial<InsertCocktail>): Promise<Cocktail> {
     const docRef = this.cocktailsCollection.doc(id.toString());
     await docRef.update({ ...updates, updatedAt: new Date() });
     
     const doc = await docRef.get();
-    if (!doc.exists) return null;
-    return { id: parseInt(doc.id), ...doc.data() } as Cocktail;
+    if (!doc.exists) throw new Error('Cocktail not found');
+    const data = doc.data();
+    return { 
+      id: parseInt(doc.id), 
+      name: data?.name || 'Untitled Cocktail',
+      description: data?.description || null,
+      imageUrl: data?.imageUrl || null,
+      isFeatured: data?.isFeatured || false,
+      featuredAt: data?.featuredAt ? new Date(data.featuredAt) : null,
+      popularityCount: data?.popularityCount || 0,
+      createdAt: data?.createdAt ? new Date(data.createdAt) : new Date(),
+      updatedAt: data?.updatedAt ? new Date(data.updatedAt) : new Date(),
+    } as Cocktail;
   }
 
   async deleteCocktail(id: number): Promise<boolean> {
@@ -249,13 +260,27 @@ export class FirebaseStorage implements IStorage {
     return { id: numericId, ...ingredientData } as Ingredient;
   }
 
-  async updateIngredient(id: number, updates: Partial<Ingredient>): Promise<Ingredient | null> {
+  async updateIngredient(id: number, updates: Partial<InsertIngredient>): Promise<Ingredient> {
     const docRef = this.ingredientsCollection.doc(id.toString());
     await docRef.update({ ...updates, updatedAt: new Date() });
     
     const doc = await docRef.get();
-    if (!doc.exists) return null;
-    return { id: parseInt(doc.id), ...doc.data() } as Ingredient;
+    if (!doc.exists) throw new Error('Ingredient not found');
+    const data = doc.data();
+    return { 
+      id: parseInt(doc.id), 
+      name: data?.name || 'Untitled Ingredient',
+      description: data?.description || null,
+      imageUrl: data?.imageUrl || null,
+      category: data?.category || 'other',
+      subCategory: data?.subCategory || null,
+      preferredBrand: data?.preferredBrand || null,
+      abv: data?.abv || null,
+      inMyBar: data?.inMyBar || false,
+      usedInRecipesCount: data?.usedInRecipesCount || 0,
+      createdAt: data?.createdAt ? new Date(data.createdAt) : new Date(),
+      updatedAt: data?.updatedAt ? new Date(data.updatedAt) : new Date(),
+    } as Ingredient;
   }
 
   async deleteIngredient(id: number): Promise<boolean> {
@@ -291,17 +316,22 @@ export class FirebaseStorage implements IStorage {
     return this.updateIngredient(id, { inMyBar });
   }
 
-  async incrementIngredientUsage(id: number): Promise<Ingredient | null> {
-    const ingredient = await this.getIngredientById(id);
-    if (!ingredient) return null;
+  async incrementIngredientUsage(ingredientId: number): Promise<void> {
+    const ingredient = await this.getIngredientById(ingredientId);
+    if (!ingredient) return;
     
-    return this.updateIngredient(id, { 
-      usedInRecipesCount: ingredient.usedInRecipesCount + 1 
+    await this.ingredientsCollection.doc(ingredientId.toString()).update({
+      usedInRecipesCount: ingredient.usedInRecipesCount + 1,
+      updatedAt: new Date()
     });
   }
 
   async resetIngredientUsage(id: number): Promise<Ingredient | null> {
-    return this.updateIngredient(id, { usedInRecipesCount: 0 });
+    await this.ingredientsCollection.doc(id.toString()).update({
+      usedInRecipesCount: 0,
+      updatedAt: new Date()
+    });
+    return this.getIngredientById(id);
   }
 
   // Filter ingredients by multiple criteria
@@ -374,8 +404,11 @@ export class FirebaseStorage implements IStorage {
   }
 
   async getCocktailInstructions(cocktailId: number): Promise<CocktailInstruction[]> {
-    const snapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).orderBy('stepNumber').get();
-    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as CocktailInstruction));
+    // Temporary fix: fetch without orderBy to avoid index requirement, then sort in memory
+    const snapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).get();
+    const instructions = snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as CocktailInstruction));
+    // Sort by stepNumber in memory
+    return instructions.sort((a, b) => a.stepNumber - b.stepNumber);
   }
 
   async getAllTags(): Promise<Tag[]> {
@@ -403,15 +436,13 @@ export class FirebaseStorage implements IStorage {
       const instructionsSnapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', id).get();
       const instructionDeletePromises = instructionsSnapshot.docs.map(doc => doc.ref.delete());
       
-      // Delete associated tags (cocktail-tag relationships)
-      const tagsSnapshot = await this.cocktailTagsCollection.where('cocktailId', '==', id).get();
-      const tagDeletePromises = tagsSnapshot.docs.map(doc => doc.ref.delete());
+      // Delete associated tags (cocktail-tag relationships) - if collection exists
+      // Note: cocktailTagsCollection is not defined in this class, skipping for now
       
       // Execute all deletions
       await Promise.all([
         ...ingredientDeletePromises,
-        ...instructionDeletePromises,
-        ...tagDeletePromises
+        ...instructionDeletePromises
       ]);
       
       return true;

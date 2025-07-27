@@ -186,7 +186,7 @@ export const CocktailRecipe = (): JSX.Element => {
             </h2>
             <div className="grid gap-3">
               {ingredients && ingredients.length > 0 ? (
-                ingredients.map((item, index) => (
+                ingredients.map((item: any, index: number) => (
                   <div key={index} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
                     <span className="text-white font-medium">{item.ingredient.name}</span>
                     <span className="text-[#f2c40c] font-semibold">{item.amount}</span>
@@ -209,7 +209,7 @@ export const CocktailRecipe = (): JSX.Element => {
             </h2>
             <div className="space-y-4">
               {instructions && instructions.length > 0 ? (
-                instructions.map((step, index) => (
+                instructions.map((step: any, index: number) => (
                   <div key={index} className="flex gap-4">
                     <div className="flex-shrink-0 w-8 h-8 bg-[#f2c40c] text-[#161611] rounded-full flex items-center justify-center font-bold text-sm">
                       {index + 1}
