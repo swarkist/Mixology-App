@@ -416,6 +416,21 @@ export class FirebaseStorage implements IStorage {
     return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Tag));
   }
 
+  async createTag(tag: InsertTag): Promise<Tag> {
+    // Generate a numeric ID by using timestamp + random
+    const numericId = Date.now() + Math.floor(Math.random() * 1000);
+    
+    const tagData = {
+      ...tag,
+      createdAt: new Date(),
+      usageCount: 1,
+    };
+    
+    await this.tagsCollection.doc(numericId.toString()).set(tagData);
+    
+    return { id: numericId, ...tagData } as Tag;
+  }
+
   async deleteCocktail(id: number): Promise<boolean> {
     try {
       const docRef = this.cocktailsCollection.doc(id.toString());
