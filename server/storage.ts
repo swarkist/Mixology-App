@@ -415,27 +415,32 @@ export class MemStorage implements IStorage {
               id: newIngredientId,
               name: ingredient.name,
               category: 'Other',
-              subcategory: null,
+              subCategory: null,
+              description: null,
               preferredBrand: null,
-              isInMyBar: false,
-              usageCount: 1,
+              abv: null,
+              imageUrl: null,
+              inMyBar: false,
+              usedInRecipesCount: 1,
               createdAt: new Date(),
               updatedAt: new Date(),
             };
             this.ingredients.set(newIngredientId, dbIngredient);
           }
           
-          const ingredientId = this.currentCocktailIngredientId++;
-          const cocktailIngredient: CocktailIngredient = {
-            id: ingredientId,
-            cocktailId: id,
-            ingredientId: dbIngredient.id,
-            amount: ingredient.amount,
-            unit: ingredient.unit,
-            order: i,
-          };
-          this.cocktailIngredients.set(ingredientId, cocktailIngredient);
-          await this.incrementIngredientUsage(dbIngredient.id);
+          if (dbIngredient) {
+            const ingredientId = this.currentCocktailIngredientId++;
+            const cocktailIngredient: CocktailIngredient = {
+              id: ingredientId,
+              cocktailId: id,
+              ingredientId: dbIngredient.id,
+              amount: ingredient.amount,
+              unit: ingredient.unit,
+              order: i,
+            };
+            this.cocktailIngredients.set(ingredientId, cocktailIngredient);
+            await this.incrementIngredientUsage(dbIngredient.id);
+          }
         }
       }
       
@@ -469,14 +474,15 @@ export class MemStorage implements IStorage {
               name: tagName,
               usageCount: 1,
               createdAt: new Date(),
-              updatedAt: new Date(),
             };
             this.tags.set(newTagId, dbTag);
           }
           
-          const tagRelationId = this.currentCocktailTagId++;
-          this.cocktailTags.set(tagRelationId, { cocktailId: id, tagId: dbTag.id });
-          await this.incrementTagUsage(dbTag.id);
+          if (dbTag) {
+            const tagRelationId = this.currentCocktailTagId++;
+            this.cocktailTags.set(tagRelationId, { cocktailId: id, tagId: dbTag.id });
+            await this.incrementTagUsage(dbTag.id);
+          }
         }
       }
       

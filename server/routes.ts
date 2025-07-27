@@ -144,7 +144,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/cocktails/:id", async (req, res) => {
     const id = parseInt(req.params.id);
+    console.log(`Fetching cocktail details for ID: ${id}`);
+    
     const cocktailWithDetails = await storage.getCocktailWithDetails(id);
+    console.log('Cocktail details retrieved:', JSON.stringify(cocktailWithDetails, null, 2));
 
     if (!cocktailWithDetails) {
       return res.status(404).json({ message: "Cocktail not found" });
