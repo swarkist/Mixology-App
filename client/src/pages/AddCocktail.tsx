@@ -170,20 +170,38 @@ export const AddCocktail = (): JSX.Element => {
     }
   };
 
+  // Create cocktail mutation
+  const createCocktailMutation = useMutation({
+    mutationFn: async (cocktailData: any) => {
+      return apiRequest("POST", "/api/cocktails", cocktailData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
+      setLocation("/cocktails");
+    },
+    onError: (error) => {
+      console.error("Failed to create cocktail:", error);
+    }
+  });
+
   const onSubmit = (data: CocktailForm) => {
     const cocktailData = {
-      ...data,
-      ingredients: ingredients.filter(ing => ing.name && ing.amount),
+      name: data.name,
+      description: data.description || "",
+      ingredients: ingredients.filter(ing => ing.name && ing.amount).map(ing => ({
+        name: ing.name,
+        amount: parseFloat(ing.amount) || 0,
+        unit: ing.unit
+      })),
       instructions: instructions.filter(inst => inst.trim()),
       tags,
-      image: imagePreview
+      image: imagePreview,
+      featured: false,
+      popularityCount: 0
     };
     
     console.log("New cocktail:", cocktailData);
-    // Here you would typically send the data to your backend
-    
-    // Navigate back to cocktails list
-    setLocation("/cocktails");
+    createCocktailMutation.mutate(cocktailData);
   };
 
   return (
@@ -205,9 +223,10 @@ export const AddCocktail = (): JSX.Element => {
           <Button 
             form="cocktail-form"
             type="submit"
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+            disabled={createCocktailMutation.isPending}
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
           >
-            Save Cocktail
+            {createCocktailMutation.isPending ? "Saving..." : "Save Cocktail"}
           </Button>
         </div>
       </div>

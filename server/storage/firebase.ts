@@ -81,7 +81,7 @@ export class FirebaseStorage implements IStorage {
     return { id: numericId, ...cocktailData } as Cocktail;
   }
 
-  async updateCocktail(id: number, updates: Partial<Cocktail>): Promise<Cocktail | null> {
+  async updateCocktail(id: number, updates: any): Promise<Cocktail | null> {
     const docRef = this.cocktailsCollection.doc(id.toString());
     await docRef.update({ ...updates, updatedAt: new Date() });
     

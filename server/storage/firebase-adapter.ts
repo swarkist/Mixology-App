@@ -141,14 +141,27 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.getAllCocktails();
   }
 
-  async createCocktail(cocktail: CocktailForm): Promise<Cocktail> {
-    // Convert CocktailForm to InsertCocktail
+  async createCocktail(cocktail: any): Promise<Cocktail> {
+    // Create the basic cocktail first
     const insertCocktail: InsertCocktail = {
       name: cocktail.name,
       description: cocktail.description || null,
-      imageUrl: cocktail.imageUrl || null,
+      imageUrl: cocktail.image || null,
     };
-    return this.firebase.createCocktail(insertCocktail);
+    
+    const createdCocktail = await this.firebase.createCocktail(insertCocktail);
+    
+    // Handle ingredients - for now we'll store them as a simple array in the cocktail document
+    // In a full implementation, you'd create proper cocktail-ingredient relationships
+    if (cocktail.ingredients && cocktail.ingredients.length > 0) {
+      await this.firebase.updateCocktail(createdCocktail.id, {
+        ingredients: cocktail.ingredients,
+        instructions: cocktail.instructions || [],
+        tags: cocktail.tags || []
+      });
+    }
+    
+    return createdCocktail;
   }
 
   async updateCocktail(id: number, cocktail: Partial<InsertCocktail>): Promise<Cocktail> {
