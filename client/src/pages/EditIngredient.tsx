@@ -79,14 +79,17 @@ export const EditIngredient = (): JSX.Element => {
         abv: ingredient.abv || 0,
       });
       setImagePreview(ingredient.imageUrl);
-      // TODO: Load existing tags when ingredient-tag relationships are implemented
-      setTags([]);
+      
+      // Load existing tags from the ingredient data
+      // The Firebase storage may include tags array in the ingredient object
+      const existingTags = (ingredient as any).tags || [];
+      setTags(Array.isArray(existingTags) ? existingTags : []);
     }
   }, [ingredient, reset]);
 
   // Update ingredient mutation
   const updateMutation = useMutation({
-    mutationFn: async (data: IngredientForm & { image?: string }) => {
+    mutationFn: async (data: IngredientForm & { image?: string; tags?: string[] }) => {
       return apiRequest("PATCH", `/api/ingredients/${id}`, data);
     },
     onSuccess: () => {
