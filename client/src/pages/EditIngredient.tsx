@@ -67,9 +67,12 @@ export const EditIngredient = (): JSX.Element => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      console.log('EditIngredient: File selected:', file.name, file.size);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        const result = e.target?.result as string;
+        console.log('EditIngredient: Image loaded, preview set');
+        setImagePreview(result);
       };
       reader.readAsDataURL(file);
     }
@@ -86,6 +89,7 @@ export const EditIngredient = (): JSX.Element => {
       image: imagePreview || undefined
     };
     
+    console.log('EditIngredient onSubmit:', ingredientData);
     updateMutation.mutate(ingredientData);
   };
 
