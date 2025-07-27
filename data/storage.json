@@ -1,0 +1,57 @@
+{
+  "users": [],
+  "cocktails": [],
+  "ingredients": [
+    [
+      1,
+      {
+        "id": 1,
+        "name": "Test Ingredient",
+        "category": "spirits",
+        "subCategory": "vodka",
+        "description": "Test",
+        "preferredBrand": null,
+        "abv": 40,
+        "imageUrl": null,
+        "inMyBar": false,
+        "usedInRecipesCount": 0,
+        "createdAt": "2025-07-27T21:05:54.362Z",
+        "updatedAt": "2025-07-27T21:05:54.362Z"
+      }
+    ]
+  ],
+  "tags": [
+    [
+      1,
+      {
+        "name": "ingredient-tag",
+        "id": 1,
+        "usageCount": 1,
+        "createdAt": "2025-07-27T21:05:54.358Z"
+      }
+    ]
+  ],
+  "cocktailIngredients": [],
+  "cocktailInstructions": [],
+  "cocktailTags": [],
+  "ingredientTags": [
+    [
+      1,
+      {
+        "id": 1,
+        "ingredientId": 1,
+        "tagId": 1
+      }
+    ]
+  ],
+  "counters": {
+    "currentUserId": 1,
+    "currentCocktailId": 1,
+    "currentIngredientId": 2,
+    "currentTagId": 2,
+    "currentCocktailIngredientId": 1,
+    "currentCocktailInstructionId": 1,
+    "currentCocktailTagId": 1,
+    "currentIngredientTagId": 2
+  }
+}

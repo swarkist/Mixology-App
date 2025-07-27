@@ -745,10 +745,12 @@ export class MemStorage implements IStorage {
 // Import Firebase adapter
 import { FirebaseStorageAdapter } from './storage/firebase-adapter';
 
+// Import PersistentMemStorage
+import { PersistentMemStorage } from './storage/persistent-storage';
+
 // Choose storage backend based on environment
-// NOTE: Firebase storage needs significant work to support relational structure properly
-// Using MemStorage until Firebase can be fully implemented with proper relationships
-export const storage: IStorage = new MemStorage();
+// Using PersistentMemStorage for data persistence across restarts
+export const storage: IStorage = new PersistentMemStorage();
 // export const storage: IStorage = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_PROJECT_ID)
 //   ? new FirebaseStorageAdapter()
-//   : new MemStorage();
+//   : new PersistentMemStorage();
