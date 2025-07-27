@@ -1,6 +1,7 @@
-import { ArrowLeft, Plus, Minus, Upload, X } from "lucide-react";
+import { ArrowLeft, Plus, Minus, Upload, X, Search } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
+import { apiRequest } from "@/lib/queryClient";
+import type { Ingredient as DBIngredient } from "@shared/schema";
 
 interface Ingredient {
   name: string;
@@ -26,6 +29,7 @@ interface CocktailForm {
 
 export const AddCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: "", amount: "", unit: "oz" }
   ]);
@@ -33,16 +37,33 @@ export const AddCocktail = (): JSX.Element => {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ingredientSearchQueries, setIngredientSearchQueries] = useState<string[]>([""]);
+  const [activeSearchIndex, setActiveSearchIndex] = useState<number>(-1);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CocktailForm>();
 
+  // Search ingredients query with proper query string
+  const { data: searchResults = [], isLoading: isSearching } = useQuery<DBIngredient[]>({
+    queryKey: [`/api/ingredients?search=${encodeURIComponent(ingredientSearchQueries[activeSearchIndex] || '')}`],
+    enabled: activeSearchIndex >= 0 && ingredientSearchQueries[activeSearchIndex]?.length > 0,
+  });
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setActiveSearchIndex(-1);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   const addIngredient = () => {
     setIngredients([...ingredients, { name: "", amount: "", unit: "oz" }]);
+    setIngredientSearchQueries([...ingredientSearchQueries, ""]);
   };
 
   const removeIngredient = (index: number) => {
     if (ingredients.length > 1) {
       setIngredients(ingredients.filter((_, i) => i !== index));
+      setIngredientSearchQueries(ingredientSearchQueries.filter((_, i) => i !== index));
     }
   };
 
@@ -50,6 +71,19 @@ export const AddCocktail = (): JSX.Element => {
     const updated = [...ingredients];
     updated[index][field] = value;
     setIngredients(updated);
+  };
+
+  const updateIngredientSearch = (index: number, query: string) => {
+    const updated = [...ingredientSearchQueries];
+    updated[index] = query;
+    setIngredientSearchQueries(updated);
+    setActiveSearchIndex(index);
+  };
+
+  const selectIngredient = (index: number, ingredientName: string) => {
+    updateIngredient(index, "name", ingredientName);
+    updateIngredientSearch(index, "");
+    setActiveSearchIndex(-1);
   };
 
   const addInstruction = () => {
@@ -239,14 +273,55 @@ export const AddCocktail = (): JSX.Element => {
             <CardContent className="space-y-3">
               {ingredients.map((ingredient, index) => (
                 <div key={index} className="flex gap-2 items-end">
-                  <div className="flex-1">
+                  <div className="flex-1 relative">
                     <Label className="text-white">Ingredient</Label>
-                    <Input
-                      value={ingredient.name}
-                      onChange={(e) => updateIngredient(index, "name", e.target.value)}
-                      placeholder="e.g., White Rum"
-                      className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                    />
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#bab59b]" />
+                      <Input
+                        value={ingredient.name || ingredientSearchQueries[index] || ""}
+                        onChange={(e) => {
+                          if (ingredient.name) {
+                            updateIngredient(index, "name", e.target.value);
+                          } else {
+                            updateIngredientSearch(index, e.target.value);
+                          }
+                        }}
+                        onFocus={(e) => {
+                          e.stopPropagation();
+                          setActiveSearchIndex(index);
+                        }}
+                        onBlur={() => {
+                          // Delay closing to allow selection
+                          setTimeout(() => setActiveSearchIndex(-1), 150);
+                        }}
+                        placeholder="Search ingredients..."
+                        className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c] pl-10"
+                      />
+                    </div>
+                    
+                    {/* Search Results Dropdown */}
+                    {activeSearchIndex === index && ingredientSearchQueries[index] && searchResults.length > 0 && (
+                      <div 
+                        className="absolute z-10 w-full mt-1 bg-[#26261c] border border-[#544f3a] rounded-md shadow-lg max-h-48 overflow-y-auto"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {searchResults.map((result) => (
+                          <button
+                            key={result.id}
+                            type="button"
+                            onClick={() => selectIngredient(index, result.name)}
+                            className="w-full text-left px-4 py-2 hover:bg-[#383529] text-white text-sm border-b border-[#544f3a] last:border-b-0"
+                          >
+                            <div className="font-medium">{result.name}</div>
+                            <div className="text-xs text-[#bab59b]">
+                              {result.category}
+                              {result.subCategory && ` • ${result.subCategory}`}
+                              {result.preferredBrand && ` • ${result.preferredBrand}`}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   <div className="w-24">
                     <Label className="text-white">Amount</Label>
@@ -266,12 +341,16 @@ export const AddCocktail = (): JSX.Element => {
                       <SelectContent className="bg-[#26261c] border-[#544f3a]">
                         <SelectItem value="oz">oz</SelectItem>
                         <SelectItem value="ml">ml</SelectItem>
-                        <SelectItem value="cup">cup</SelectItem>
-                        <SelectItem value="tbsp">tbsp</SelectItem>
+                        <SelectItem value="dashes">dashes</SelectItem>
+                        <SelectItem value="drops">drops</SelectItem>
+                        <SelectItem value="parts">parts</SelectItem>
                         <SelectItem value="tsp">tsp</SelectItem>
-                        <SelectItem value="dash">dash</SelectItem>
+                        <SelectItem value="tbsp">tbsp</SelectItem>
+                        <SelectItem value="cups">cups</SelectItem>
+                        <SelectItem value="shots">shots</SelectItem>
                         <SelectItem value="splash">splash</SelectItem>
-                        <SelectItem value="piece">piece</SelectItem>
+                        <SelectItem value="pinch">pinch</SelectItem>
+                        <SelectItem value="whole">whole</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
