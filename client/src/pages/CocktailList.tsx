@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import { SearchIcon, Star, TrendingUp, Grid, List, Filter, StarIcon, Search, User } from "lucide-react";
+import { SearchIcon, Star, TrendingUp, Grid, List, Filter, StarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,7 +91,7 @@ export const CocktailList = (): JSX.Element => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#161611] text-white p-10">
+      <div className="min-h-screen bg-[#171712] text-white p-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
@@ -109,7 +109,7 @@ export const CocktailList = (): JSX.Element => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#161611] text-white p-10">
+      <div className="min-h-screen bg-[#171712] text-white p-10">
         <Card className="bg-[#383629] border-[#544f3b]">
           <CardContent className="p-8 text-center">
             <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -122,228 +122,183 @@ export const CocktailList = (): JSX.Element => {
   }
 
   return (
-    <div className="min-h-screen bg-[#161611] text-white">
-      {/* Top Navigation Header */}
-      <header className="flex justify-between items-center px-10 py-3 border-b border-[#2a2920]">
-        <div className="flex items-center gap-4">
-          <Link href="/">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-[#f2c40c] rounded-sm"></div>
-              <h1 className="text-lg font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">Mixology</h1>
-            </div>
-          </Link>
-        </div>
-        
-        <DesktopNavigation />
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="rounded-full w-10 h-10 bg-[#383629] hover:bg-[#444133]"
-          >
-            <Search className="w-4 h-4 text-white" />
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            className="rounded-full w-10 h-10 bg-[#383629] hover:bg-[#444133]"
-          >
-            <User className="w-4 h-4 text-white" />
-          </Button>
-        </div>
-      </header>
-
-      {/* Page Header */}
-      <div className="border-b border-[#544f3b] px-10 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <Link href="/">
-              <h1 className="text-3xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
-                Cocktail Recipes
-              </h1>
-            </Link>
-            <p className="text-[#bab59b] mt-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Explore our collection of {cocktails?.length || 0} cocktail recipes
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* View Mode Toggle */}
-            <div className="flex items-center border border-[#544f3b] rounded-lg overflow-hidden">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className={`px-3 py-2 ${viewMode === "grid" ? "bg-[#f2c40c] text-[#161611]" : "text-[#bab59b] hover:text-white"}`}
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className={`px-3 py-2 ${viewMode === "list" ? "bg-[#f2c40c] text-[#161611]" : "text-[#bab59b] hover:text-white"}`}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <Link href="/add-cocktail">
-              <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold">
-                Add Recipe
-              </Button>
-            </Link>
-          </div>
+    <div className="min-h-screen bg-[#171712]">
+      <DesktopNavigation />
+      
+      <div className="px-40 py-5">
+        {/* Header */}
+        <div className="p-4 mb-3">
+          <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+            Cocktails
+          </h1>
+          <p className="text-sm text-[#bab59c]">
+            Explore our curated collection of cocktail recipes, perfect for any occasion. Find your new favorite drink today.
+          </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Search */}
-          <form onSubmit={handleSearch} className="flex-1 min-w-64">
-            <div className="flex items-center h-10 rounded-lg bg-[#383529] overflow-hidden">
+        {/* Search Form */}
+        <div className="px-4 py-3">
+          <form onSubmit={handleSearch} className="h-12">
+            <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
               <div className="pl-4 flex items-center">
-                <SearchIcon className="h-5 w-5 text-[#bab59b]" />
+                <SearchIcon className="h-5 w-5 text-[#bab59c]" />
               </div>
               <Input
                 type="text"
-                placeholder="Search cocktails..."
+                placeholder="Search cocktails"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
               />
             </div>
           </form>
+        </div>
 
-          {/* Filters */}
-          <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-[#bab59b]" />
-            <Button
-              variant={showOnlyFeatured ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
-              className={showOnlyFeatured ? "bg-[#f2c40c] text-[#161611]" : "border-[#544f3b] text-[#bab59b] hover:text-white"}
-            >
-              <Star className="h-4 w-4 mr-1" />
-              Featured
-            </Button>
-            <Button
-              variant={showOnlyPopular ? "default" : "outline"}
-              size="sm"
-              onClick={() => setShowOnlyPopular(!showOnlyPopular)}
-              className={showOnlyPopular ? "bg-[#f2c40c] text-[#161611]" : "border-[#544f3b] text-[#bab59b] hover:text-white"}
-            >
-              <TrendingUp className="h-4 w-4 mr-1" />
-              Popular
-            </Button>
-          </div>
-
-          {/* Spirit Filter */}
-          <Select value={spiritFilter} onValueChange={setSpiritFilter}>
-            <SelectTrigger className="w-40 bg-[#383629] border-[#544f3b] text-white">
-              <SelectValue placeholder="All Spirits" />
+        {/* Sort and Filter Buttons */}
+        <div className="flex gap-3 pl-3 pr-4 py-3">
+          <Select>
+            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white hover:bg-[#544f3b]">
-                All Spirits
-              </SelectItem>
-              {SPIRIT_SUBCATEGORIES.map((spirit) => (
-                <SelectItem 
-                  key={spirit} 
-                  value={spirit}
-                  className="text-white hover:bg-[#544f3b] capitalize"
-                >
-                  {spirit}
-                </SelectItem>
-              ))}
+              <SelectItem value="name" className="text-white">Name</SelectItem>
+              <SelectItem value="date" className="text-white">Date</SelectItem>
+              <SelectItem value="popularity" className="text-white">Popularity</SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
 
-      {/* Content */}
-      <div className="px-10 py-8">
-        {cocktails && cocktails.length > 0 ? (
-          <div className={viewMode === "grid" 
-            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-            : "space-y-4"
-          }>
-            {cocktails.map((cocktail: Cocktail) => (
-              <Card key={cocktail.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      {cocktail.isFeatured && (
-                        <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
-                          Featured
-                        </Badge>
-                      )}
-                      <div className="flex items-center gap-1 text-[#bab59b] text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>{cocktail.popularityCount} views</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleToggleFeatured(cocktail)}
-                      className="text-[#bab59b] hover:text-[#f2c40c]"
-                      disabled={toggleFeaturedMutation.isPending}
-                    >
-                      <StarIcon className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`} />
-                    </Button>
-                  </div>
-                  <CardTitle className="text-xl text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                    {cocktail.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {cocktail.description && (
-                    <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {cocktail.description}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <Link href={`/cocktail/${cocktail.id}`}>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="border-[#544f3b] text-[#bab59b] hover:text-white"
-                      >
-                        View Recipe
-                      </Button>
-                    </Link>
-                    <Button 
-                      size="sm"
-                      onClick={() => handleStartMaking(cocktail)}
-                      disabled={incrementPopularityMutation.isPending}
-                      className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold"
-                    >
-                      Start Making This
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+          <Select>
+            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+              <SelectValue placeholder="Filter by" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#383629] border-[#544f3b]">
+              <SelectItem value="all" className="text-white">All</SelectItem>
+              <SelectItem value="featured" className="text-white">Featured</SelectItem>
+              <SelectItem value="popular" className="text-white">Popular</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button
+            variant={showOnlyFeatured ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
+            className={`h-8 px-4 rounded-lg ${showOnlyFeatured ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+          >
+            <Star className="h-4 w-4 mr-2" />
+            Featured
+          </Button>
+
+          <Button
+            variant={showOnlyPopular ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowOnlyPopular(!showOnlyPopular)}
+            className={`h-8 px-4 rounded-lg ${showOnlyPopular ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Popular
+          </Button>
+
+          <div className="flex ml-auto gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className={`h-8 px-3 ${viewMode === "grid" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
+            >
+              <Grid className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className={`h-8 px-3 ${viewMode === "list" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
+            >
+              <List className="h-4 w-4" />
+            </Button>
           </div>
-        ) : (
-          <Card className="bg-[#383629] border-[#544f3b]">
-            <CardContent className="p-8 text-center">
-              <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-              <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                No cocktails found. Try adjusting your search or filters.
+        </div>
+
+        {/* Cocktail Grid */}
+        <div className="px-4 py-6">
+          {cocktails && cocktails.length > 0 ? (
+            <div className={viewMode === "grid" 
+              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+              : "space-y-4"
+            }>
+              {cocktails.map((cocktail: Cocktail) => (
+                <Card key={cocktail.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {cocktail.isFeatured && (
+                          <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
+                            Featured
+                          </Badge>
+                        )}
+                        <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                          <TrendingUp className="h-4 w-4" />
+                          <span>{cocktail.popularityCount} views</span>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleToggleFeatured(cocktail)}
+                        className="text-[#bab59b] hover:text-[#f2c40c]"
+                        disabled={toggleFeaturedMutation.isPending}
+                      >
+                        <StarIcon className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`} />
+                      </Button>
+                    </div>
+                    <CardTitle className="text-xl text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                      {cocktail.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {cocktail.description && (
+                      <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {cocktail.description}
+                      </p>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Link href={`/cocktail/${cocktail.id}`}>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-[#544f3b] text-[#bab59b] hover:text-white"
+                        >
+                          View Recipe
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleStartMaking(cocktail)}
+                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
+                        disabled={incrementPopularityMutation.isPending}
+                      >
+                        Start Making
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                No cocktails found. Try adjusting your filters or search terms.
               </p>
               <Link href="/add-cocktail">
-                <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                  Add Your First Recipe
+                <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold">
+                  Add Your First Cocktail
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+        </div>
       </div>
       
-      {/* Mobile Navigation */}
       <Navigation />
     </div>
   );

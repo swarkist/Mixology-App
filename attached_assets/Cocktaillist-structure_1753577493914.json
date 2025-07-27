@@ -1,0 +1,2491 @@
+{
+  "metadata": {
+    "exportedAt": "2025-07-13T16:31:42.615Z",
+    "componentName": "Frame",
+    "totalElements": 120,
+    "nestingDepth": 11,
+    "plugin": "Figma to JSON Exporter"
+  },
+  "designTokens": {
+    "colors": {
+      "color-rgb(255, 255, 255)": "rgb(255, 255, 255)",
+      "color-rgb(23, 23, 18)": "rgb(23, 23, 18)",
+      "color-rgb(56, 54, 41)": "rgb(56, 54, 41)",
+      "color-rgb(186, 181, 156)": "rgb(186, 181, 156)"
+    },
+    "fonts": {
+      "plus-jakarta-sans": {
+        "family": "Plus Jakarta Sans",
+        "sizes": {
+          "size-18": "18px",
+          "size-14": "14px",
+          "size-16": "16px",
+          "size-32": "32px"
+        },
+        "weights": {
+          "weight-700": "700",
+          "weight-500": "500",
+          "weight-400": "400"
+        }
+      }
+    },
+    "spacing": {
+      "padding-top-12": "12px",
+      "padding-right-40": "40px",
+      "padding-bottom-12": "12px",
+      "padding-left-40": "40px",
+      "gap-32": "32px",
+      "gap-16": "16px",
+      "gap-36": "36px",
+      "padding-left-16": "16px",
+      "padding-top-8": "8px",
+      "padding-right-16": "16px",
+      "padding-bottom-8": "8px",
+      "padding-left-8": "8px",
+      "padding-right-10": "10px",
+      "padding-left-10": "10px",
+      "gap-8": "8px",
+      "padding-top-20": "20px",
+      "padding-right-160": "160px",
+      "padding-bottom-20": "20px",
+      "padding-left-160": "160px",
+      "padding-top-16": "16px",
+      "padding-bottom-16": "16px",
+      "gap-12": "12px",
+      "padding-left-12": "12px",
+      "padding-right-8": "8px"
+    },
+    "effects": {}
+  },
+  "structure": {
+    "name": "frame",
+    "type": "FRAME",
+    "size": {
+      "w": 1280,
+      "h": 947
+    },
+    "styles": {
+      "bg": "rgb(255, 255, 255)",
+      "layout": {
+        "direction": "column",
+        "gap": 0,
+        "align": {
+          "main": "start",
+          "cross": "start"
+        }
+      }
+    },
+    "children": [
+      {
+        "name": "depth-0--frame-0",
+        "type": "FRAME",
+        "size": {
+          "w": 1280,
+          "h": 947
+        },
+        "styles": {
+          "bg": "rgb(23, 23, 18)",
+          "layout": {
+            "direction": "column",
+            "gap": 0,
+            "align": {
+              "main": "start",
+              "cross": "start"
+            }
+          }
+        },
+        "children": [
+          {
+            "name": "depth-1--frame-0",
+            "type": "FRAME",
+            "size": {
+              "w": 1280,
+              "h": 947
+            },
+            "styles": {
+              "layout": {
+                "direction": "column",
+                "gap": 0,
+                "align": {
+                  "main": "start",
+                  "cross": "start"
+                }
+              }
+            },
+            "children": [
+              {
+                "name": "depth-2--frame-0",
+                "type": "FRAME",
+                "size": {
+                  "w": 1280,
+                  "h": 65
+                },
+                "styles": {
+                  "border": {
+                    "width": 1,
+                    "color": "rgb(229, 232, 235)"
+                  },
+                  "layout": {
+                    "direction": "row",
+                    "gap": 0,
+                    "align": {
+                      "main": "space-between",
+                      "cross": "center"
+                    },
+                    "padding": [
+                      12,
+                      40,
+                      12,
+                      40
+                    ]
+                  }
+                },
+                "children": [
+                  {
+                    "name": "depth-3--frame-0",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 471,
+                      "h": 23
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "row",
+                        "gap": 32,
+                        "align": {
+                          "main": "start",
+                          "cross": "center"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 113,
+                          "h": 23
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 16,
+                            "align": {
+                              "main": "start",
+                              "cross": "center"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 16,
+                              "h": 16
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 16,
+                                  "h": 16
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "vector---0",
+                                    "type": "VECTOR",
+                                    "size": {
+                                      "w": 16,
+                                      "h": 16
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)"
+                                    }
+                                  },
+                                  {
+                                    "name": "vector---1",
+                                    "type": "VECTOR",
+                                    "size": {
+                                      "w": 16,
+                                      "h": 16
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)"
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 15,
+                                      "h": 15
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 15,
+                                          "h": 15
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "start"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 81,
+                              "h": 23
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "mixology",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 81,
+                                  "h": 23
+                                },
+                                "content": "Mixology",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 18,
+                                    "weight": "700",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 326,
+                          "h": 21
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 36,
+                            "align": {
+                              "main": "start",
+                              "cross": "center"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 41,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "home",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 41,
+                                  "h": 21
+                                },
+                                "content": "Home",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 55,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "recipes",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 55,
+                                  "h": 21
+                                },
+                                "content": "Recipes",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 77,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "ingredients",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 77,
+                                  "h": 21
+                                },
+                                "content": "Ingredients",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-3",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 45,
+                              "h": 21
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "my-bar",
+                                "type": "TEXT",
+                                "size": {
+                                  "w": 45,
+                                  "h": 21
+                                },
+                                "content": "My Bar",
+                                "styles": {
+                                  "bg": "rgb(255, 255, 255)",
+                                  "text": {
+                                    "family": "Plus Jakarta Sans",
+                                    "size": 14,
+                                    "weight": "500",
+                                    "align": "left"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "name": "depth-3--frame-1",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 729,
+                      "h": 40
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "row",
+                        "gap": 32,
+                        "align": {
+                          "main": "end",
+                          "cross": "start"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 160,
+                          "h": 40
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 160,
+                              "h": 40
+                            },
+                            "styles": {
+                              "radius": 8,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 40,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "center",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      0,
+                                      16
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 24,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 24,
+                                          "h": 24
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(186, 181, 156)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "start"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 120,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "bg": "rgb(56, 54, 41)",
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    },
+                                    "padding": [
+                                      8,
+                                      16,
+                                      8,
+                                      8
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "search",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 61,
+                                      "h": 24
+                                    },
+                                    "content": "Search",
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 16,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 40,
+                          "h": 40
+                        },
+                        "styles": {
+                          "bg": "rgb(56, 54, 41)",
+                          "radius": 8,
+                          "layout": {
+                            "direction": "row",
+                            "gap": 8,
+                            "align": {
+                              "main": "center",
+                              "cross": "center"
+                            },
+                            "padding": [
+                              0,
+                              10,
+                              0,
+                              10
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 20,
+                              "h": 20
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "center"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "vector---0",
+                                    "type": "VECTOR",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)"
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 15,
+                                      "h": 15
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-2",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 40,
+                          "h": 40
+                        },
+                        "styles": {
+                          "radius": 20,
+                          "layout": {
+                            "direction": "row",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "name": "depth-2--frame-1",
+                "type": "FRAME",
+                "size": {
+                  "w": 1280,
+                  "h": 882
+                },
+                "styles": {
+                  "layout": {
+                    "direction": "row",
+                    "gap": 0,
+                    "align": {
+                      "main": "center",
+                      "cross": "start"
+                    },
+                    "padding": [
+                      20,
+                      160,
+                      20,
+                      160
+                    ]
+                  }
+                },
+                "children": [
+                  {
+                    "name": "depth-3--frame-0",
+                    "type": "FRAME",
+                    "size": {
+                      "w": 960,
+                      "h": 842
+                    },
+                    "styles": {
+                      "layout": {
+                        "direction": "column",
+                        "gap": 0,
+                        "align": {
+                          "main": "start",
+                          "cross": "start"
+                        }
+                      }
+                    },
+                    "children": [
+                      {
+                        "name": "depth-4--frame-0",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 105
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "space-between",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              16,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 722,
+                              "h": 73
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 12,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 722,
+                                  "h": 40
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "cocktails",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 722,
+                                      "h": 40
+                                    },
+                                    "content": "Cocktails",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 32,
+                                        "weight": "700",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 722,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "explore-our-curated-collection-of-cocktail-recipes--perfect-for-any-occasion--find-your-new-favorite-drink-today-",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 722,
+                                      "h": 21
+                                    },
+                                    "content": "Explore our curated collection of cocktail recipes, perfect for any occasion. Find your new favorite drink today.",
+                                    "styles": {
+                                      "bg": "rgb(186, 181, 156)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "400",
+                                        "align": "left"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-1",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 72
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 0,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 48
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "column",
+                                "gap": 0,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 928,
+                                  "h": 48
+                                },
+                                "styles": {
+                                  "radius": 8,
+                                  "layout": {
+                                    "direction": "row",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 40,
+                                      "h": 48
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(56, 54, 41)",
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "center",
+                                          "cross": "center"
+                                        },
+                                        "padding": [
+                                          0,
+                                          0,
+                                          0,
+                                          16
+                                        ]
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 24,
+                                          "h": 24
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "row",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "start"
+                                            }
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "name": "vector---0",
+                                            "type": "VECTOR",
+                                            "size": {
+                                              "w": 24,
+                                              "h": 24
+                                            },
+                                            "styles": {
+                                              "bg": "rgb(186, 181, 156)"
+                                            }
+                                          },
+                                          {
+                                            "name": "depth-9--frame-0",
+                                            "type": "FRAME",
+                                            "size": {
+                                              "w": 20,
+                                              "h": 20
+                                            },
+                                            "styles": {
+                                              "layout": {
+                                                "direction": "column",
+                                                "gap": 0,
+                                                "align": {
+                                                  "main": "start",
+                                                  "cross": "start"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 888,
+                                      "h": 48
+                                    },
+                                    "styles": {
+                                      "bg": "rgb(56, 54, 41)",
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        },
+                                        "padding": [
+                                          8,
+                                          16,
+                                          8,
+                                          8
+                                        ]
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "search-cocktails",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 128,
+                                          "h": 24
+                                        },
+                                        "content": "Search  cocktails",
+                                        "styles": {
+                                          "bg": "rgb(186, 181, 156)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "400",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-2",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 56
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "row",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              12,
+                              16,
+                              12,
+                              12
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 101,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 8,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 49,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "sort-by",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 49,
+                                      "h": 21
+                                    },
+                                    "content": "Sort by",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 106,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 8,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 54,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "filter-by",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 54,
+                                      "h": 21
+                                    },
+                                    "content": "Filter by",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-2",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 117,
+                              "h": 32
+                            },
+                            "styles": {
+                              "bg": "rgb(56, 54, 41)",
+                              "radius": 8,
+                              "layout": {
+                                "direction": "row",
+                                "gap": 8,
+                                "align": {
+                                  "main": "center",
+                                  "cross": "center"
+                                },
+                                "padding": [
+                                  0,
+                                  8,
+                                  0,
+                                  16
+                                ]
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 65,
+                                  "h": 21
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "occasion",
+                                    "type": "TEXT",
+                                    "size": {
+                                      "w": 65,
+                                      "h": 21
+                                    },
+                                    "content": "Occasion",
+                                    "styles": {
+                                      "bg": "rgb(255, 255, 255)",
+                                      "text": {
+                                        "family": "Plus Jakarta Sans",
+                                        "size": 14,
+                                        "weight": "500",
+                                        "align": "center"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 20,
+                                  "h": 20
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 0,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "center"
+                                    }
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 20,
+                                      "h": 20
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "center"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "vector---0",
+                                        "type": "VECTOR",
+                                        "size": {
+                                          "w": 20,
+                                          "h": 20
+                                        },
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)"
+                                        }
+                                      },
+                                      {
+                                        "name": "depth-8--frame-0",
+                                        "type": "FRAME",
+                                        "size": {
+                                          "w": 14,
+                                          "h": 8
+                                        },
+                                        "styles": {
+                                          "layout": {
+                                            "direction": "column",
+                                            "gap": 0,
+                                            "align": {
+                                              "main": "start",
+                                              "cross": "center"
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "name": "depth-4--frame-3",
+                        "type": "FRAME",
+                        "size": {
+                          "w": 960,
+                          "h": 609
+                        },
+                        "styles": {
+                          "layout": {
+                            "direction": "column",
+                            "gap": 12,
+                            "align": {
+                              "main": "start",
+                              "cross": "start"
+                            },
+                            "padding": [
+                              16,
+                              16,
+                              16,
+                              16
+                            ]
+                          }
+                        },
+                        "children": [
+                          {
+                            "name": "depth-5--frame-0",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 283
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "classic-martini",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Classic Martini",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "cosmopolitan",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Cosmopolitan",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-2",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "old-fashioned",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Old Fashioned",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-3",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "mojito",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Mojito",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-4",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "margarita",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Margarita",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "name": "depth-5--frame-1",
+                            "type": "FRAME",
+                            "size": {
+                              "w": 928,
+                              "h": 283
+                            },
+                            "styles": {
+                              "layout": {
+                                "direction": "row",
+                                "gap": 12,
+                                "align": {
+                                  "main": "start",
+                                  "cross": "start"
+                                }
+                              }
+                            },
+                            "children": [
+                              {
+                                "name": "depth-6--frame-0",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "negroni",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Negroni",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-1",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "whiskey-sour",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Whiskey Sour",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-2",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "daiquiri",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Daiquiri",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-3",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "manhattan",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Manhattan",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "name": "depth-6--frame-4",
+                                "type": "FRAME",
+                                "size": {
+                                  "w": 176,
+                                  "h": 283
+                                },
+                                "styles": {
+                                  "layout": {
+                                    "direction": "column",
+                                    "gap": 12,
+                                    "align": {
+                                      "main": "start",
+                                      "cross": "start"
+                                    },
+                                    "padding": [
+                                      0,
+                                      0,
+                                      12,
+                                      0
+                                    ]
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "name": "depth-7--frame-0",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 235
+                                    },
+                                    "styles": {
+                                      "radius": 8,
+                                      "layout": {
+                                        "direction": "row",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "name": "depth-7--frame-1",
+                                    "type": "FRAME",
+                                    "size": {
+                                      "w": 176,
+                                      "h": 24
+                                    },
+                                    "styles": {
+                                      "layout": {
+                                        "direction": "column",
+                                        "gap": 0,
+                                        "align": {
+                                          "main": "start",
+                                          "cross": "start"
+                                        }
+                                      }
+                                    },
+                                    "children": [
+                                      {
+                                        "name": "aperol-spritz",
+                                        "type": "TEXT",
+                                        "size": {
+                                          "w": 176,
+                                          "h": 24
+                                        },
+                                        "content": "Aperol Spritz",
+                                        "styles": {
+                                          "bg": "rgb(255, 255, 255)",
+                                          "text": {
+                                            "family": "Plus Jakarta Sans",
+                                            "size": 16,
+                                            "weight": "500",
+                                            "align": "left"
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "components": 0,
+    "instances": 0,
+    "frames": 90,
+    "texts": 22,
+    "hasAutoLayout": true,
+    "hasEffects": false
+  }
+}

@@ -1,0 +1,327 @@
+<div className="flex flex-col justify-start items-start w-[1280px] bg-white">
+  <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 overflow-hidden bg-[#171712]">
+    <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0">
+      <div className="flex justify-between items-center self-stretch flex-grow-0 flex-shrink-0 px-10 py-3 border-t-0 border-r-0 border-b border-l-0 border-[#e5e8eb]">
+        <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 gap-8">
+          <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 gap-4">
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <div className="flex-grow w-4 relative overflow-hidden">
+                <div className="absolute left-[-1px] top-[-1px]" />
+                <div className="absolute left-[-1px] top-[-1px]" />
+                <div className="flex flex-col justify-start items-start absolute left-0 top-0">
+                  <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[15px] h-[15px]" />
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-lg font-bold text-left text-white">
+                Mixology
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-start items-center flex-grow-0 flex-shrink-0 gap-9">
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                Home
+              </p>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                Recipes
+              </p>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                Ingredients
+              </p>
+            </div>
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+              <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-white">
+                My Bar
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end items-start flex-grow relative gap-8">
+          <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0">
+            <div className="flex justify-start items-start self-stretch flex-grow rounded-lg">
+              <div className="flex justify-center items-center self-stretch flex-grow-0 flex-shrink-0 relative pl-4 rounded-tl-lg rounded-bl-lg bg-[#383629]">
+                <div className="flex-grow h-6 relative overflow-hidden">
+                  <svg
+                    width={20}
+                    height={20}
+                    viewBox="0 0 20 20"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M19.5306 18.4694L14.8366 13.7762C17.6629 10.383 17.3204 5.36693 14.0591 2.38935C10.7978 -0.588237 5.77134 -0.474001 2.64867 2.64867C-0.474001 5.77134 -0.588237 10.7978 2.38935 14.0591C5.36693 17.3204 10.383 17.6629 13.7762 14.8366L18.4694 19.5306C18.7624 19.8237 19.2376 19.8237 19.5306 19.5306C19.8237 19.2376 19.8237 18.7624 19.5306 18.4694ZM1.75 8.5C1.75 4.77208 4.77208 1.75 8.5 1.75C12.2279 1.75 15.25 4.77208 15.25 8.5C15.25 12.2279 12.2279 15.25 8.5 15.25C4.77379 15.2459 1.75413 12.2262 1.75 8.5Z"
+                      fill="#BAB59C"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-start w-5 h-5 absolute left-0 top-0" />
+                </div>
+              </div>
+              <div className="flex justify-start items-center self-stretch flex-grow relative overflow-hidden pl-2 pr-4 py-2 rounded-tr-lg rounded-br-lg bg-[#383629]">
+                <p className="flex-grow-0 flex-shrink-0 text-base text-left text-[#bab59c]">
+                  Search
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-10 overflow-hidden gap-2 px-2.5 rounded-lg bg-[#383629]">
+            <div className="flex flex-col justify-start items-center flex-grow relative">
+              <div className="self-stretch flex-grow relative overflow-hidden">
+                <svg
+                  width={16}
+                  height={16}
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="absolute left-[-1px] top-[-1px]"
+                  preserveAspectRatio="none"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    clip-rule="evenodd"
+                    d="M15.5 8C15.5 8.34518 15.2202 8.625 14.875 8.625H8.625V14.875C8.625 15.2202 8.34518 15.5 8 15.5C7.65482 15.5 7.375 15.2202 7.375 14.875V8.625H1.125C0.779822 8.625 0.5 8.34518 0.5 8C0.5 7.65482 0.779822 7.375 1.125 7.375H7.375V1.125C7.375 0.779822 7.65482 0.5 8 0.5C8.34518 0.5 8.625 0.779822 8.625 1.125V7.375H14.875C15.2202 7.375 15.5 7.65482 15.5 8Z"
+                    fill="white"
+                  />
+                </svg>
+                <div className="flex flex-col justify-start items-center w-[15px] h-[15px] absolute left-0 top-0" />
+              </div>
+            </div>
+          </div>
+          <div className="flex-grow-0 flex-shrink-0 w-10 h-10 relative overflow-hidden rounded-[20px] bg-[url('depth-4,-frame-2.png')] bg-cover bg-no-repeat bg-center" />
+        </div>
+      </div>
+      <div className="flex justify-center items-start self-stretch flex-grow px-40 py-5">
+        <div className="flex flex-col justify-start items-start flex-grow overflow-hidden">
+          <div className="flex justify-between items-start self-stretch flex-grow-0 flex-shrink-0 p-4">
+            <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 gap-3">
+              <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[722px] relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 w-[722px] text-[32px] font-bold text-left text-white">
+                  Cocktails
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm text-left text-[#bab59c]">
+                  Explore our curated collection of cocktail recipes, perfect for any occasion. Find
+                  your new favorite drink today.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 px-4 py-3">
+            <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 h-12">
+              <div className="flex justify-start items-start self-stretch flex-grow rounded-lg">
+                <div className="flex justify-center items-center self-stretch flex-grow-0 flex-shrink-0 relative pl-4 rounded-tl-lg rounded-bl-lg bg-[#383629]">
+                  <div className="flex-grow h-6 relative overflow-hidden">
+                    <svg
+                      width={20}
+                      height={20}
+                      viewBox="0 0 20 20"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="absolute left-[-1px] top-[-1px]"
+                      preserveAspectRatio="none"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        clip-rule="evenodd"
+                        d="M19.5306 18.4694L14.8366 13.7762C17.6629 10.383 17.3204 5.36693 14.0591 2.38935C10.7978 -0.588237 5.77134 -0.474001 2.64867 2.64867C-0.474001 5.77134 -0.588237 10.7978 2.38935 14.0591C5.36693 17.3204 10.383 17.6629 13.7762 14.8366L18.4694 19.5306C18.7624 19.8237 19.2376 19.8237 19.5306 19.5306C19.8237 19.2376 19.8237 18.7624 19.5306 18.4694ZM1.75 8.5C1.75 4.77208 4.77208 1.75 8.5 1.75C12.2279 1.75 15.25 4.77208 15.25 8.5C15.25 12.2279 12.2279 15.25 8.5 15.25C4.77379 15.2459 1.75413 12.2262 1.75 8.5Z"
+                        fill="#BAB59C"
+                      />
+                    </svg>
+                    <div className="flex flex-col justify-start items-start w-5 h-5 absolute left-0 top-0" />
+                  </div>
+                </div>
+                <div className="flex justify-start items-center self-stretch flex-grow relative overflow-hidden pl-2 pr-4 py-2 rounded-tr-lg rounded-br-lg bg-[#383629]">
+                  <p className="flex-grow-0 flex-shrink-0 text-base text-left text-[#bab59c]">
+                    Search cocktails
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 pl-3 pr-4 py-3">
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Sort by
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.0635991 1.69797 0.0635991 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Filter by
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.0635991 1.69797 0.0635991 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center items-center flex-grow-0 flex-shrink-0 h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629]">
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <p className="self-stretch flex-grow-0 flex-shrink-0 text-sm font-medium text-center text-white">
+                  Occasion
+                </p>
+              </div>
+              <div className="flex flex-col justify-start items-center flex-grow-0 flex-shrink-0 relative">
+                <div className="flex-grow w-5 relative overflow-hidden">
+                  <svg
+                    width={14}
+                    height={9}
+                    viewBox="0 0 14 9"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="absolute left-[-1px] top-[-1px]"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      clip-rule="evenodd"
+                      d="M13.6922 1.94219L7.44219 8.19219C7.32496 8.30955 7.16588 8.37549 7 8.37549C6.83412 8.37549 6.67504 8.30955 6.55781 8.19219L0.307812 1.94219C0.0635991 1.69797 0.0635991 1.30203 0.307812 1.05781C0.552026 0.813599 0.947974 0.813599 1.19219 1.05781L7 6.86641L12.8078 1.05781C13.052 0.813599 13.448 0.813599 13.6922 1.05781C13.9364 1.30203 13.9364 1.69797 13.6922 1.94219Z"
+                      fill="white"
+                    />
+                  </svg>
+                  <div className="flex flex-col justify-start items-center w-3.5 h-2 absolute left-0 top-0" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-3 p-4">
+            <div className="flex justify-start items-start self-stretch flex-grow gap-3">
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Classic Martini
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-2.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Cosmopolitan
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-3.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Old Fashioned
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-6.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Mojito
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-4.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Margarita
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-start items-start self-stretch flex-grow gap-3">
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-5.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Negroni
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-10.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Whiskey Sour
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-7.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Daiquiri
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-9.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Manhattan
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 w-44 relative gap-3 pb-3">
+                <div className="self-stretch flex-grow-0 flex-shrink-0 w-44 h-[235px] relative overflow-hidden rounded-lg bg-[url('depth-7,-frame-0-8.png')] bg-cover bg-no-repeat bg-center" />
+                <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 relative">
+                  <p className="self-stretch flex-grow-0 flex-shrink-0 w-44 text-base font-medium text-left text-white">
+                    Aperol Spritz
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>;
