@@ -12,6 +12,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
 import { DesktopNavigation } from "@/components/Navigation";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
@@ -248,12 +249,12 @@ export const Ingredients = (): JSX.Element => {
                   {/* Image Section */}
                   <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
                     <img
-                      src={ingredient.imageUrl || "/attached_assets/no-photo_1753579606993.png"}
+                      src={ingredient.imageUrl || noPhotoImage}
                       alt={ingredient.name}
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = "/attached_assets/no-photo_1753579606993.png";
+                        target.src = noPhotoImage;
                       }}
                     />
                   </div>
