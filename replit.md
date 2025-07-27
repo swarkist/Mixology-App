@@ -112,6 +112,7 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Default Recipe Images**: Added fallback image for cocktail recipes without photos using attached no-photo asset
 - **Multi-page Architecture**: Added complete routing system with Wouter
 - **Ingredients Page**: Comprehensive ingredient browser with category filtering, search, and ingredient selection
 - **Cocktail List Page**: Dedicated cocktail browsing with grid/list views and advanced filtering

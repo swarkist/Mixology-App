@@ -126,20 +126,13 @@ export const CocktailRecipe = (): JSX.Element => {
         {/* Hero Section */}
         <div className="grid md:grid-cols-2 gap-6 items-start">
           <div
-            className="w-full h-[400px] rounded-lg bg-cover bg-center bg-[#383529]"
+            className="w-full h-[400px] rounded-lg bg-cover bg-center"
             style={{ 
-              backgroundImage: cocktail.imageUrl ? `url(${cocktail.imageUrl})` : 'none',
-              backgroundColor: !cocktail.imageUrl ? '#383529' : undefined
+              backgroundImage: cocktail.imageUrl 
+                ? `url(${cocktail.imageUrl})` 
+                : `url(@assets/no-photo_1753579606993.png)`
             }}
-          >
-            {!cocktail.imageUrl && (
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-[#bab59b] text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                  No Image
-                </span>
-              </div>
-            )}
-          </div>
+          />
           
           <div className="space-y-4">
             <div>
