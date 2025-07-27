@@ -137,12 +137,6 @@ export const CocktailRecipe = (): JSX.Element => {
           
           <div className="space-y-4">
             <div>
-              <Link href={`/edit-cocktail/${cocktail.id}`}>
-                <Button size="sm" className="mb-2 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Recipe
-                </Button>
-              </Link>
               <h1 className="text-3xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
                 {cocktail.name}
               </h1>
@@ -229,7 +223,7 @@ export const CocktailRecipe = (): JSX.Element => {
         <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardContent className="p-6">
             <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Tags
+              Usage & Tags
             </h2>
             <div className="flex flex-wrap gap-2">
               {cocktailDetails.tags && cocktailDetails.tags.length > 0 ? (
@@ -248,15 +242,21 @@ export const CocktailRecipe = (): JSX.Element => {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 pb-6">
+        <div className="flex gap-3 pb-6">
           <Button className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold">
             Start Making This Cocktail
           </Button>
+          <Link href={`/edit-cocktail/${cocktail.id}`}>
+            <Button size="sm" className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold px-4">
+              <Edit className="w-4 h-4 mr-2" />
+              Edit Recipe
+            </Button>
+          </Link>
           <Button 
             variant="outline" 
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300"
+            className="border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 px-4"
           >
             <Trash2 className="w-4 h-4 mr-2" />
             {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
