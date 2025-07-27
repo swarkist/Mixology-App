@@ -173,7 +173,7 @@ export const CocktailRecipe = (): JSX.Element => {
             <div className="flex items-center gap-4 text-sm text-[#bab59b]">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 fill-[#f2c40c] text-[#f2c40c]" />
-                <span>{cocktail.popularityCount || 0} likes</span>
+                <span>{cocktail.popularityCount || 0} crafted</span>
               </div>
             </div>
 

@@ -271,7 +271,8 @@ export const AddCocktail = (): JSX.Element => {
       tags,
       image: imagePreview,
       featured: false,
-      popularityCount: 0
+      // Don't include popularityCount when editing - preserve existing value
+      ...(isEditMode ? {} : { popularityCount: 0 })
     };
     
     console.log(`${isEditMode ? 'Updating' : 'Creating'} cocktail:`, cocktailData);
