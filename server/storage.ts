@@ -778,8 +778,7 @@ import { FirebaseStorageAdapter } from './storage/firebase-adapter';
 import { PersistentMemStorage } from './storage/persistent-storage';
 
 // Choose storage backend based on environment
-// Using PersistentMemStorage for data persistence across restarts
-export const storage: IStorage = new PersistentMemStorage();
-// export const storage: IStorage = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_PROJECT_ID)
-//   ? new FirebaseStorageAdapter()
-//   : new PersistentMemStorage();
+// Switch to Firebase when secrets are available
+export const storage: IStorage = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_PROJECT_ID)
+  ? new FirebaseStorageAdapter()
+  : new PersistentMemStorage();

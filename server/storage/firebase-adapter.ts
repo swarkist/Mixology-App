@@ -136,6 +136,10 @@ export class FirebaseStorageAdapter implements IStorage {
     await this.firebase.incrementIngredientUsage(ingredientId);
   }
 
+  async deleteIngredient(id: number): Promise<boolean> {
+    return this.firebase.deleteIngredient(id);
+  }
+
   async findIngredientByName(name: string): Promise<Ingredient | null> {
     const allIngredients = await this.firebase.getAllIngredients();
     const lowercaseName = name.toLowerCase();
