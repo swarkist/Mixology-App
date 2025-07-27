@@ -204,7 +204,7 @@ export const EditIngredient = (): JSX.Element => {
               onClick={handleDelete}
               disabled={deleteMutation.isPending}
               variant="outline"
-              className="bg-transparent border-red-600 text-red-400 hover:border-red-500 hover:text-red-300 hover:bg-red-950/20"
+              className="bg-transparent border-red-600 text-red-400 hover:border-red-500 hover:text-red-300 hover:bg-red-950/20 h-10"
             >
               <Trash2 className="w-4 h-4 mr-2" />
               {deleteMutation.isPending ? "Deleting..." : "Delete"}
@@ -221,7 +221,7 @@ export const EditIngredient = (): JSX.Element => {
               form="ingredient-form"
               type="submit"
               disabled={updateMutation.isPending}
-              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
