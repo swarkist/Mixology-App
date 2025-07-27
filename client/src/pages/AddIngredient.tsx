@@ -111,17 +111,17 @@ export const AddIngredient = (): JSX.Element => {
                       setValue("subCategory", "");
                     }
                   }}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
+                    <SelectTrigger className="w-full h-10 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a] text-white">
-                      <SelectItem value="spirits" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Spirits</SelectItem>
-                      <SelectItem value="mixers" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Mixers</SelectItem>
-                      <SelectItem value="juices" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Juices</SelectItem>
-                      <SelectItem value="syrups" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Syrups</SelectItem>
-                      <SelectItem value="bitters" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Bitters</SelectItem>
-                      <SelectItem value="garnishes" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Garnishes</SelectItem>
-                      <SelectItem value="other" className="text-white hover:bg-[#383629] focus:bg-[#383629]">Other</SelectItem>
+                    <SelectContent className="bg-[#383629] border-[#544f3b]">
+                      <SelectItem value="spirits" className="text-white">Spirits</SelectItem>
+                      <SelectItem value="mixers" className="text-white">Mixers</SelectItem>
+                      <SelectItem value="juices" className="text-white">Juices</SelectItem>
+                      <SelectItem value="syrups" className="text-white">Syrups</SelectItem>
+                      <SelectItem value="bitters" className="text-white">Bitters</SelectItem>
+                      <SelectItem value="garnishes" className="text-white">Garnishes</SelectItem>
+                      <SelectItem value="other" className="text-white">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -131,15 +131,15 @@ export const AddIngredient = (): JSX.Element => {
                 <div>
                   <Label htmlFor="subCategory" className="text-white">Sub-Category *</Label>
                   <Select onValueChange={(value) => setValue("subCategory", value)}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
+                    <SelectTrigger className="w-full h-10 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
                       <SelectValue placeholder="Select sub-category" />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a] text-white">
+                    <SelectContent className="bg-[#383629] border-[#544f3b]">
                       {spiritSubcategories.map((subcategory) => (
                         <SelectItem 
                           key={subcategory.toLowerCase()} 
                           value={subcategory.toLowerCase()}
-                          className="text-white hover:bg-[#383629] focus:bg-[#383629]"
+                          className="text-white capitalize"
                         >
                           {subcategory}
                         </SelectItem>
