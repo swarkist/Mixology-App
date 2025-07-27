@@ -365,6 +365,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
       }
       
+      // Handle instructions (keep as array of strings)
+      if (req.body.instructions && Array.isArray(req.body.instructions)) {
+        console.log(`PATCH: Processing ${req.body.instructions.length} instructions:`, req.body.instructions);
+        transformedData.instructions = req.body.instructions;
+      }
+      
       // Transform tags from string array to tag IDs
       if (req.body.tags && Array.isArray(req.body.tags)) {
         console.log('Transforming tags for PATCH...');
