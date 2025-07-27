@@ -226,7 +226,17 @@ export const CocktailList = (): JSX.Element => {
               : "space-y-4"
             }>
               {cocktails.map((cocktail: Cocktail) => (
-                <Card key={cocktail.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                <Card key={cocktail.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden">
+                  {/* Cocktail Image */}
+                  <div
+                    className="w-full h-48 bg-cover bg-center"
+                    style={{
+                      backgroundImage: cocktail.imageUrl 
+                        ? `url(${cocktail.imageUrl})` 
+                        : `url(@assets/no-photo_1753579606993.png)`
+                    }}
+                  />
+                  
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
