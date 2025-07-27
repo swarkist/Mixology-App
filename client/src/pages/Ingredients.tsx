@@ -245,6 +245,19 @@ export const Ingredients = (): JSX.Element => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {ingredients.map((ingredient: Ingredient) => (
                 <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                  {/* Image Section */}
+                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                    <img
+                      src={ingredient.imageUrl || "/attached_assets/no-photo_1753579606993.png"}
+                      alt={ingredient.name}
+                      className="h-full w-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.src = "/attached_assets/no-photo_1753579606993.png";
+                      }}
+                    />
+                  </div>
+
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -261,7 +274,11 @@ export const Ingredients = (): JSX.Element => {
                           </div>
                         )}
                       </div>
-
+                      {ingredient.abv && ingredient.abv > 0 && (
+                        <div className="flex items-center gap-1 text-[#f2c40c] text-xs font-semibold">
+                          <span>{ingredient.abv}% ABV</span>
+                        </div>
+                      )}
                     </div>
                     <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
                       {ingredient.name}
