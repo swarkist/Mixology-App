@@ -494,21 +494,49 @@ export class FirebaseStorage implements IStorage {
   async getCocktailIngredients(cocktailId: number): Promise<CocktailIngredient[]> {
     try {
       console.log(`Fetching ingredients for cocktail ${cocktailId}`);
-      const snapshot = await this.cocktailIngredientsCollection.where('cocktailId', '==', cocktailId).get();
-      console.log(`Found ${snapshot.docs.length} ingredient records`);
-      const ingredients = snapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Ingredient data:', data);
-        return { 
-          id: data.id || parseInt(doc.id), 
-          cocktailId: data.cocktailId,
-          ingredientId: data.ingredientId,
-          amount: data.amount,
-          unit: data.unit,
-          order: data.order
-        } as CocktailIngredient;
-      });
-      return ingredients;
+      
+      // First try to get from junction table (new format)  
+      const junctionSnapshot = await this.cocktailIngredientsCollection.where('cocktailId', '==', cocktailId).get();
+      console.log(`Found ${junctionSnapshot.docs.length} ingredient junction records`);
+      
+      if (junctionSnapshot.docs.length > 0) {
+        // Return junction table data (new format)
+        const ingredients = junctionSnapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Junction ingredient data:', data);
+          return { 
+            id: data.id || parseInt(doc.id), 
+            cocktailId: data.cocktailId,
+            ingredientId: data.ingredientId,
+            amount: data.amount,
+            unit: data.unit,
+            order: data.order
+          } as CocktailIngredient;
+        });
+        return ingredients;
+      }
+      
+      // If no junction table data, try to get from cocktail document (old format)
+      console.log('No junction table data found, checking cocktail document for embedded ingredients');
+      const cocktailDoc = await this.cocktailsCollection.doc(cocktailId.toString()).get();
+      if (cocktailDoc.exists) {
+        const cocktailData = cocktailDoc.data();
+        if (cocktailData?.ingredients && Array.isArray(cocktailData.ingredients)) {
+          console.log('Found embedded ingredients in cocktail document:', cocktailData.ingredients);
+          // Convert embedded format to CocktailIngredient format
+          return cocktailData.ingredients.map((ing: any, index: number) => ({
+            id: Date.now() + index, // Generate temporary IDs
+            cocktailId: cocktailId,
+            ingredientId: ing.ingredientId,
+            amount: ing.amount,
+            unit: ing.unit,
+            order: index
+          } as CocktailIngredient));
+        }
+      }
+      
+      console.log('No ingredients found in either format');
+      return [];
     } catch (error) {
       console.error('Error fetching cocktail ingredients:', error);
       return [];
@@ -518,20 +546,46 @@ export class FirebaseStorage implements IStorage {
   async getCocktailInstructions(cocktailId: number): Promise<CocktailInstruction[]> {
     try {
       console.log(`Fetching instructions for cocktail ${cocktailId}`);
-      const snapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).get();
-      console.log(`Found ${snapshot.docs.length} instruction records`);
-      const instructions = snapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Instruction data:', data);
-        return {
-          id: data.id || parseInt(doc.id),
-          cocktailId: data.cocktailId,
-          stepNumber: data.stepNumber,
-          instruction: data.instruction
-        } as CocktailInstruction;
-      });
-      // Sort by stepNumber in memory
-      return instructions.sort((a, b) => a.stepNumber - b.stepNumber);
+      
+      // First try to get from junction table (new format)
+      const junctionSnapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).get();
+      console.log(`Found ${junctionSnapshot.docs.length} instruction junction records`);
+      
+      if (junctionSnapshot.docs.length > 0) {
+        // Return junction table data (new format)
+        const instructions = junctionSnapshot.docs.map(doc => {
+          const data = doc.data();
+          console.log('Junction instruction data:', data);
+          return {
+            id: data.id || parseInt(doc.id),
+            cocktailId: data.cocktailId,
+            stepNumber: data.stepNumber,
+            instruction: data.instruction
+          } as CocktailInstruction;
+        });
+        // Sort by stepNumber in memory
+        return instructions.sort((a, b) => a.stepNumber - b.stepNumber);
+      }
+      
+      // If no junction table data, try to get from cocktail document (old format)
+      console.log('No junction table data found, checking cocktail document for embedded instructions');
+      const cocktailDoc = await this.cocktailsCollection.doc(cocktailId.toString()).get();
+      if (cocktailDoc.exists) {
+        const cocktailData = cocktailDoc.data();
+        if (cocktailData?.instructions && Array.isArray(cocktailData.instructions)) {
+          console.log('Found embedded instructions in cocktail document:', cocktailData.instructions);
+          // Convert embedded format to CocktailInstruction format
+          return cocktailData.instructions.map((instruction: string, index: number) => ({
+            id: Date.now() + index, // Generate temporary IDs
+            cocktailId: cocktailId,
+            stepNumber: index + 1,
+            instruction: instruction
+          } as CocktailInstruction));
+        }
+      }
+      
+      console.log('No instructions found in either format');
+      return [];
     } catch (error) {
       console.error('Error fetching cocktail instructions:', error);
       return [];
@@ -598,29 +652,59 @@ export class FirebaseStorage implements IStorage {
   async getCocktailTags(cocktailId: number): Promise<Tag[]> {
     try {
       console.log(`Fetching tags for cocktail ${cocktailId}`);
-      const snapshot = await this.cocktailTagsCollection.where('cocktailId', '==', cocktailId).get();
-      console.log(`Found ${snapshot.docs.length} tag relationship records`);
-      const tagIds = snapshot.docs.map(doc => {
-        const data = doc.data();
-        console.log('Tag relationship data:', data);
-        return data.tagId;
-      });
       
-      if (tagIds.length === 0) return [];
+      // First try to get from junction table (new format)
+      const junctionSnapshot = await this.cocktailTagsCollection.where('cocktailId', '==', cocktailId).get();
+      console.log(`Found ${junctionSnapshot.docs.length} tag junction records`);
       
-      // Get all tags that match the tag IDs
-      const tagPromises = tagIds.map(tagId => this.tagsCollection.doc(tagId.toString()).get());
-      const tagDocs = await Promise.all(tagPromises);
-      
-      const tags = tagDocs
-        .filter(doc => doc.exists)
-        .map(doc => {
+      if (junctionSnapshot.docs.length > 0) {
+        // Return junction table data (new format)
+        const tagIds = junctionSnapshot.docs.map(doc => {
           const data = doc.data();
-          console.log('Tag data:', data);
-          return { id: parseInt(doc.id), ...data } as Tag;
+          console.log('Junction tag relationship data:', data);
+          return data.tagId;
         });
+        
+        // Get all tags that match the tag IDs
+        const tagPromises = tagIds.map(tagId => this.tagsCollection.doc(tagId.toString()).get());
+        const tagDocs = await Promise.all(tagPromises);
+        
+        const tags = tagDocs
+          .filter(doc => doc.exists)
+          .map(doc => {
+            const data = doc.data();
+            console.log('Tag data:', data);
+            return { id: parseInt(doc.id), ...data } as Tag;
+          });
+        
+        return tags;
+      }
       
-      return tags;
+      // If no junction table data, try to get from cocktail document (old format)
+      console.log('No junction table data found, checking cocktail document for embedded tagIds');
+      const cocktailDoc = await this.cocktailsCollection.doc(cocktailId.toString()).get();
+      if (cocktailDoc.exists) {
+        const cocktailData = cocktailDoc.data();
+        if (cocktailData?.tagIds && Array.isArray(cocktailData.tagIds)) {
+          console.log('Found embedded tagIds in cocktail document:', cocktailData.tagIds);
+          // Get all tags that match the embedded tag IDs
+          const tagPromises = cocktailData.tagIds.map((tagId: number) => this.tagsCollection.doc(tagId.toString()).get());
+          const tagDocs = await Promise.all(tagPromises);
+          
+          const tags = tagDocs
+            .filter(doc => doc.exists)
+            .map(doc => {
+              const data = doc.data();
+              console.log('Embedded tag data:', data);
+              return { id: parseInt(doc.id), ...data } as Tag;
+            });
+          
+          return tags;
+        }
+      }
+      
+      console.log('No tags found in either format');
+      return [];
     } catch (error) {
       console.error('Error fetching cocktail tags:', error);
       return [];
