@@ -150,14 +150,6 @@ export const CocktailRecipe = (): JSX.Element => {
                 <Star className="w-4 h-4 fill-[#f2c40c] text-[#f2c40c]" />
                 <span>{cocktail.popularityCount || 0} likes</span>
               </div>
-              <div className="flex items-center gap-1">
-                <Clock className="w-4 h-4" />
-                <span>5 minutes</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>1 serving</span>
-              </div>
             </div>
 
             <div className="p-4 bg-[#2a2920] rounded-lg">
@@ -167,8 +159,7 @@ export const CocktailRecipe = (): JSX.Element => {
               </Badge>
             </div>
           </div>
-        </div>
-
+        </div>            
         {/* Ingredients Section */}
         <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardContent className="p-6">
