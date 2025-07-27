@@ -91,7 +91,7 @@ export const PopularRecipesSection = (): JSX.Element => {
                       </Badge>
                       <div className="flex items-center gap-1 text-[#bab59b] text-sm">
                         <TrendingUp className="h-4 w-4" />
-                        <span>{cocktail.popularityCount} views</span>
+                        <span>{cocktail.popularityCount} crafted</span>
                       </div>
                     </div>
                     <h4 className="text-xl font-bold text-white mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">

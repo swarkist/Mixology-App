@@ -305,7 +305,7 @@ export const CocktailList = (): JSX.Element => {
                         )}
                         <div className="flex items-center gap-1 text-[#bab59b] text-sm">
                           <TrendingUp className="h-4 w-4" />
-                          <span>{cocktail.popularityCount} views</span>
+                          <span>{cocktail.popularityCount} crafted</span>
                         </div>
                       </div>
                       <Button

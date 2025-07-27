@@ -316,8 +316,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     
     try {
+      // Get existing cocktail to preserve fields not being updated
+      const existingCocktail = await storage.getCocktail(id);
+      if (!existingCocktail) {
+        return res.status(404).json({ message: "Cocktail not found" });
+      }
+      
       // Transform ingredients from {name, amount, unit} to {ingredientId, amount, unit}
-      const transformedData = { ...req.body };
+      // Only include the fields being updated, preserve existing fields like popularityCount
+      const transformedData: any = {};
+      
+      // Copy basic fields from request body, excluding special fields
+      const basicFields = ['name', 'description', 'isFeatured'];
+      for (const field of basicFields) {
+        if (req.body.hasOwnProperty(field)) {
+          transformedData[field] = req.body[field];
+        }
+      }
       
       if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
         console.log('Transforming ingredients for PATCH...');
