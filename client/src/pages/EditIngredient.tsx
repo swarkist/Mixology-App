@@ -357,8 +357,19 @@ export const EditIngredient = (): JSX.Element => {
                     className="hidden"
                     id="image-upload-edit"
                   />
-                  <Label htmlFor="image-upload-edit" className="cursor-pointer">
-                    <Button type="button" variant="outline" className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]">
+                  <Label 
+                    htmlFor="image-upload-edit" 
+                    className="cursor-pointer inline-block"
+                  >
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]"
+                      onClick={() => {
+                        console.log('Choose Image button clicked');
+                        document.getElementById('image-upload-edit')?.click();
+                      }}
+                    >
                       Choose Image
                     </Button>
                   </Label>
