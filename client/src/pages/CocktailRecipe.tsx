@@ -247,7 +247,7 @@ export const CocktailRecipe = (): JSX.Element => {
             Start Making This Cocktail
           </Button>
           <Link href={`/edit-cocktail/${cocktail.id}`}>
-            <Button size="sm" className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold px-4 pt-[8px] pb-[8px]">
+            <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold px-4">
               <Edit className="w-4 h-4 mr-2" />
               Edit Recipe
             </Button>
