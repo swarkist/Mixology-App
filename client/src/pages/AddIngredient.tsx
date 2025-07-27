@@ -2,7 +2,7 @@ import { ArrowLeft, Upload, X, Plus } from "lucide-react";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 import { Link, useLocation } from "wouter";
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,7 @@ interface IngredientForm {
 
 export const AddIngredient = (): JSX.Element => {
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
@@ -118,6 +119,8 @@ export const AddIngredient = (): JSX.Element => {
 
       if (response.ok) {
         console.log("Ingredient created successfully");
+        // Invalidate ingredients cache to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['/api/ingredients'] });
         setLocation('/ingredients');
       } else {
         const error = await response.json();
