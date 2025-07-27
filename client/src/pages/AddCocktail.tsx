@@ -176,7 +176,9 @@ export const AddCocktail = (): JSX.Element => {
       return apiRequest("POST", "/api/cocktails", cocktailData);
     },
     onSuccess: () => {
+      // Invalidate all cocktail queries regardless of parameters
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
+      queryClient.refetchQueries({ queryKey: ["/api/cocktails"] });
       setLocation("/cocktails");
     },
     onError: (error) => {

@@ -44,7 +44,12 @@ export const CocktailList = (): JSX.Element => {
 
   // Fetch cocktails with filters
   const { data: cocktails, isLoading, error } = useQuery<Cocktail[]>({
-    queryKey: [`/api/cocktails${buildQueryString()}`],
+    queryKey: ["/api/cocktails", { search: searchQuery, featured: showOnlyFeatured, popular: showOnlyPopular }],
+    queryFn: async () => {
+      const response = await fetch(`/api/cocktails${buildQueryString()}`);
+      if (!response.ok) throw new Error('Failed to fetch cocktails');
+      return response.json();
+    },
   });
 
   // Toggle featured status mutation

@@ -11,31 +11,38 @@ export class FirebaseStorage implements IStorage {
 
   // Cocktail operations
   async getAllCocktails(): Promise<Cocktail[]> {
-    const snapshot = await this.cocktailsCollection.get();
-    return snapshot.docs.map((doc: any) => {
-      const data = doc.data();
-      // Try to parse doc.id as number, if it fails or is NaN, use a generated ID
-      let id = parseInt(doc.id);
-      if (isNaN(id)) {
-        // For existing documents without numeric IDs, generate a unique ID
-        id = Date.now() + Math.floor(Math.random() * 1000);
-      }
+    try {
+      const snapshot = await this.cocktailsCollection.get();
       
-      // Ensure all required fields exist with default values
-      const cocktail: Cocktail = {
-        id,
-        name: data.name || 'Untitled Cocktail',
-        description: data.description || null,
-        imageUrl: data.imageUrl || data.photoUrl || null, // Handle both field names
-        isFeatured: data.isFeatured || false,
-        featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
-        popularityCount: data.popularityCount || 0,
-        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
-        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      };
-      
-      return cocktail;
-    });
+      return snapshot.docs.map((doc: any) => {
+        const data = doc.data();
+        
+        // Try to parse doc.id as number, if it fails or is NaN, use a generated ID
+        let id = parseInt(doc.id);
+        if (isNaN(id)) {
+          // For existing documents without numeric IDs, generate a unique ID
+          id = Date.now() + Math.floor(Math.random() * 1000);
+        }
+        
+        // Ensure all required fields exist with default values
+        const cocktail: Cocktail = {
+          id,
+          name: data.name || 'Untitled Cocktail',
+          description: data.description || null,
+          imageUrl: data.imageUrl || data.image || data.photoUrl || null, // Handle multiple field names
+          isFeatured: data.isFeatured || data.featured || false,
+          featuredAt: data.featuredAt ? new Date(data.featuredAt) : null,
+          popularityCount: data.popularityCount || 0,
+          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+          updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+        };
+        
+        return cocktail;
+      });
+    } catch (error) {
+      console.error('Error fetching cocktails from Firebase:', error);
+      return [];
+    }
   }
 
   async getCocktailById(id: number): Promise<Cocktail | null> {
