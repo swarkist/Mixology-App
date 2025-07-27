@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
-import { SearchIcon, Star, TrendingUp, Grid, List, Filter, StarIcon } from "lucide-react";
+import {
+  SearchIcon,
+  Star,
+  TrendingUp,
+  Grid,
+  List,
+  Filter,
+  StarIcon,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
@@ -28,7 +42,7 @@ export const CocktailList = (): JSX.Element => {
     const search = urlParams.get("search");
     const featured = urlParams.get("featured");
     const popular = urlParams.get("popular");
-    
+
     if (search) setSearchQuery(search);
     if (featured === "true") setShowOnlyFeatured(true);
     if (popular === "true") setShowOnlyPopular(true);
@@ -44,11 +58,22 @@ export const CocktailList = (): JSX.Element => {
   };
 
   // Fetch cocktails with filters
-  const { data: cocktails, isLoading, error } = useQuery<Cocktail[]>({
-    queryKey: ["/api/cocktails", { search: searchQuery, featured: showOnlyFeatured, popular: showOnlyPopular }],
+  const {
+    data: cocktails,
+    isLoading,
+    error,
+  } = useQuery<Cocktail[]>({
+    queryKey: [
+      "/api/cocktails",
+      {
+        search: searchQuery,
+        featured: showOnlyFeatured,
+        popular: showOnlyPopular,
+      },
+    ],
     queryFn: async () => {
       const response = await fetch(`/api/cocktails${buildQueryString()}`);
-      if (!response.ok) throw new Error('Failed to fetch cocktails');
+      if (!response.ok) throw new Error("Failed to fetch cocktails");
       return response.json();
     },
   });
@@ -97,7 +122,10 @@ export const CocktailList = (): JSX.Element => {
       <div className="min-h-screen bg-[#171712] text-white p-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
+            <Card
+              key={i}
+              className="bg-[#383629] border-[#544f3b] animate-pulse"
+            >
               <CardContent className="p-6">
                 <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
@@ -127,7 +155,7 @@ export const CocktailList = (): JSX.Element => {
   return (
     <div className="min-h-screen bg-[#171712]">
       <DesktopNavigation />
-      
+
       <div className="px-40 py-5">
         {/* Header */}
         <div className="p-4 mb-3">
@@ -135,7 +163,8 @@ export const CocktailList = (): JSX.Element => {
             Cocktails
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Explore our curated collection of cocktail recipes, perfect for any occasion. Find your new favorite drink today.
+            Explore our curated collection of cocktail recipes, perfect for any
+            occasion. Find your new favorite drink today.
           </p>
         </div>
 
@@ -160,24 +189,36 @@ export const CocktailList = (): JSX.Element => {
         {/* Sort and Filter Buttons */}
         <div className="flex gap-3 pl-3 pr-4 py-3">
           <Select>
-            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#161611]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="name" className="text-white">Name</SelectItem>
-              <SelectItem value="date" className="text-white">Date</SelectItem>
-              <SelectItem value="popularity" className="text-white">Popularity</SelectItem>
+              <SelectItem value="name" className="text-white">
+                Name
+              </SelectItem>
+              <SelectItem value="date" className="text-white">
+                Date
+              </SelectItem>
+              <SelectItem value="popularity" className="text-white">
+                Popularity
+              </SelectItem>
             </SelectContent>
           </Select>
 
           <Select>
-            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#161611]">
               <SelectValue placeholder="Filter by" />
             </SelectTrigger>
             <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white">All</SelectItem>
-              <SelectItem value="featured" className="text-white">Featured</SelectItem>
-              <SelectItem value="popular" className="text-white">Popular</SelectItem>
+              <SelectItem value="all" className="text-white">
+                All
+              </SelectItem>
+              <SelectItem value="featured" className="text-white">
+                Featured
+              </SelectItem>
+              <SelectItem value="popular" className="text-white">
+                Popular
+              </SelectItem>
             </SelectContent>
           </Select>
 
@@ -232,22 +273,28 @@ export const CocktailList = (): JSX.Element => {
         {/* Cocktail Grid */}
         <div className="px-4 py-6">
           {cocktails && cocktails.length > 0 ? (
-            <div className={viewMode === "grid" 
-              ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
-              : "space-y-4"
-            }>
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  : "space-y-4"
+              }
+            >
               {cocktails.map((cocktail: Cocktail) => (
-                <Card key={cocktail.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden">
+                <Card
+                  key={cocktail.id}
+                  className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden"
+                >
                   {/* Cocktail Image */}
                   <div
                     className="w-full h-48 bg-cover bg-center"
                     style={{
-                      backgroundImage: cocktail.imageUrl 
-                        ? `url(${cocktail.imageUrl})` 
-                        : `url(${noPhotoImage})`
+                      backgroundImage: cocktail.imageUrl
+                        ? `url(${cocktail.imageUrl})`
+                        : `url(${noPhotoImage})`,
                     }}
                   />
-                  
+
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -268,7 +315,9 @@ export const CocktailList = (): JSX.Element => {
                         className="text-[#bab59b] hover:text-[#f2c40c]"
                         disabled={toggleFeaturedMutation.isPending}
                       >
-                        <StarIcon className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`} />
+                        <StarIcon
+                          className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`}
+                        />
                       </Button>
                     </div>
                     <CardTitle className="text-xl text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -283,8 +332,8 @@ export const CocktailList = (): JSX.Element => {
                     )}
                     <div className="flex items-center gap-2">
                       <Link href={`/recipe/${cocktail.id}`}>
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           size="sm"
                           className="border-[#544f3b] text-[#bab59b] hover:text-white"
                         >
@@ -319,7 +368,7 @@ export const CocktailList = (): JSX.Element => {
           )}
         </div>
       </div>
-      
+
       <Navigation />
     </div>
   );
