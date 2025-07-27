@@ -97,7 +97,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const id = parseInt(req.params.id);
     
     try {
-      const updated = await storage.updateIngredient(id, req.body);
+      const updateData = { ...req.body };
+      
+      // Handle image upload
+      if (req.body.image && typeof req.body.image === 'string') {
+        // Store the base64 data directly as imageUrl
+        updateData.imageUrl = req.body.image;
+        delete updateData.image;
+      }
+      
+      const updated = await storage.updateIngredient(id, updateData);
       res.json(updated);
     } catch (error) {
       res.status(404).json({ message: "Ingredient not found", error });

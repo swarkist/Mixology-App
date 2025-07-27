@@ -136,6 +136,12 @@ Preferred communication style: Simple, everyday language.
   - Streamlined filter controls layout with improved button styling
   - Consistent page header structure with appropriate spacing and typography
   - Maintained responsive grid layout for ingredient cards
+- **Ingredient Editing Functionality (July 27, 2025)**: Added complete ingredient editing capabilities
+  - Created EditIngredient page with form pre-populated from existing ingredient data
+  - Added "Edit" button next to "Add to Bar" button on ingredient cards
+  - Enhanced ingredient PATCH endpoint to handle image uploads (base64 to imageUrl conversion)
+  - Full ingredient editing workflow: name, description, category, subcategory, brand, ABV, and images
+  - Proper routing with /edit-ingredient/:id and navigation integration
 - **Critical Fix: Data Persistence Issue Resolved (July 27, 2025)**: Fixed the core data structure mismatch between frontend and backend
   - Frontend sends ingredients as `{name, amount, unit}` but backend expected `{ingredientId, amount, unit}`
   - Implemented automatic data transformation in POST/PATCH routes to convert ingredient names to IDs

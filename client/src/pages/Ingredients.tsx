@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { SearchIcon, Plus, Filter, Check, Star, BarChart3 } from "lucide-react";
+import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -287,14 +287,14 @@ export const Ingredients = (): JSX.Element => {
                           {ingredient.description}
                         </p>
                       )}
-                      <div className="flex items-center justify-between pt-2">
+                      <div className="flex items-center justify-between pt-2 gap-2">
                         <Button
                           size="sm"
                           onClick={() => handleToggleMyBar(ingredient)}
                           disabled={toggleMyBarMutation.isPending}
                           className={ingredient.inMyBar 
-                            ? "bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold"
-                            : "bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
+                            ? "bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold flex-1"
+                            : "bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] flex-1"
                           }
                         >
                           {ingredient.inMyBar ? (
@@ -309,6 +309,15 @@ export const Ingredients = (): JSX.Element => {
                             </>
                           )}
                         </Button>
+                        <Link href={`/edit-ingredient/${ingredient.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </Link>
                       </div>
                     </div>
                   </CardContent>
