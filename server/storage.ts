@@ -100,7 +100,8 @@ export class MemStorage implements IStorage {
     this.currentCocktailTagId = 1;
     this.currentIngredientTagId = 1;
 
-    this.seedData();
+    // Uncomment the line below to add sample data for testing
+    // this.seedData();
   }
 
   // Users

@@ -112,6 +112,11 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Fixed Data Persistence Issue (July 27, 2025)**: Resolved database showing persistent sample data
+  - Commented out automatic seedData() call in MemStorage constructor that was loading sample ingredients/cocktails
+  - Database now starts completely empty, allowing true data persistence testing
+  - Fixed React Query cache invalidation in AddIngredient form to refresh ingredient list after creation
+  - Confirmed ingredient creation, editing, and tag association working correctly with clean database
 - **PRD Compliance for AddIngredient Form (July 27, 2025)**: Updated AddIngredient form to match PRD requirements exactly
   - Removed non-PRD fields: "Type" field, flavor profile section, storage & usage section, tags
   - Fixed category dropdown to match PRD: Spirits, Mixers, Juices, Syrups, Bitters, Garnishes, Other
