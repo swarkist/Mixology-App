@@ -366,11 +366,16 @@ export class MemStorage implements IStorage {
 
   // Overloaded method signatures removed - handled by union type in interface
   async updateCocktail(id: number, update: any): Promise<Cocktail> {
+    console.log(`\n=== UPDATE COCKTAIL DEBUG for ID ${id} ===`);
+    console.log('Update data received:', JSON.stringify(update, null, 2));
+    
     const cocktail = this.cocktails.get(id);
     if (!cocktail) throw new Error(`Cocktail ${id} not found`);
     
     // Check if this is a full form update (with ingredients, instructions, tags)
-    if (update.ingredients || update.instructions || update.tags) {
+    if (update.ingredients !== undefined || update.instructions !== undefined || update.tags !== undefined) {
+      console.log('Processing full form update...');
+      
       // Handle full cocktail form update
       const updatedCocktail = { 
         ...cocktail, 
@@ -380,29 +385,41 @@ export class MemStorage implements IStorage {
         updatedAt: new Date() 
       };
       this.cocktails.set(id, updatedCocktail);
+      console.log('Updated basic cocktail info:', updatedCocktail);
       
       // Clear existing relationships
+      console.log('Clearing existing relationships...');
+      const clearedIngredients = [];
+      const clearedInstructions = [];
+      const clearedTags = [];
+      
       this.cocktailIngredients.forEach((value, key) => {
         if (value.cocktailId === id) {
+          clearedIngredients.push(key);
           this.cocktailIngredients.delete(key);
         }
       });
       this.cocktailInstructions.forEach((value, key) => {
         if (value.cocktailId === id) {
+          clearedInstructions.push(key);
           this.cocktailInstructions.delete(key);
         }
       });
       this.cocktailTags.forEach((value, key) => {
         if (value.cocktailId === id) {
+          clearedTags.push(key);
           this.cocktailTags.delete(key);
         }
       });
       
+      console.log(`Cleared ${clearedIngredients.length} ingredients, ${clearedInstructions.length} instructions, ${clearedTags.length} tags`);
+      
       // Handle ingredients
-      if (update.ingredients) {
-        console.log('Processing ingredients for update:', update.ingredients);
+      if (update.ingredients && Array.isArray(update.ingredients)) {
+        console.log('Processing ingredients:', update.ingredients);
         for (let i = 0; i < update.ingredients.length; i++) {
           const ingredient = update.ingredients[i];
+          console.log(`Processing ingredient ${i}:`, ingredient);
           
           // Find or create ingredient by name
           let dbIngredient = Array.from(this.ingredients.values()).find(ing => 
@@ -415,7 +432,7 @@ export class MemStorage implements IStorage {
             dbIngredient = {
               id: newIngredientId,
               name: ingredient.name,
-              category: 'Other',
+              category: 'spirits',
               subCategory: null,
               description: null,
               preferredBrand: null,
@@ -428,27 +445,31 @@ export class MemStorage implements IStorage {
             };
             this.ingredients.set(newIngredientId, dbIngredient);
             console.log('Created new ingredient:', dbIngredient);
+          } else {
+            console.log('Found existing ingredient:', dbIngredient);
           }
           
-          if (dbIngredient) {
-            const ingredientId = this.currentCocktailIngredientId++;
-            const cocktailIngredient: CocktailIngredient = {
-              id: ingredientId,
-              cocktailId: id,
-              ingredientId: dbIngredient.id,
-              amount: ingredient.amount,
-              unit: ingredient.unit,
-              order: i,
-            };
-            this.cocktailIngredients.set(ingredientId, cocktailIngredient);
-            console.log('Created cocktail ingredient:', cocktailIngredient);
-            await this.incrementIngredientUsage(dbIngredient.id);
-          }
+          // Create cocktail-ingredient relationship
+          const cocktailIngredientId = this.currentCocktailIngredientId++;
+          const cocktailIngredient: CocktailIngredient = {
+            id: cocktailIngredientId,
+            cocktailId: id,
+            ingredientId: dbIngredient.id,
+            amount: ingredient.amount || 1,
+            unit: ingredient.unit || 'oz',
+            order: i,
+          };
+          this.cocktailIngredients.set(cocktailIngredientId, cocktailIngredient);
+          console.log('Created cocktail ingredient relationship:', cocktailIngredient);
+          
+          // Increment usage count
+          await this.incrementIngredientUsage(dbIngredient.id);
         }
       }
       
       // Handle instructions
-      if (update.instructions) {
+      if (update.instructions && Array.isArray(update.instructions)) {
+        console.log('Processing instructions:', update.instructions);
         for (let i = 0; i < update.instructions.length; i++) {
           const instructionId = this.currentCocktailInstructionId++;
           const instruction: CocktailInstruction = {
@@ -458,12 +479,16 @@ export class MemStorage implements IStorage {
             instruction: update.instructions[i],
           };
           this.cocktailInstructions.set(instructionId, instruction);
+          console.log('Created instruction:', instruction);
         }
       }
       
       // Handle tags
-      if (update.tags) {
+      if (update.tags && Array.isArray(update.tags)) {
+        console.log('Processing tags:', update.tags);
         for (const tagName of update.tags) {
+          console.log('Processing tag:', tagName);
+          
           // Find or create tag by name
           let dbTag = Array.from(this.tags.values()).find(tag => 
             tag.name.toLowerCase() === tagName.toLowerCase()
@@ -479,21 +504,29 @@ export class MemStorage implements IStorage {
               createdAt: new Date(),
             };
             this.tags.set(newTagId, dbTag);
+            console.log('Created new tag:', dbTag);
+          } else {
+            console.log('Found existing tag:', dbTag);
           }
           
-          if (dbTag) {
-            const tagRelationId = this.currentCocktailTagId++;
-            this.cocktailTags.set(tagRelationId, { cocktailId: id, tagId: dbTag.id });
-            await this.incrementTagUsage(dbTag.id);
-          }
+          // Create cocktail-tag relationship
+          const tagRelationId = this.currentCocktailTagId++;
+          const cocktailTag = { cocktailId: id, tagId: dbTag.id };
+          this.cocktailTags.set(tagRelationId, cocktailTag);
+          console.log('Created cocktail tag relationship:', cocktailTag);
+          
+          await this.incrementTagUsage(dbTag.id);
         }
       }
       
+      console.log('=== END UPDATE COCKTAIL DEBUG ===\n');
       return updatedCocktail;
     } else {
       // Handle simple field updates
+      console.log('Processing simple field update...');
       const updated = { ...cocktail, ...update, updatedAt: new Date() };
       this.cocktails.set(id, updated);
+      console.log('=== END UPDATE COCKTAIL DEBUG ===\n');
       return updated;
     }
   }

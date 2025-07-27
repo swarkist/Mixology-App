@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import { DesktopNavigation, Navigation } from "@/components/Navigation";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailList = (): JSX.Element => {
   const [, setLocation] = useLocation();
@@ -241,7 +242,7 @@ export const CocktailList = (): JSX.Element => {
                     style={{
                       backgroundImage: cocktail.imageUrl 
                         ? `url(${cocktail.imageUrl})` 
-                        : `url(@assets/no-photo_1753579606993.png)`
+                        : `url(${noPhotoImage})`
                     }}
                   />
                   

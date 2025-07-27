@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailRecipe = (): JSX.Element => {
   const [match, params] = useRoute("/recipe/:id");
@@ -130,7 +131,7 @@ export const CocktailRecipe = (): JSX.Element => {
             style={{ 
               backgroundImage: cocktail.imageUrl 
                 ? `url(${cocktail.imageUrl})` 
-                : `url(@assets/no-photo_1753579606993.png)`
+                : `url(${noPhotoImage})`
             }}
           />
           
