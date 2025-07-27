@@ -381,12 +381,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete transformedData.tags;
       }
       
-      // Handle image upload for PATCH
-      if (req.body.image && typeof req.body.image === 'string') {
-        console.log('Processing image upload for PATCH...');
-        // For now, store the base64 data directly as imageUrl
-        // In production, you would typically upload to a file storage service
-        transformedData.imageUrl = req.body.image;
+      // Handle image upload/deletion for PATCH
+      if (req.body.hasOwnProperty('image')) {
+        if (req.body.image === null) {
+          console.log('Processing image deletion for PATCH...');
+          transformedData.imageUrl = null;
+        } else if (typeof req.body.image === 'string') {
+          console.log('Processing image upload for PATCH...');
+          // For now, store the base64 data directly as imageUrl
+          // In production, you would typically upload to a file storage service
+          transformedData.imageUrl = req.body.image;
+        }
         delete transformedData.image;
       }
       

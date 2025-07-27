@@ -167,9 +167,109 @@ export class FirebaseStorage implements IStorage {
   }
 
   async updateCocktail(id: number, updates: Partial<InsertCocktail>): Promise<Cocktail> {
-    const docRef = this.cocktailsCollection.doc(id.toString());
-    await docRef.update({ ...updates, updatedAt: new Date() });
+    console.log(`=== FIREBASE updateCocktail START (ID: ${id}) ===`);
+    console.log('Updates received:', updates);
     
+    // Extract junction table data from updates
+    const { ingredients, instructions, tagIds, imageUrl, ...basicUpdates } = updates as any;
+    
+    // Handle image deletion (when imageUrl is null or empty)
+    if (imageUrl === null || imageUrl === '') {
+      console.log('Image deletion requested - setting imageUrl to null');
+      basicUpdates.imageUrl = null;
+    } else if (imageUrl) {
+      console.log('Image update requested');
+      basicUpdates.imageUrl = imageUrl;
+    }
+    
+    // Update basic cocktail fields
+    const docRef = this.cocktailsCollection.doc(id.toString());
+    await docRef.update({ ...basicUpdates, updatedAt: new Date() });
+    console.log('✓ Basic cocktail fields updated');
+    
+    // Update instructions if provided
+    if (instructions && Array.isArray(instructions)) {
+      console.log(`Updating ${instructions.length} instructions...`);
+      
+      // Delete existing instructions
+      const existingInstructions = await this.cocktailInstructionsCollection
+        .where('cocktailId', '==', id).get();
+      for (const doc of existingInstructions.docs) {
+        await doc.ref.delete();
+      }
+      console.log('✓ Existing instructions deleted');
+      
+      // Add new instructions
+      for (let i = 0; i < instructions.length; i++) {
+        const instructionDocId = Date.now() + Math.floor(Math.random() * 1000) + i + 100;
+        const instructionData = {
+          id: instructionDocId,
+          cocktailId: id,
+          stepNumber: i + 1,
+          instruction: instructions[i]
+        };
+        await this.cocktailInstructionsCollection.doc(instructionDocId.toString()).set(instructionData);
+      }
+      console.log('✓ New instructions added');
+    }
+    
+    // Update ingredients if provided
+    if (ingredients && Array.isArray(ingredients)) {
+      console.log(`Updating ${ingredients.length} ingredients...`);
+      
+      // Delete existing ingredient relationships
+      const existingIngredients = await this.cocktailIngredientsCollection
+        .where('cocktailId', '==', id).get();
+      for (const doc of existingIngredients.docs) {
+        await doc.ref.delete();
+      }
+      console.log('✓ Existing ingredient relationships deleted');
+      
+      // Add new ingredient relationships
+      for (let i = 0; i < ingredients.length; i++) {
+        const ingredient = ingredients[i];
+        const ingredientDocId = Date.now() + Math.floor(Math.random() * 1000) + i;
+        const ingredientData = {
+          id: ingredientDocId,
+          cocktailId: id,
+          ingredientId: ingredient.ingredientId,
+          amount: ingredient.amount,
+          unit: ingredient.unit
+        };
+        await this.cocktailIngredientsCollection.doc(ingredientDocId.toString()).set(ingredientData);
+      }
+      console.log('✓ New ingredient relationships added');
+    }
+    
+    // Update tags if provided
+    if (tagIds && Array.isArray(tagIds)) {
+      console.log(`Updating ${tagIds.length} tag relationships...`);
+      
+      // Delete existing tag relationships
+      const existingTags = await this.cocktailTagsCollection
+        .where('cocktailId', '==', id).get();
+      for (const doc of existingTags.docs) {
+        await doc.ref.delete();
+      }
+      console.log('✓ Existing tag relationships deleted');
+      
+      // Add new tag relationships
+      for (let i = 0; i < tagIds.length; i++) {
+        const tagId = tagIds[i];
+        const cocktailTagDocId = Date.now() + Math.floor(Math.random() * 1000) + i + 200;
+        const tagData = {
+          id: cocktailTagDocId,
+          cocktailId: id,
+          tagId: tagId
+        };
+        await this.cocktailTagsCollection.doc(cocktailTagDocId.toString()).set(tagData);
+      }
+      console.log('✓ New tag relationships added');
+    }
+    
+    console.log('=== FIREBASE updateCocktail COMPLETE ===\n');
+    
+    // Return updated cocktail
     const doc = await docRef.get();
     if (!doc.exists) throw new Error('Cocktail not found');
     const data = doc.data();
