@@ -18,16 +18,17 @@ export const CocktailRecipe = (): JSX.Element => {
   // Fetch cocktail details
   const { data: cocktailDetails, isLoading, error } = useQuery({
     queryKey: ['/api/cocktails', cocktailId],
-    queryFn: () => apiRequest(`/api/cocktails/${cocktailId}`),
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/cocktails/${cocktailId}`);
+      return response.json();
+    },
     enabled: !!cocktailId,
     retry: false, // Don't retry for 404s on deleted cocktails
   });
 
   // Delete cocktail mutation
   const deleteMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/cocktails/${cocktailId}`, {
-      method: 'DELETE',
-    }),
+    mutationFn: () => apiRequest('DELETE', `/api/cocktails/${cocktailId}`),
     onSuccess: () => {
       toast({
         title: "Recipe deleted",
