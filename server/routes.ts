@@ -298,6 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
+      console.log('Calling storage.createCocktail with:', Object.keys(transformedData));
       
       const cocktail = await storage.createCocktail(transformedData);
       console.log('Created cocktail:', JSON.stringify(cocktail, null, 2));

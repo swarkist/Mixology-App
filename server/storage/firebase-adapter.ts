@@ -213,25 +213,20 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.getAllCocktails();
   }
 
-  async createCocktail(cocktail: any): Promise<Cocktail> {
-    // Create the basic cocktail first
-    const insertCocktail: InsertCocktail = {
-      name: cocktail.name,
-      description: cocktail.description || null,
-      imageUrl: cocktail.imageUrl || null,
-    };
+  async createCocktail(cocktail: CocktailForm): Promise<Cocktail> {
+    console.log('\n=== FIREBASE ADAPTER createCocktail START ===');
+    console.log('Adapter received cocktail data:', JSON.stringify(cocktail, null, 2));
+    console.log('Cocktail data keys:', Object.keys(cocktail));
     
-    const createdCocktail = await this.firebase.createCocktail(insertCocktail);
+    // Pass ALL cocktail data to Firebase, including junction table data
+    const createdCocktail = await this.firebase.createCocktail(cocktail as any);
     
-    // For now, Firebase adapter doesn't store relationship data properly
-    // This needs to be implemented with proper cocktail-ingredient relationships
-    // The method signature expects to return a Cocktail but relationships are stored separately
-    
+    console.log('=== FIREBASE ADAPTER createCocktail COMPLETE ===\n');
     return createdCocktail;
   }
 
-  async updateCocktail(id: number, cocktail: Partial<InsertCocktail>): Promise<Cocktail> {
-    const updated = await this.firebase.updateCocktail(id, cocktail);
+  async updateCocktail(id: number, cocktail: Partial<InsertCocktail> | CocktailForm): Promise<Cocktail> {
+    const updated = await this.firebase.updateCocktail(id, cocktail as any);
     if (!updated) throw new Error('Cocktail not found');
     return updated;
   }

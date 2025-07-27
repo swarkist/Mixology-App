@@ -72,11 +72,23 @@ export class FirebaseStorage implements IStorage {
   }
 
   async createCocktail(cocktail: InsertCocktail): Promise<Cocktail> {
+    console.log('\n=== FIREBASE createCocktail START ===');
+    console.log('Cocktail data received:', JSON.stringify(cocktail, null, 2));
+    
     // Generate a numeric ID by using timestamp + random
     const numericId = Date.now() + Math.floor(Math.random() * 1000);
     
+    // Separate junction table data from main cocktail data
+    const { ingredients, instructions, tagIds, ...mainCocktailData } = cocktail as any;
+    
+    console.log('Extracted data:');
+    console.log('- ingredients:', ingredients);
+    console.log('- instructions:', instructions);
+    console.log('- tagIds:', tagIds);
+    console.log('- mainCocktailData:', mainCocktailData);
+    
     const cocktailData = {
-      ...cocktail,
+      ...mainCocktailData,
       createdAt: new Date(),
       updatedAt: new Date(),
       isFeatured: false,
@@ -84,8 +96,73 @@ export class FirebaseStorage implements IStorage {
       popularityCount: 0,
     };
     
+    // Store main cocktail data
+    console.log('Storing main cocktail with ID:', numericId);
     await this.cocktailsCollection.doc(numericId.toString()).set(cocktailData);
+    console.log('✓ Main cocktail stored');
     
+    // Store ingredients in junction table
+    if (ingredients && Array.isArray(ingredients)) {
+      console.log(`Storing ${ingredients.length} ingredients...`);
+      for (let i = 0; i < ingredients.length; i++) {
+        const ingredient = ingredients[i];
+        const ingredientDocId = Date.now() + Math.floor(Math.random() * 1000) + i;
+        const ingredientData = {
+          id: ingredientDocId,
+          cocktailId: numericId,
+          ingredientId: ingredient.ingredientId,
+          amount: ingredient.amount,
+          unit: ingredient.unit,
+          order: i
+        };
+        console.log(`Storing ingredient ${i + 1}:`, ingredientData);
+        await this.cocktailIngredientsCollection.doc(ingredientDocId.toString()).set(ingredientData);
+        console.log(`✓ Ingredient ${i + 1} stored`);
+      }
+    } else {
+      console.log('No ingredients to store');
+    }
+    
+    // Store instructions in junction table
+    if (instructions && Array.isArray(instructions)) {
+      console.log(`Storing ${instructions.length} instructions...`);
+      for (let i = 0; i < instructions.length; i++) {
+        const instruction = instructions[i];
+        const instructionDocId = Date.now() + Math.floor(Math.random() * 1000) + i + 100;
+        const instructionData = {
+          id: instructionDocId,
+          cocktailId: numericId,
+          stepNumber: i + 1,
+          instruction: instruction
+        };
+        console.log(`Storing instruction ${i + 1}:`, instructionData);
+        await this.cocktailInstructionsCollection.doc(instructionDocId.toString()).set(instructionData);
+        console.log(`✓ Instruction ${i + 1} stored`);
+      }
+    } else {
+      console.log('No instructions to store');
+    }
+    
+    // Store tags in junction table
+    if (tagIds && Array.isArray(tagIds)) {
+      console.log(`Storing ${tagIds.length} tag relationships...`);
+      for (let i = 0; i < tagIds.length; i++) {
+        const tagId = tagIds[i];
+        const cocktailTagDocId = Date.now() + Math.floor(Math.random() * 1000) + i + 200;
+        const tagData = {
+          id: cocktailTagDocId,
+          cocktailId: numericId,
+          tagId: tagId
+        };
+        console.log(`Storing tag relationship ${i + 1}:`, tagData);
+        await this.cocktailTagsCollection.doc(cocktailTagDocId.toString()).set(tagData);
+        console.log(`✓ Tag relationship ${i + 1} stored`);
+      }
+    } else {
+      console.log('No tags to store');
+    }
+    
+    console.log('=== FIREBASE createCocktail COMPLETE ===\n');
     return { id: numericId, ...cocktailData } as Cocktail;
   }
 
@@ -413,18 +490,52 @@ export class FirebaseStorage implements IStorage {
     return cocktails;
   }
 
-  // Junction table operations (for future use)
+  // Junction table operations 
   async getCocktailIngredients(cocktailId: number): Promise<CocktailIngredient[]> {
-    const snapshot = await this.cocktailIngredientsCollection.where('cocktailId', '==', cocktailId).get();
-    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as CocktailIngredient));
+    try {
+      console.log(`Fetching ingredients for cocktail ${cocktailId}`);
+      const snapshot = await this.cocktailIngredientsCollection.where('cocktailId', '==', cocktailId).get();
+      console.log(`Found ${snapshot.docs.length} ingredient records`);
+      const ingredients = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Ingredient data:', data);
+        return { 
+          id: data.id || parseInt(doc.id), 
+          cocktailId: data.cocktailId,
+          ingredientId: data.ingredientId,
+          amount: data.amount,
+          unit: data.unit,
+          order: data.order
+        } as CocktailIngredient;
+      });
+      return ingredients;
+    } catch (error) {
+      console.error('Error fetching cocktail ingredients:', error);
+      return [];
+    }
   }
 
   async getCocktailInstructions(cocktailId: number): Promise<CocktailInstruction[]> {
-    // Temporary fix: fetch without orderBy to avoid index requirement, then sort in memory
-    const snapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).get();
-    const instructions = snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as CocktailInstruction));
-    // Sort by stepNumber in memory
-    return instructions.sort((a, b) => a.stepNumber - b.stepNumber);
+    try {
+      console.log(`Fetching instructions for cocktail ${cocktailId}`);
+      const snapshot = await this.cocktailInstructionsCollection.where('cocktailId', '==', cocktailId).get();
+      console.log(`Found ${snapshot.docs.length} instruction records`);
+      const instructions = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Instruction data:', data);
+        return {
+          id: data.id || parseInt(doc.id),
+          cocktailId: data.cocktailId,
+          stepNumber: data.stepNumber,
+          instruction: data.instruction
+        } as CocktailInstruction;
+      });
+      // Sort by stepNumber in memory
+      return instructions.sort((a, b) => a.stepNumber - b.stepNumber);
+    } catch (error) {
+      console.error('Error fetching cocktail instructions:', error);
+      return [];
+    }
   }
 
   async getAllTags(): Promise<Tag[]> {
@@ -486,8 +597,14 @@ export class FirebaseStorage implements IStorage {
   // Get cocktail tags
   async getCocktailTags(cocktailId: number): Promise<Tag[]> {
     try {
+      console.log(`Fetching tags for cocktail ${cocktailId}`);
       const snapshot = await this.cocktailTagsCollection.where('cocktailId', '==', cocktailId).get();
-      const tagIds = snapshot.docs.map(doc => doc.data().tagId);
+      console.log(`Found ${snapshot.docs.length} tag relationship records`);
+      const tagIds = snapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Tag relationship data:', data);
+        return data.tagId;
+      });
       
       if (tagIds.length === 0) return [];
       
@@ -495,9 +612,15 @@ export class FirebaseStorage implements IStorage {
       const tagPromises = tagIds.map(tagId => this.tagsCollection.doc(tagId.toString()).get());
       const tagDocs = await Promise.all(tagPromises);
       
-      return tagDocs
+      const tags = tagDocs
         .filter(doc => doc.exists)
-        .map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Tag));
+        .map(doc => {
+          const data = doc.data();
+          console.log('Tag data:', data);
+          return { id: parseInt(doc.id), ...data } as Tag;
+        });
+      
+      return tags;
     } catch (error) {
       console.error('Error fetching cocktail tags:', error);
       return [];

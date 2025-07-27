@@ -792,6 +792,11 @@ import { PersistentMemStorage } from './storage/persistent-storage';
 
 // Choose storage backend based on environment
 // Switch to Firebase when secrets are available
-export const storage: IStorage = (process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_PROJECT_ID)
+const useFirebase = !!(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_PROJECT_ID);
+console.log(`🔥 Storage Backend Selection: ${useFirebase ? 'Firebase' : 'PersistentMemStorage'}`);
+console.log(`FIREBASE_SERVICE_ACCOUNT_JSON present: ${!!process.env.FIREBASE_SERVICE_ACCOUNT_JSON}`);
+console.log(`FIREBASE_PROJECT_ID present: ${!!process.env.FIREBASE_PROJECT_ID}`);
+
+export const storage: IStorage = useFirebase
   ? new FirebaseStorageAdapter()
   : new PersistentMemStorage();

@@ -111,7 +111,14 @@ Preferred communication style: Simple, everyday language.
 - **Hot Reloading**: Vite HMR for frontend, nodemon equivalent for backend
 - **Database Development**: Local or cloud PostgreSQL instance
 
-### Recent Updates (July 2025)
+### Recent Updates (July 2025) 
+- **CRITICAL FIX: Firebase Junction Table Storage Resolved (July 27, 2025)**: Fixed the core Firebase storage issue preventing cocktail junction table data from being stored
+  - Root cause: FirebaseStorageAdapter.createCocktail was stripping away junction table data (ingredients, instructions, tagIds) and only passing basic cocktail fields
+  - Fixed FirebaseStorageAdapter to pass complete transformed data to Firebase storage including all junction table relationships
+  - Comprehensive CRUD testing confirms all functionality working perfectly: CREATE, READ, UPDATE, DELETE all operational
+  - Firebase now properly stores and retrieves: cocktail ingredients with amounts/units, step-by-step instructions with ordering, tag relationships and details
+  - Complete data persistence working across server restarts with cloud Firebase storage
+  - Users can now create, edit, and delete cocktails with full ingredient, instruction, and tag data synchronized perfectly between frontend, backend, and Firebase database
 - **Added Ingredient Delete Functionality (July 27, 2025)**: Complete ingredient deletion with proper cleanup
   - Added deleteIngredient method to IStorage interface and all implementations (MemStorage, PersistentMemStorage)
   - Implemented DELETE /api/ingredients/:id API endpoint with proper error handling
