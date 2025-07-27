@@ -71,36 +71,32 @@ export const AddCocktail = (): JSX.Element => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // Fetch suggested tags on component mount
-  useEffect(() => {
-    const fetchSuggestedTags = async () => {
-      try {
-        const [mostUsedResponse, mostRecentResponse] = await Promise.all([
-          fetch('/api/tags/most-used?limit=5'),
-          fetch('/api/tags/most-recent?limit=5')
-        ]);
-        
-        const mostUsed = await mostUsedResponse.json();
-        const mostRecent = await mostRecentResponse.json();
-        
-        // Combine and deduplicate tags, prioritizing most used
-        const combined = [...mostUsed];
-        mostRecent.forEach((tag: Tag) => {
-          if (!combined.find(t => t.id === tag.id)) {
-            combined.push(tag);
-          }
-        });
-        
-        // Limit to 10 total tags
-        setSuggestedTags(combined.slice(0, 10));
-      } catch (error) {
-        console.error('Failed to fetch suggested tags:', error);
-        setSuggestedTags([]);
-      }
-    };
+  // Fetch cocktail-specific suggested tags
+  const { data: mostUsedCocktailTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/cocktails/most-used'],
+  });
 
-    fetchSuggestedTags();
-  }, []);
+  const { data: mostRecentCocktailTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/cocktails/most-recent'],
+  });
+
+  // Combine and deduplicate suggested tags
+  useEffect(() => {
+    const allSuggested = [
+      ...(mostUsedCocktailTags || []),
+      ...(mostRecentCocktailTags || [])
+    ];
+    
+    // Remove duplicates and tags already selected
+    const uniqueSuggested = allSuggested
+      .filter((tag, index, self) => 
+        self.findIndex(t => t.name === tag.name) === index
+      )
+      .filter(tag => !tags.includes(tag.name))
+      .slice(0, 10); // Limit to 10 suggestions
+    
+    setSuggestedTags(uniqueSuggested);
+  }, [mostUsedCocktailTags, mostRecentCocktailTags, tags]);
 
   // Populate form fields when editing
   useEffect(() => {

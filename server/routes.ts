@@ -39,6 +39,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json(tags);
   });
 
+  // Ingredient-specific tag endpoints
+  app.get("/api/tags/ingredients/most-used", async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    const tags = await storage.getMostUsedIngredientTags(limit);
+    res.json(tags);
+  });
+
+  app.get("/api/tags/ingredients/most-recent", async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    const tags = await storage.getMostRecentIngredientTags(limit);
+    res.json(tags);
+  });
+
+  // Cocktail-specific tag endpoints
+  app.get("/api/tags/cocktails/most-used", async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    const tags = await storage.getMostUsedCocktailTags(limit);
+    res.json(tags);
+  });
+
+  app.get("/api/tags/cocktails/most-recent", async (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 5;
+    const tags = await storage.getMostRecentCocktailTags(limit);
+    res.json(tags);
+  });
+
   app.post("/api/tags", async (req, res) => {
     try {
       const tagData = insertTagSchema.parse(req.body);
@@ -85,7 +111,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/ingredients", async (req, res) => {
     try {
-      const ingredientData = ingredientFormSchema.parse(req.body);
+      // Transform tags from string array to tag IDs and handle image upload
+      const transformedData = { ...req.body };
+      
+      // Transform tags from string array to tag IDs
+      if (req.body.tags && Array.isArray(req.body.tags)) {
+        console.log('Transforming ingredient tags...');
+        transformedData.tagIds = await Promise.all(
+          req.body.tags.map(async (tagName: string) => {
+            let existingTag = await storage.findTagByName(tagName);
+            if (!existingTag) {
+              console.log(`Creating new ingredient tag: ${tagName}`);
+              existingTag = await storage.createTag({ name: tagName });
+            }
+            return existingTag.id;
+          })
+        );
+        delete transformedData.tags;
+      }
+      
+      // Handle image upload
+      if (req.body.image && typeof req.body.image === 'string') {
+        console.log('Processing ingredient image upload...');
+        transformedData.imageUrl = req.body.image;
+        delete transformedData.image;
+      }
+      
+      const ingredientData = ingredientFormSchema.parse(transformedData);
       const ingredient = await storage.createIngredient(ingredientData);
       res.status(201).json(ingredient);
     } catch (error) {

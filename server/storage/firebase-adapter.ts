@@ -53,6 +53,30 @@ export class FirebaseStorageAdapter implements IStorage {
     return tags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit || 10);
   }
 
+  async getMostUsedIngredientTags(limit = 5): Promise<Tag[]> {
+    // TODO: Implement ingredient-specific tag filtering
+    const tags = await this.firebase.getAllTags();
+    return tags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
+  }
+
+  async getMostRecentIngredientTags(limit = 5): Promise<Tag[]> {
+    // TODO: Implement ingredient-specific tag filtering
+    const tags = await this.firebase.getAllTags();
+    return tags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+  }
+
+  async getMostUsedCocktailTags(limit = 5): Promise<Tag[]> {
+    // TODO: Implement cocktail-specific tag filtering
+    const tags = await this.firebase.getAllTags();
+    return tags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
+  }
+
+  async getMostRecentCocktailTags(limit = 5): Promise<Tag[]> {
+    // TODO: Implement cocktail-specific tag filtering
+    const tags = await this.firebase.getAllTags();
+    return tags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+  }
+
   async incrementTagUsage(tagId: number): Promise<void> {
     // TODO: Implement tag usage increment
   }

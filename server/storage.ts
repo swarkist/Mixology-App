@@ -20,6 +20,10 @@ export interface IStorage {
   createTag(tag: InsertTag): Promise<Tag>;
   getMostUsedTags(limit?: number): Promise<Tag[]>;
   getMostRecentTags(limit?: number): Promise<Tag[]>;
+  getMostUsedIngredientTags(limit?: number): Promise<Tag[]>;
+  getMostRecentIngredientTags(limit?: number): Promise<Tag[]>;
+  getMostUsedCocktailTags(limit?: number): Promise<Tag[]>;
+  getMostRecentCocktailTags(limit?: number): Promise<Tag[]>;
   incrementTagUsage(tagId: number): Promise<void>;
 
   // Ingredients
@@ -147,6 +151,58 @@ export class MemStorage implements IStorage {
 
   async getMostRecentTags(limit = 5): Promise<Tag[]> {
     return Array.from(this.tags.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+  }
+
+  async getMostUsedIngredientTags(limit = 5): Promise<Tag[]> {
+    // Get all tag IDs used by ingredients
+    const ingredientTagIds = new Set(
+      Array.from(this.ingredientTags.values()).map(it => it.tagId)
+    );
+    
+    // Filter tags to only include those used by ingredients, then sort by usage count
+    return Array.from(this.tags.values())
+      .filter(tag => ingredientTagIds.has(tag.id))
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, limit);
+  }
+
+  async getMostRecentIngredientTags(limit = 5): Promise<Tag[]> {
+    // Get all tag IDs used by ingredients
+    const ingredientTagIds = new Set(
+      Array.from(this.ingredientTags.values()).map(it => it.tagId)
+    );
+    
+    // Filter tags to only include those used by ingredients, then sort by creation time
+    return Array.from(this.tags.values())
+      .filter(tag => ingredientTagIds.has(tag.id))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
+  }
+
+  async getMostUsedCocktailTags(limit = 5): Promise<Tag[]> {
+    // Get all tag IDs used by cocktails
+    const cocktailTagIds = new Set(
+      Array.from(this.cocktailTags.values()).map(ct => ct.tagId)
+    );
+    
+    // Filter tags to only include those used by cocktails, then sort by usage count
+    return Array.from(this.tags.values())
+      .filter(tag => cocktailTagIds.has(tag.id))
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, limit);
+  }
+
+  async getMostRecentCocktailTags(limit = 5): Promise<Tag[]> {
+    // Get all tag IDs used by cocktails
+    const cocktailTagIds = new Set(
+      Array.from(this.cocktailTags.values()).map(ct => ct.tagId)
+    );
+    
+    // Filter tags to only include those used by cocktails, then sort by creation time
+    return Array.from(this.tags.values())
+      .filter(tag => cocktailTagIds.has(tag.id))
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, limit);
   }

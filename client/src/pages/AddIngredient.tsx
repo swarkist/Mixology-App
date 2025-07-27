@@ -36,13 +36,13 @@ export const AddIngredient = (): JSX.Element => {
     "Tequila", "Whiskey", "Rum", "Vodka", "Gin", "Scotch", "Moonshine", "Brandy"
   ];
 
-  // Fetch suggested tags
+  // Fetch ingredient-specific suggested tags
   const { data: mostUsedTags } = useQuery<Tag[]>({
-    queryKey: ['/api/tags/most-used'],
+    queryKey: ['/api/tags/ingredients/most-used'],
   });
 
   const { data: mostRecentTags } = useQuery<Tag[]>({
-    queryKey: ['/api/tags/most-recent'],
+    queryKey: ['/api/tags/ingredients/most-recent'],
   });
 
   // Combine and deduplicate suggested tags
@@ -99,19 +99,33 @@ export const AddIngredient = (): JSX.Element => {
     }
   };
 
-  const onSubmit = (data: IngredientForm) => {
-    const ingredientData = {
-      ...data,
-      abv: data.abv || 0,
-      image: imagePreview,
-      tags: tags
-    };
-    
-    console.log("New ingredient:", ingredientData);
-    // Here you would typically send the data to your backend
-    
-    // Navigate back to ingredients list
-    setLocation("/ingredients");
+  const onSubmit = async (data: IngredientForm) => {
+    try {
+      const ingredientData = {
+        ...data,
+        abv: data.abv || 0,
+        image: imagePreview,
+        tags: tags
+      };
+      
+      console.log("Creating ingredient:", ingredientData);
+      
+      const response = await fetch('/api/ingredients', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(ingredientData),
+      });
+
+      if (response.ok) {
+        console.log("Ingredient created successfully");
+        setLocation('/ingredients');
+      } else {
+        const error = await response.json();
+        console.error('Failed to create ingredient:', error);
+      }
+    } catch (error) {
+      console.error('Error creating ingredient:', error);
+    }
   };
 
   return (
