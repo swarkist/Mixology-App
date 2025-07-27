@@ -225,11 +225,25 @@ export class PersistentMemStorage implements IStorage {
 
   async searchIngredients(query: string): Promise<Ingredient[]> {
     const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.ingredients.values()).filter(ingredient =>
-      ingredient.name.toLowerCase().includes(lowercaseQuery) ||
-      ingredient.description?.toLowerCase().includes(lowercaseQuery) ||
-      ingredient.category.toLowerCase().includes(lowercaseQuery)
-    );
+    return Array.from(this.ingredients.values()).filter(ingredient => {
+      // Search by basic ingredient properties
+      const matchesBasic = ingredient.name.toLowerCase().includes(lowercaseQuery) ||
+        ingredient.description?.toLowerCase().includes(lowercaseQuery) ||
+        ingredient.category.toLowerCase().includes(lowercaseQuery) ||
+        ingredient.subCategory?.toLowerCase().includes(lowercaseQuery) ||
+        ingredient.preferredBrand?.toLowerCase().includes(lowercaseQuery);
+      
+      if (matchesBasic) return true;
+      
+      // Search by ingredient tags
+      const ingredientTagRelations = Array.from(this.ingredientTags.values())
+        .filter(relation => relation.ingredientId === ingredient.id);
+      
+      return ingredientTagRelations.some(relation => {
+        const tag = this.tags.get(relation.tagId);
+        return tag && tag.name.toLowerCase().includes(lowercaseQuery);
+      });
+    });
   }
 
   async getIngredientsByCategory(category: string): Promise<Ingredient[]> {

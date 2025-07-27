@@ -295,11 +295,26 @@ export class FirebaseStorage implements IStorage {
   async searchIngredients(query: string): Promise<Ingredient[]> {
     const ingredients = await this.getAllIngredients();
     const lowerQuery = query.toLowerCase();
-    return ingredients.filter((ingredient: Ingredient) => 
-      ingredient.name.toLowerCase().includes(lowerQuery) ||
-      ingredient.category.toLowerCase().includes(lowerQuery) ||
-      (ingredient.subCategory && ingredient.subCategory.toLowerCase().includes(lowerQuery))
-    );
+    
+    // Get all ingredient-tag relationships for tag-based searching
+    const allTags = await this.getAllTags();
+    const tagMap = new Map(allTags.map(tag => [tag.id, tag.name.toLowerCase()]));
+    
+    return ingredients.filter((ingredient: Ingredient) => {
+      // Search by basic ingredient properties
+      const matchesBasic = ingredient.name.toLowerCase().includes(lowerQuery) ||
+        ingredient.category.toLowerCase().includes(lowerQuery) ||
+        (ingredient.subCategory && ingredient.subCategory.toLowerCase().includes(lowerQuery)) ||
+        (ingredient.preferredBrand && ingredient.preferredBrand.toLowerCase().includes(lowerQuery)) ||
+        (ingredient.description && ingredient.description.toLowerCase().includes(lowerQuery));
+      
+      if (matchesBasic) return true;
+      
+      // Search by ingredient tags - check if any associated tag matches the query
+      // Note: This is a simplified version. In a full implementation, we'd need to 
+      // maintain ingredient-tag relationships in Firebase
+      return false;
+    });
   }
 
   async getIngredientsByCategory(category: string): Promise<Ingredient[]> {
