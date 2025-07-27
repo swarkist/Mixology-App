@@ -118,6 +118,7 @@ Preferred communication style: Simple, everyday language.
   - Added helper methods `findIngredientByName` and `findTagByName` to both MemStorage and Firebase adapters
   - Automatically creates new ingredients and tags when they don't exist during cocktail creation/update
   - Fixed updateCocktail method to handle transformed data structure with ingredientId and tagIds
+  - Fixed null image handling bug in updateCocktail method that was causing "Cannot read properties of null" error
   - Complete functionality restored: POST creates cocktails with full relationships, PATCH updates work perfectly
 - **Default Recipe Images**: Added fallback image for cocktail recipes without photos using attached no-photo asset
 - **Cocktail Card Images**: Enhanced cocktail list cards to display recipe images or default placeholder

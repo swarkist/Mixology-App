@@ -1,0 +1,35 @@
+[vite] connecting...
+[vite] connected.
+Updating cocktail: 
+Object {name: "Updated Rum Punch", description: "A tropical cocktail with updated ingredients", ingredients: Array(5), instructions: Array(4), tags: Array(1), …}
+Making PATCH request to /api/cocktails/2
+Data being sent: 
+Object {name: "Updated Rum Punch", description: "A tropical cocktail with updated ingredients", ingredients: Array(5), instructions: Array(4), tags: Array(1), …}
+Failed to update cocktail: 
+Error {}
+message: "404: {"message":"Cocktail not found","error":{}}"
+stack: "Error: 404: {"message":"Cocktail not found","error":{}}↵ at throwIfResNotOk (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/lib/queryClient.ts:5:11)↵ at async apiRequest (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/lib/queryClient.ts:15:3)↵ at async Object.mutationFn (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/pages/AddCocktail.tsx:189:26)"
+get stack: ƒ ()
+length: 0
+name: ""
+[[Prototype]]: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+constructor: ƒ Error()
+message: "404: {"message":"Cocktail not found","error":{}}"
+name: "Error"
+toString: ƒ toString()
+[[Prototype]]: Object
+
+Error details: 
+Error {}
+message: "404: {"message":"Cocktail not found","error":{}}"
+stack: "Error: 404: {"message":"Cocktail not found","error":{}}↵ at throwIfResNotOk (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/lib/queryClient.ts:5:11)↵ at async apiRequest (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/lib/queryClient.ts:15:3)↵ at async Object.mutationFn (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/src/pages/AddCocktail.tsx:189:26)"
+get stack: ƒ ()
+set stack: ƒ ()
+[[Prototype]]: Object
+
+at t.value (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:17465)
+at new t (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:12630)
+at t.value (https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:32766)
+at https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/__replco/static/devtools/eruda/3.2.3/eruda.js:2:34400
