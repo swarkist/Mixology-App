@@ -224,13 +224,23 @@ export const AddCocktail = (): JSX.Element => {
   // Create/Update cocktail mutation
   const saveCocktailMutation = useMutation({
     mutationFn: async (cocktailData: any) => {
+      console.log(`Making ${isEditMode ? 'PATCH' : 'POST'} request to ${isEditMode ? `/api/cocktails/${cocktailId}` : '/api/cocktails'}`);
+      console.log('Data being sent:', cocktailData);
+      
       if (isEditMode && cocktailId) {
-        return apiRequest("PATCH", `/api/cocktails/${cocktailId}`, cocktailData);
+        const response = await apiRequest("PATCH", `/api/cocktails/${cocktailId}`, cocktailData);
+        const result = await response.json();
+        console.log('PATCH response:', result);
+        return result;
       } else {
-        return apiRequest("POST", "/api/cocktails", cocktailData);
+        const response = await apiRequest("POST", "/api/cocktails", cocktailData);
+        const result = await response.json();
+        console.log('POST response:', result);
+        return result;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation successful:', data);
       // Invalidate all cocktail queries regardless of parameters
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
       queryClient.refetchQueries({ queryKey: ["/api/cocktails"] });
@@ -243,6 +253,7 @@ export const AddCocktail = (): JSX.Element => {
     },
     onError: (error) => {
       console.error(`Failed to ${isEditMode ? 'update' : 'create'} cocktail:`, error);
+      console.error('Error details:', error);
     }
   });
 
