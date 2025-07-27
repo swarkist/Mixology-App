@@ -51,10 +51,35 @@ export const CocktailRecipe = (): JSX.Element => {
     },
   });
 
+  // Increment popularity mutation
+  const incrementPopularityMutation = useMutation({
+    mutationFn: () => apiRequest('PATCH', `/api/cocktails/${cocktailId}/increment-popularity`),
+    onSuccess: () => {
+      toast({
+        title: "Started making cocktail!",
+        description: "This recipe's popularity has been increased.",
+      });
+      // Invalidate queries to update popularity count
+      queryClient.invalidateQueries({ queryKey: ['/api/cocktails', cocktailId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/cocktails'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update popularity. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this recipe? This action cannot be undone.")) {
       deleteMutation.mutate();
     }
+  };
+
+  const handleStartMaking = () => {
+    incrementPopularityMutation.mutate();
   };
 
   if (isLoading) {
@@ -234,8 +259,12 @@ export const CocktailRecipe = (): JSX.Element => {
 
         {/* Action Buttons */}
         <div className="flex gap-3 pb-6">
-          <Button className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold">
-            Start Making This Cocktail
+          <Button 
+            onClick={handleStartMaking}
+            disabled={incrementPopularityMutation.isPending}
+            className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold"
+          >
+            {incrementPopularityMutation.isPending ? 'Starting...' : 'Start Making This Cocktail'}
           </Button>
           <Link href={`/edit-cocktail/${cocktail.id}`}>
             <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold px-4">
