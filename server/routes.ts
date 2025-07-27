@@ -290,6 +290,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/cocktails/:id/featured", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const { featured } = req.body;
+    
+    try {
+      const cocktail = await storage.getCocktail(id);
+      if (!cocktail) {
+        return res.status(404).json({ message: "Cocktail not found" });
+      }
+      
+      const updated = await storage.updateCocktail(id, { 
+        isFeatured: featured
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      res.status(404).json({ message: "Cocktail not found", error });
+    }
+  });
+
   app.patch("/api/cocktails/:id/toggle-featured", async (req, res) => {
     const id = parseInt(req.params.id);
     

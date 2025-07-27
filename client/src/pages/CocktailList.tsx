@@ -59,6 +59,7 @@ export const CocktailList = (): JSX.Element => {
       return apiRequest("PATCH", `/api/cocktails/${id}/featured`, { featured });
     },
     onSuccess: () => {
+      // Invalidate all cocktail queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
     },
   });
@@ -69,6 +70,7 @@ export const CocktailList = (): JSX.Element => {
       return apiRequest("POST", `/api/cocktails/${id}/popularity`);
     },
     onSuccess: () => {
+      // Invalidate all cocktail queries to ensure UI updates
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
     },
   });

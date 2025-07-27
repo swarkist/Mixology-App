@@ -112,6 +112,12 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Fixed Featured Toggle Bug (July 27, 2025)**: Resolved cocktail featured status toggle functionality
+  - Fixed route mismatch between frontend `/featured` and backend `/toggle-featured` endpoints
+  - Corrected TypeScript compilation errors that prevented proper route registration
+  - Added proper `/api/cocktails/:id/featured` route with request body handling
+  - Ensured React Query cache invalidation works correctly for UI updates
+  - Featured button now properly toggles on/off when clicked
 - **Navigation Enhancement (July 27, 2025)**: Enhanced ingredients page with consistent navigation and layout
   - Added DesktopNavigation component to ingredients page matching cocktails list page
   - Fixed spacing issues by implementing proper padding and container structure
