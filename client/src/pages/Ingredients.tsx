@@ -256,15 +256,7 @@ export const Ingredients = (): JSX.Element => {
                           </div>
                         )}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleMyBar(ingredient)}
-                        className={`text-[#bab59b] hover:text-[#f2c40c] ${ingredient.inMyBar ? 'text-[#f2c40c]' : ''}`}
-                        disabled={toggleMyBarMutation.isPending}
-                      >
-                        <Check className={`h-4 w-4 ${ingredient.inMyBar ? "text-[#f2c40c]" : ""}`} />
-                      </Button>
+
                     </div>
                     <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
                       {ingredient.name}
