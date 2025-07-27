@@ -211,6 +211,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete transformedData.tags;
       }
       
+      // Handle image upload
+      if (req.body.image && typeof req.body.image === 'string') {
+        console.log('Processing image upload...');
+        // For now, store the base64 data directly as imageUrl
+        // In production, you would typically upload to a file storage service
+        transformedData.imageUrl = req.body.image;
+        delete transformedData.image;
+      }
+      
       console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
       
       const cocktail = await storage.createCocktail(transformedData);
@@ -277,6 +286,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           })
         );
         delete transformedData.tags;
+      }
+      
+      // Handle image upload for PATCH
+      if (req.body.image && typeof req.body.image === 'string') {
+        console.log('Processing image upload for PATCH...');
+        // For now, store the base64 data directly as imageUrl
+        // In production, you would typically upload to a file storage service
+        transformedData.imageUrl = req.body.image;
+        delete transformedData.image;
       }
       
       console.log('Transformed PATCH data:', JSON.stringify(transformedData, null, 2));

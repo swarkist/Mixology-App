@@ -112,6 +112,16 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Fixed Image Upload Issue (July 27, 2025)**: Resolved cocktail image upload and persistence functionality
+  - Added image processing logic to both POST and PATCH cocktail routes
+  - Images sent as base64 from frontend are now properly converted to imageUrl in backend
+  - Image data is correctly stored and retrieved from the database
+  - Both create and edit operations now preserve uploaded images
+- **Fixed Tags in Edit Mode Issue (July 27, 2025)**: Resolved tags being removed when editing cocktails
+  - Added proper tag loading from API response in edit mode
+  - Tags are now populated correctly when opening cocktail for editing
+  - Existing tags are preserved and displayed in the form
+  - Tags remain selected and persist through save operations
 - **Fixed Featured Toggle Bug (July 27, 2025)**: Resolved cocktail featured status toggle functionality
   - Fixed route mismatch between frontend `/featured` and backend `/toggle-featured` endpoints
   - Corrected TypeScript compilation errors that prevented proper route registration
