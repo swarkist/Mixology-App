@@ -1,7 +1,8 @@
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Plus } from "lucide-react";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 import { Link, useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
+import type { Tag } from "@shared/schema";
 
 interface IngredientForm {
   name: string;
@@ -24,12 +26,67 @@ export const AddIngredient = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<IngredientForm>();
 
   const spiritSubcategories = [
     "Tequila", "Whiskey", "Rum", "Vodka", "Gin", "Scotch", "Moonshine", "Brandy"
   ];
+
+  // Fetch suggested tags
+  const { data: mostUsedTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/most-used'],
+  });
+
+  const { data: mostRecentTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/most-recent'],
+  });
+
+  // Combine and deduplicate suggested tags
+  useEffect(() => {
+    const allSuggested = [
+      ...(mostUsedTags || []),
+      ...(mostRecentTags || [])
+    ];
+    
+    // Remove duplicates and tags already selected
+    const uniqueSuggested = allSuggested
+      .filter((tag, index, self) => 
+        self.findIndex(t => t.name === tag.name) === index
+      )
+      .filter(tag => !tags.includes(tag.name))
+      .slice(0, 10); // Limit to 10 suggestions
+    
+    setSuggestedTags(uniqueSuggested);
+  }, [mostUsedTags, mostRecentTags, tags]);
+
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const addSuggestedTag = (tagName: string) => {
+    if (!tags.includes(tagName)) {
+      setTags([...tags, tagName]);
+      // Remove from suggestions to avoid duplicates
+      setSuggestedTags(suggestedTags.filter(tag => tag.name !== tagName));
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+    
+    // Add back to suggestions if it was originally there
+    const originalTag = suggestedTags.find(tag => tag.name === tagToRemove);
+    if (originalTag && !suggestedTags.some(tag => tag.name === tagToRemove)) {
+      setSuggestedTags([...suggestedTags, originalTag]);
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,7 +103,8 @@ export const AddIngredient = (): JSX.Element => {
     const ingredientData = {
       ...data,
       abv: data.abv || 0,
-      image: imagePreview
+      image: imagePreview,
+      tags: tags
     };
     
     console.log("New ingredient:", ingredientData);
@@ -236,6 +294,77 @@ export const AddIngredient = (): JSX.Element => {
                     </Button>
                   )}
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Uses & Tags */}
+          <Card className="bg-[#2a2920] border-[#4a4735]">
+            <CardHeader>
+              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                Uses & Tags
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Tags */}
+              <div>
+                <Label className="text-white">Tags</Label>
+                <div className="flex gap-2 mt-2 mb-3">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Add a tag..."
+                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    onClick={addTag}
+                    size="sm"
+                    className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+                  >
+                    Add
+                  </Button>
+                </div>
+
+                {/* Tag Suggestions */}
+                {suggestedTags.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-sm text-[#bab59b] mb-2">Quick suggestions:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedTags.map((suggestedTag) => (
+                        <Badge
+                          key={suggestedTag.id}
+                          className="bg-[#383529] text-white hover:bg-[#f2c40c] hover:text-[#161611] cursor-pointer border border-[#544f3a]"
+                          onClick={() => addSuggestedTag(suggestedTag.name)}
+                        >
+                          {suggestedTag.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Tags */}
+                {tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] cursor-pointer"
+                        onClick={() => removeTag(tag)}
+                      >
+                        {tag}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    ))}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
