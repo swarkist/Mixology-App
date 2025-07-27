@@ -12,36 +12,23 @@ import { useForm } from "react-hook-form";
 
 interface IngredientForm {
   name: string;
-  description: string;
   category: string;
-  type: string;
-  origin: string;
-  alcoholContent: string;
-  flavor: string;
-  tags: string[];
-  commonUse: string;
-  storageInstructions: string;
-  substitutes: string;
+  subCategory: string;
+  description: string;
+  preferredBrand: string;
+  abv: number;
 }
 
 export const AddIngredient = (): JSX.Element => {
   const [, setLocation] = useLocation();
-  const [tags, setTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<IngredientForm>();
 
-  const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
-      setNewTag("");
-    }
-  };
-
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+  const spiritSubcategories = [
+    "Tequila", "Whiskey", "Rum", "Vodka", "Gin", "Scotch", "Moonshine", "Brandy"
+  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -57,7 +44,7 @@ export const AddIngredient = (): JSX.Element => {
   const onSubmit = (data: IngredientForm) => {
     const ingredientData = {
       ...data,
-      tags,
+      abv: data.abv || 0,
       image: imagePreview
     };
     
@@ -117,7 +104,13 @@ export const AddIngredient = (): JSX.Element => {
                 </div>
                 <div>
                   <Label htmlFor="category" className="text-white">Category *</Label>
-                  <Select onValueChange={(value) => setValue("category", value)}>
+                  <Select onValueChange={(value) => {
+                    setValue("category", value);
+                    setSelectedCategory(value);
+                    if (value !== "spirits") {
+                      setValue("subCategory", "");
+                    }
+                  }}>
                     <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
@@ -125,14 +118,32 @@ export const AddIngredient = (): JSX.Element => {
                       <SelectItem value="spirits">Spirits</SelectItem>
                       <SelectItem value="mixers">Mixers</SelectItem>
                       <SelectItem value="juices">Juices</SelectItem>
-                      <SelectItem value="garnishes">Garnishes</SelectItem>
                       <SelectItem value="syrups">Syrups</SelectItem>
                       <SelectItem value="bitters">Bitters</SelectItem>
-                      <SelectItem value="liqueurs">Liqueurs</SelectItem>
+                      <SelectItem value="garnishes">Garnishes</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+
+              {selectedCategory === "spirits" && (
+                <div>
+                  <Label htmlFor="subCategory" className="text-white">Sub-Category *</Label>
+                  <Select onValueChange={(value) => setValue("subCategory", value)}>
+                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
+                      <SelectValue placeholder="Select sub-category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#26261c] border-[#544f3a]">
+                      {spiritSubcategories.map((subcategory) => (
+                        <SelectItem key={subcategory.toLowerCase()} value={subcategory.toLowerCase()}>
+                          {subcategory}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="description" className="text-white">Description</Label>
@@ -145,38 +156,24 @@ export const AddIngredient = (): JSX.Element => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="type" className="text-white">Type</Label>
-                  <Select onValueChange={(value) => setValue("type", value)}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                      <SelectItem value="alcoholic">Alcoholic</SelectItem>
-                      <SelectItem value="non-alcoholic">Non-Alcoholic</SelectItem>
-                      <SelectItem value="fresh">Fresh</SelectItem>
-                      <SelectItem value="preserved">Preserved</SelectItem>
-                      <SelectItem value="dried">Dried</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="origin" className="text-white">Origin/Brand</Label>
+                  <Label htmlFor="preferredBrand" className="text-white">Preferred Brand</Label>
                   <Input
-                    id="origin"
-                    {...register("origin")}
-                    placeholder="e.g., France, Tito's"
+                    id="preferredBrand"
+                    {...register("preferredBrand")}
+                    placeholder="e.g., Grey Goose, Tito's"
                     className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="alcoholContent" className="text-white">Alcohol Content (%)</Label>
+                  <Label htmlFor="abv" className="text-white">ABV (%)</Label>
                   <Input
-                    id="alcoholContent"
-                    {...register("alcoholContent")}
+                    id="abv"
+                    {...register("abv", { valueAsNumber: true })}
                     placeholder="e.g., 40"
                     type="number"
+                    step="0.1"
                     min="0"
                     max="100"
                     className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
@@ -194,158 +191,62 @@ export const AddIngredient = (): JSX.Element => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="image" className="text-white">Upload Image</Label>
-                  <div className="mt-2">
-                    <input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="border-[#544f3a] text-white hover:bg-[#2a2920]"
-                      onClick={() => document.getElementById('image')?.click()}
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Choose Image
-                    </Button>
-                  </div>
-                </div>
-                {imagePreview && (
-                  <div className="relative">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      className="absolute -top-2 -right-2 w-6 h-6 p-0"
-                      onClick={() => setImagePreview(null)}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Flavor Profile */}
-          <Card className="bg-[#2a2920] border-[#4a4735]">
-            <CardHeader>
-              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Flavor Profile
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="flavor" className="text-white">Flavor Characteristics</Label>
-                <Select onValueChange={(value) => setValue("flavor", value)}>
-                  <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
-                    <SelectValue placeholder="Select primary flavor" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                    <SelectItem value="sweet">Sweet</SelectItem>
-                    <SelectItem value="sour">Sour</SelectItem>
-                    <SelectItem value="bitter">Bitter</SelectItem>
-                    <SelectItem value="salty">Salty</SelectItem>
-                    <SelectItem value="spicy">Spicy</SelectItem>
-                    <SelectItem value="herbal">Herbal</SelectItem>
-                    <SelectItem value="fruity">Fruity</SelectItem>
-                    <SelectItem value="floral">Floral</SelectItem>
-                    <SelectItem value="citrus">Citrus</SelectItem>
-                    <SelectItem value="neutral">Neutral</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="commonUse" className="text-white">Common Use in Cocktails</Label>
-                <Textarea
-                  id="commonUse"
-                  {...register("commonUse")}
-                  placeholder="Describe how this ingredient is typically used in cocktails..."
-                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  rows={2}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="substitutes" className="text-white">Possible Substitutes</Label>
-                <Input
-                  id="substitutes"
-                  {...register("substitutes")}
-                  placeholder="e.g., Can be substituted with lime juice, lemon juice"
-                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Storage & Usage */}
-          <Card className="bg-[#2a2920] border-[#4a4735]">
-            <CardHeader>
-              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Storage & Usage
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="storageInstructions" className="text-white">Storage Instructions</Label>
-                <Textarea
-                  id="storageInstructions"
-                  {...register("storageInstructions")}
-                  placeholder="How should this ingredient be stored? Temperature, light conditions, shelf life, etc."
-                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  rows={3}
-                />
-              </div>
-
-              {/* Tags */}
-              <div>
-                <Label className="text-white">Tags</Label>
-                <div className="flex gap-2 mt-2 mb-3">
-                  <Input
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add a tag..."
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+              {imagePreview ? (
+                <div className="relative">
+                  <img
+                    src={imagePreview}
+                    alt="Ingredient preview"
+                    className="w-full h-48 object-cover rounded-lg"
                   />
                   <Button
                     type="button"
-                    onClick={addTag}
+                    variant="destructive"
                     size="sm"
-                    className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+                    onClick={() => setImagePreview(null)}
+                    className="absolute top-2 right-2"
                   >
-                    Add
+                    <X className="w-4 h-4" />
                   </Button>
                 </div>
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] cursor-pointer"
-                        onClick={() => removeTag(tag)}
-                      >
-                        {tag}
-                        <X className="w-3 h-3 ml-1" />
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
+              ) : (
+                <div className="border-2 border-dashed border-[#544f3a] rounded-lg p-8 text-center">
+                  <Upload className="w-12 h-12 text-[#544f3a] mx-auto mb-4" />
+                  <p className="text-[#bab59b] mb-4">Upload an ingredient image</p>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Label htmlFor="image-upload" className="cursor-pointer">
+                    <Button type="button" variant="outline" className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]">
+                      Choose Image
+                    </Button>
+                  </Label>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Submit Button */}
+          <div className="flex gap-3 pb-6">
+            <Button
+              type="submit"
+              form="ingredient-form"
+              className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold"
+            >
+              Add Ingredient
+            </Button>
+            <Link href="/ingredients">
+              <Button
+                variant="outline"
+                className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+              >
+                Cancel
+              </Button>
+            </Link>
+          </div>
         </form>
       </div>
     </div>

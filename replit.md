@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **PRD Compliance for AddIngredient Form (July 27, 2025)**: Updated AddIngredient form to match PRD requirements exactly
+  - Removed non-PRD fields: "Type" field, flavor profile section, storage & usage section, tags
+  - Fixed category dropdown to match PRD: Spirits, Mixers, Juices, Syrups, Bitters, Garnishes, Other
+  - Added conditional sub-category dropdown for spirits only: Tequila, Whiskey, Rum, Vodka, Gin, Scotch, Moonshine, Brandy
+  - Renamed "Origin/Brand" to "Preferred Brand" and "Alcohol Content" to "ABV" with decimal support
+  - Streamlined form to only include: Name*, Category*, Sub-Category* (spirits only), Description, Preferred Brand, ABV, Image Upload
+  - Enhanced image upload UI with drag-and-drop visual design and better preview functionality
 - **Fixed Image Upload Issue (July 27, 2025)**: Resolved cocktail image upload and persistence functionality
   - Added image processing logic to both POST and PATCH cocktail routes
   - Images sent as base64 from frontend are now properly converted to imageUrl in backend
