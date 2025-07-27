@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { useForm } from "react-hook-form";
 import { apiRequest } from "@/lib/queryClient";
-import type { Ingredient as DBIngredient } from "@shared/schema";
+import type { Ingredient as DBIngredient, Tag } from "@shared/schema";
 
 interface Ingredient {
   name: string;
@@ -39,6 +39,7 @@ export const AddCocktail = (): JSX.Element => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [ingredientSearchQueries, setIngredientSearchQueries] = useState<string[]>([""]);
   const [activeSearchIndex, setActiveSearchIndex] = useState<number>(-1);
+  const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CocktailForm>();
 
@@ -53,6 +54,37 @@ export const AddCocktail = (): JSX.Element => {
     const handleClickOutside = () => setActiveSearchIndex(-1);
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Fetch suggested tags on component mount
+  useEffect(() => {
+    const fetchSuggestedTags = async () => {
+      try {
+        const [mostUsedResponse, mostRecentResponse] = await Promise.all([
+          fetch('/api/tags/most-used?limit=5'),
+          fetch('/api/tags/most-recent?limit=5')
+        ]);
+        
+        const mostUsed = await mostUsedResponse.json();
+        const mostRecent = await mostRecentResponse.json();
+        
+        // Combine and deduplicate tags, prioritizing most used
+        const combined = [...mostUsed];
+        mostRecent.forEach((tag: Tag) => {
+          if (!combined.find(t => t.id === tag.id)) {
+            combined.push(tag);
+          }
+        });
+        
+        // Limit to 10 total tags
+        setSuggestedTags(combined.slice(0, 10));
+      } catch (error) {
+        console.error('Failed to fetch suggested tags:', error);
+        setSuggestedTags([]);
+      }
+    };
+
+    fetchSuggestedTags();
   }, []);
 
   const addIngredient = () => {
@@ -109,8 +141,22 @@ export const AddCocktail = (): JSX.Element => {
     }
   };
 
+  const addSuggestedTag = (tagName: string) => {
+    if (!tags.includes(tagName)) {
+      setTags([...tags, tagName]);
+      // Remove from suggestions to avoid duplicates
+      setSuggestedTags(suggestedTags.filter(tag => tag.name !== tagName));
+    }
+  };
+
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+    
+    // Add back to suggestions if it was originally there
+    const originalTag = suggestedTags.find(tag => tag.name === tagToRemove);
+    if (originalTag && !suggestedTags.some(tag => tag.name === tagToRemove)) {
+      setSuggestedTags([...suggestedTags, originalTag]);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,42 +463,14 @@ export const AddCocktail = (): JSX.Element => {
             </CardContent>
           </Card>
 
-          {/* Additional Details */}
+          {/* Uses & Tags */}
           <Card className="bg-[#2a2920] border-[#4a4735]">
             <CardHeader>
               <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Additional Details
+                Uses & Tags
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="glassType" className="text-white">Glass Type</Label>
-                  <Select onValueChange={(value) => setValue("glassType", value)}>
-                    <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
-                      <SelectValue placeholder="Select glass type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                      <SelectItem value="highball">Highball Glass</SelectItem>
-                      <SelectItem value="rocks">Rocks Glass</SelectItem>
-                      <SelectItem value="martini">Martini Glass</SelectItem>
-                      <SelectItem value="coupe">Coupe Glass</SelectItem>
-                      <SelectItem value="hurricane">Hurricane Glass</SelectItem>
-                      <SelectItem value="collins">Collins Glass</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="garnish" className="text-white">Garnish</Label>
-                  <Input
-                    id="garnish"
-                    {...register("garnish")}
-                    placeholder="e.g., Lime wedge, mint sprig"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
-              </div>
-
               {/* Tags */}
               <div>
                 <Label className="text-white">Tags</Label>
@@ -462,7 +480,12 @@ export const AddCocktail = (): JSX.Element => {
                     onChange={(e) => setNewTag(e.target.value)}
                     placeholder="Add a tag..."
                     className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addTag();
+                      }
+                    }}
                   />
                   <Button
                     type="button"
@@ -473,6 +496,26 @@ export const AddCocktail = (): JSX.Element => {
                     Add
                   </Button>
                 </div>
+
+                {/* Tag Suggestions */}
+                {suggestedTags.length > 0 && (
+                  <div className="mb-3">
+                    <div className="text-sm text-[#bab59b] mb-2">Quick suggestions:</div>
+                    <div className="flex flex-wrap gap-2">
+                      {suggestedTags.map((suggestedTag) => (
+                        <Badge
+                          key={suggestedTag.id}
+                          className="bg-[#383529] text-white hover:bg-[#f2c40c] hover:text-[#161611] cursor-pointer border border-[#544f3a]"
+                          onClick={() => addSuggestedTag(suggestedTag.name)}
+                        >
+                          {suggestedTag.name}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Selected Tags */}
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-2">
                     {tags.map((tag) => (
