@@ -133,8 +133,13 @@ export const AddCocktail = (): JSX.Element => {
         setInstructions(instructionTexts);
       }
       
-      // Set tags (if available in the data)
-      // Note: Tags may need to be implemented in the API response
+      // Set tags
+      if (cocktailData.tags && cocktailData.tags.length > 0) {
+        const tagNames = cocktailData.tags.map((tag: any) => tag.name);
+        setTags(tagNames);
+      } else {
+        setTags([]);
+      }
     }
   }, [isEditMode, cocktailData, setValue]);
 
