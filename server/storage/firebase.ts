@@ -8,6 +8,7 @@ export class FirebaseStorage implements IStorage {
   private cocktailIngredientsCollection = db.collection('cocktail_ingredients');
   private cocktailInstructionsCollection = db.collection('cocktail_instructions');
   private tagsCollection = db.collection('tags');
+  private cocktailTagsCollection = db.collection('cocktail_tags');
 
   // Cocktail operations
   async getAllCocktails(): Promise<Cocktail[]> {
@@ -479,6 +480,27 @@ export class FirebaseStorage implements IStorage {
     } catch (error) {
       console.error('Error deleting cocktail:', error);
       return false;
+    }
+  }
+
+  // Get cocktail tags
+  async getCocktailTags(cocktailId: number): Promise<Tag[]> {
+    try {
+      const snapshot = await this.cocktailTagsCollection.where('cocktailId', '==', cocktailId).get();
+      const tagIds = snapshot.docs.map(doc => doc.data().tagId);
+      
+      if (tagIds.length === 0) return [];
+      
+      // Get all tags that match the tag IDs
+      const tagPromises = tagIds.map(tagId => this.tagsCollection.doc(tagId.toString()).get());
+      const tagDocs = await Promise.all(tagPromises);
+      
+      return tagDocs
+        .filter(doc => doc.exists)
+        .map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Tag));
+    } catch (error) {
+      console.error('Error fetching cocktail tags:', error);
+      return [];
     }
   }
 }

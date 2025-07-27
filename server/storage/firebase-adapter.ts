@@ -274,7 +274,7 @@ export class FirebaseStorageAdapter implements IStorage {
     // Get related data
     const ingredients = await this.firebase.getCocktailIngredients(id);
     const instructions = await this.firebase.getCocktailInstructions(id);
-    const tags: Tag[] = []; // TODO: Implement cocktail tags
+    const tags = await this.firebase.getCocktailTags(id);
 
     // Enrich ingredients with ingredient details
     const enrichedIngredients = await Promise.all(
