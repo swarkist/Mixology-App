@@ -1,5 +1,5 @@
 import { ArrowLeft, Plus, Minus, Upload, X, Search } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link, useLocation, useRoute } from "wouter";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -29,7 +29,12 @@ interface CocktailForm {
 
 export const AddCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
+  const [match, params] = useRoute("/edit-cocktail/:id");
   const queryClient = useQueryClient();
+  
+  // Determine if we're in edit mode
+  const isEditMode = !!match && !!params?.id;
+  const cocktailId = params?.id ? parseInt(params.id) : null;
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: "", amount: "", unit: "oz" }
   ]);
@@ -42,6 +47,16 @@ export const AddCocktail = (): JSX.Element => {
   const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<CocktailForm>();
+
+  // Fetch cocktail data for editing
+  const { data: cocktailData, isLoading: isLoadingCocktail } = useQuery({
+    queryKey: ['/api/cocktails', cocktailId],
+    queryFn: async () => {
+      const response = await apiRequest("GET", `/api/cocktails/${cocktailId}`);
+      return response.json();
+    },
+    enabled: isEditMode && !!cocktailId,
+  });
 
   // Search ingredients query with proper query string
   const { data: searchResults = [], isLoading: isSearching } = useQuery<DBIngredient[]>({
@@ -86,6 +101,42 @@ export const AddCocktail = (): JSX.Element => {
 
     fetchSuggestedTags();
   }, []);
+
+  // Populate form fields when editing
+  useEffect(() => {
+    if (isEditMode && cocktailData) {
+      const { cocktail, ingredients: cocktailIngredients, instructions: cocktailInstructions } = cocktailData;
+      
+      // Set form values
+      setValue("name", cocktail.name);
+      setValue("description", cocktail.description || "");
+      
+      // Set image preview
+      if (cocktail.imageUrl) {
+        setImagePreview(cocktail.imageUrl);
+      }
+      
+      // Set ingredients
+      if (cocktailIngredients && cocktailIngredients.length > 0) {
+        const formattedIngredients = cocktailIngredients.map((ing: any) => ({
+          name: ing.ingredient.name,
+          amount: ing.amount,
+          unit: ing.unit
+        }));
+        setIngredients(formattedIngredients);
+        setIngredientSearchQueries(new Array(formattedIngredients.length).fill(""));
+      }
+      
+      // Set instructions
+      if (cocktailInstructions && cocktailInstructions.length > 0) {
+        const instructionTexts = cocktailInstructions.map((inst: any) => inst.instruction);
+        setInstructions(instructionTexts);
+      }
+      
+      // Set tags (if available in the data)
+      // Note: Tags may need to be implemented in the API response
+    }
+  }, [isEditMode, cocktailData, setValue]);
 
   const addIngredient = () => {
     setIngredients([...ingredients, { name: "", amount: "", unit: "oz" }]);
@@ -170,19 +221,28 @@ export const AddCocktail = (): JSX.Element => {
     }
   };
 
-  // Create cocktail mutation
-  const createCocktailMutation = useMutation({
+  // Create/Update cocktail mutation
+  const saveCocktailMutation = useMutation({
     mutationFn: async (cocktailData: any) => {
-      return apiRequest("POST", "/api/cocktails", cocktailData);
+      if (isEditMode && cocktailId) {
+        return apiRequest("PATCH", `/api/cocktails/${cocktailId}`, cocktailData);
+      } else {
+        return apiRequest("POST", "/api/cocktails", cocktailData);
+      }
     },
     onSuccess: () => {
       // Invalidate all cocktail queries regardless of parameters
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
       queryClient.refetchQueries({ queryKey: ["/api/cocktails"] });
-      setLocation("/cocktails");
+      
+      if (isEditMode && cocktailId) {
+        setLocation(`/recipe/${cocktailId}`);
+      } else {
+        setLocation("/cocktails");
+      }
     },
     onError: (error) => {
-      console.error("Failed to create cocktail:", error);
+      console.error(`Failed to ${isEditMode ? 'update' : 'create'} cocktail:`, error);
     }
   });
 
@@ -202,8 +262,8 @@ export const AddCocktail = (): JSX.Element => {
       popularityCount: 0
     };
     
-    console.log("New cocktail:", cocktailData);
-    createCocktailMutation.mutate(cocktailData);
+    console.log(`${isEditMode ? 'Updating' : 'Creating'} cocktail:`, cocktailData);
+    saveCocktailMutation.mutate(cocktailData);
   };
 
   return (
@@ -219,16 +279,16 @@ export const AddCocktail = (): JSX.Element => {
               </Button>
             </Link>
             <h1 className="text-xl font-bold [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Add New Cocktail
+              {isEditMode ? 'Edit Cocktail' : 'Add New Cocktail'}
             </h1>
           </div>
           <Button 
             form="cocktail-form"
             type="submit"
-            disabled={createCocktailMutation.isPending}
+            disabled={saveCocktailMutation.isPending}
             className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
           >
-            {createCocktailMutation.isPending ? "Saving..." : "Save Cocktail"}
+            {saveCocktailMutation.isPending ? "Saving..." : (isEditMode ? "Update Cocktail" : "Save Cocktail")}
           </Button>
         </div>
       </div>

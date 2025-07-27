@@ -1,4 +1,4 @@
-import { ArrowLeft, Clock, Users, Star, Heart, Share, Trash2 } from "lucide-react";
+import { ArrowLeft, Clock, Users, Star, Heart, Share, Trash2, Edit } from "lucide-react";
 import { Link, useRoute, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -136,9 +136,12 @@ export const CocktailRecipe = (): JSX.Element => {
           
           <div className="space-y-4">
             <div>
-              <Badge className="mb-2 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]">
-                Cocktail Recipe
-              </Badge>
+              <Link href={`/edit-cocktail/${cocktail.id}`}>
+                <Button size="sm" className="mb-2 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Recipe
+                </Button>
+              </Link>
               <h1 className="text-3xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
                 {cocktail.name}
               </h1>

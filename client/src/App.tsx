@@ -20,6 +20,7 @@ function Router() {
       <Route path="/" component={Frame} />
       <Route path="/cocktails" component={CocktailList} />
       <Route path="/add-cocktail" component={AddCocktail} />
+      <Route path="/edit-cocktail/:id?" component={AddCocktail} />
       <Route path="/ingredients" component={Ingredients} />
       <Route path="/add-ingredient" component={AddIngredient} />
       <Route path="/bulk-upload" component={BulkUpload} />
