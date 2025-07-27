@@ -171,10 +171,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/cocktails/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== PATCH /api/cocktails/${id} ===`);
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+    
     try {
       const updated = await storage.updateCocktail(id, req.body);
+      console.log('Updated cocktail result:', JSON.stringify(updated, null, 2));
       res.json(updated);
     } catch (error) {
+      console.error('Update error:', error);
       res.status(404).json({ message: "Cocktail not found", error });
     }
   });
