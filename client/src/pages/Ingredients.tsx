@@ -45,7 +45,7 @@ export const Ingredients = (): JSX.Element => {
   // Toggle "My Bar" status mutation
   const toggleMyBarMutation = useMutation({
     mutationFn: async ({ id, inMyBar }: { id: string; inMyBar: boolean }) => {
-      return apiRequest("PATCH", `/api/ingredients/${id}/mybar`, { inMyBar });
+      return apiRequest("PATCH", `/api/ingredients/${id}/toggle-mybar`, { inMyBar });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
