@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useParams } from "wouter";
-import { ArrowLeft, Upload, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Upload, X, Trash2, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import type { Ingredient } from "@shared/schema";
+import type { Ingredient, Tag } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
 
 interface IngredientForm {
@@ -28,6 +28,9 @@ export const EditIngredient = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   // Fetch ingredient data
   const { data: ingredient, isLoading } = useQuery<Ingredient>({
@@ -35,7 +38,34 @@ export const EditIngredient = (): JSX.Element => {
     enabled: !!id,
   });
 
+  // Fetch ingredient-specific suggested tags
+  const { data: mostUsedTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/ingredients/most-used'],
+  });
+
+  const { data: mostRecentTags } = useQuery<Tag[]>({
+    queryKey: ['/api/tags/ingredients/most-recent'],
+  });
+
   const { register, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<IngredientForm>();
+
+  // Combine and deduplicate suggested tags
+  useEffect(() => {
+    const allSuggested = [
+      ...(mostUsedTags || []),
+      ...(mostRecentTags || [])
+    ];
+    
+    // Remove duplicates and tags already selected
+    const uniqueSuggested = allSuggested
+      .filter((tag, index, self) => 
+        self.findIndex(t => t.name === tag.name) === index
+      )
+      .filter(tag => !tags.includes(tag.name))
+      .slice(0, 10); // Limit to 10 suggestions
+    
+    setSuggestedTags(uniqueSuggested);
+  }, [mostUsedTags, mostRecentTags, tags]);
 
   // Populate form when ingredient data loads
   useEffect(() => {
@@ -49,6 +79,8 @@ export const EditIngredient = (): JSX.Element => {
         abv: ingredient.abv || 0,
       });
       setImagePreview(ingredient.imageUrl);
+      // TODO: Load existing tags when ingredient-tag relationships are implemented
+      setTags([]);
     }
   }, [ingredient, reset]);
 
@@ -93,11 +125,29 @@ export const EditIngredient = (): JSX.Element => {
     setImagePreview(null);
   };
 
+  const addTag = () => {
+    if (newTag.trim() && !tags.includes(newTag.trim())) {
+      setTags([...tags, newTag.trim()]);
+      setNewTag("");
+    }
+  };
+
+  const addSuggestedTag = (tagName: string) => {
+    if (!tags.includes(tagName)) {
+      setTags([...tags, tagName]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
   const onSubmit = (data: IngredientForm) => {
     const ingredientData = {
       ...data,
       abv: data.abv || 0,
-      image: imagePreview || undefined
+      image: imagePreview || undefined,
+      tags: tags
     };
     
     console.log('EditIngredient onSubmit:', ingredientData);
@@ -162,7 +212,7 @@ export const EditIngredient = (): JSX.Element => {
             <Link href="/ingredients">
               <Button 
                 variant="outline"
-                className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629]"
+                className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629] h-10"
               >
                 Cancel
               </Button>
@@ -309,6 +359,78 @@ export const EditIngredient = (): JSX.Element => {
                       Choose Image
                     </Button>
                   </Label>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Tags */}
+          <Card className="bg-[#2a2920] border-[#4a4735]">
+            <CardHeader>
+              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                Tags
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Tag Input */}
+              <div className="flex gap-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add a tag..."
+                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  onClick={addTag}
+                  size="sm"
+                  className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Add
+                </Button>
+              </div>
+
+              {/* Tag Suggestions */}
+              {suggestedTags.length > 0 && (
+                <div>
+                  <div className="text-sm text-[#bab59b] mb-2">Quick suggestions:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {suggestedTags.map((suggestedTag) => (
+                      <Badge
+                        key={suggestedTag.id}
+                        className="bg-[#383529] text-white hover:bg-[#f2c40c] hover:text-[#161611] cursor-pointer border border-[#544f3a]"
+                        onClick={() => addSuggestedTag(suggestedTag.name)}
+                      >
+                        {suggestedTag.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Selected Tags */}
+              {tags.length > 0 && (
+                <div>
+                  <div className="text-sm text-[#bab59b] mb-2">Current tags:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] cursor-pointer"
+                        onClick={() => removeTag(tag)}
+                      >
+                        {tag}
+                        <X className="w-3 h-3 ml-1" />
+                      </Badge>
+                    ))}
+                  </div>
                 </div>
               )}
             </CardContent>
