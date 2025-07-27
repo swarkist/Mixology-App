@@ -403,7 +403,7 @@ export class MemStorage implements IStorage {
         ...cocktail, 
         name: update.name || cocktail.name,
         description: update.description !== undefined ? update.description : cocktail.description,
-        imageUrl: update.image !== undefined ? (update.image && update.image.length > 1000 ? "[LARGE_IMAGE_TRUNCATED]" : update.image) : cocktail.imageUrl,
+        imageUrl: update.imageUrl !== undefined ? update.imageUrl : cocktail.imageUrl,
         updatedAt: new Date() 
       };
       this.cocktails.set(id, updatedCocktail);

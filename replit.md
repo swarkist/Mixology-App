@@ -115,8 +115,10 @@ Preferred communication style: Simple, everyday language.
 - **Fixed Image Upload Issue (July 27, 2025)**: Resolved cocktail image upload and persistence functionality
   - Added image processing logic to both POST and PATCH cocktail routes
   - Images sent as base64 from frontend are now properly converted to imageUrl in backend
+  - Fixed updateCocktail method to properly handle imageUrl field in full form updates
   - Image data is correctly stored and retrieved from the database
   - Both create and edit operations now preserve uploaded images
+  - Images display correctly in cocktail cards and recipe pages
 - **Fixed Tags in Edit Mode Issue (July 27, 2025)**: Resolved tags being removed when editing cocktails
   - Added proper tag loading from API response in edit mode
   - Tags are now populated correctly when opening cocktail for editing
