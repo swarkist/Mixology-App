@@ -8,7 +8,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export const CocktailRecipe = (): JSX.Element => {
-  const [match, params] = useRoute("/cocktail/:id");
+  const [match, params] = useRoute("/recipe/:id");
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();

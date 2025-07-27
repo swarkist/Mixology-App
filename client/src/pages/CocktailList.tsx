@@ -261,7 +261,7 @@ export const CocktailList = (): JSX.Element => {
                       </p>
                     )}
                     <div className="flex items-center gap-2">
-                      <Link href={`/cocktail/${cocktail.id}`}>
+                      <Link href={`/recipe/${cocktail.id}`}>
                         <Button 
                           variant="outline" 
                           size="sm"
