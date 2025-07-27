@@ -128,14 +128,24 @@ export const EditIngredient = (): JSX.Element => {
               Edit Ingredient
             </h1>
           </div>
-          <Button 
-            form="ingredient-form"
-            type="submit"
-            disabled={updateMutation.isPending}
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
-          >
-            {updateMutation.isPending ? "Saving..." : "Save Changes"}
-          </Button>
+          <div className="flex gap-2">
+            <Link href="/ingredients">
+              <Button 
+                variant="outline"
+                className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629]"
+              >
+                Cancel
+              </Button>
+            </Link>
+            <Button 
+              form="ingredient-form"
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+            >
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
       </div>
 
