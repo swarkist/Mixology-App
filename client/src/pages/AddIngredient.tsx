@@ -1,4 +1,5 @@
 import { ArrowLeft, Upload, X } from "lucide-react";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -195,41 +196,47 @@ export const AddIngredient = (): JSX.Element => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {imagePreview ? (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Ingredient preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setImagePreview(null)}
-                    className="absolute top-2 right-2"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="border-2 border-dashed border-[#544f3a] rounded-lg p-8 text-center">
-                  <Upload className="w-12 h-12 text-[#544f3a] mx-auto mb-4" />
-                  <p className="text-[#bab59b] mb-4">Upload an ingredient image</p>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="image-upload"
-                  />
-                  <Label htmlFor="image-upload" className="cursor-pointer">
-                    <Button type="button" variant="outline" className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="image" className="text-white">Upload Image</Label>
+                  <div className="mt-2">
+                    <input
+                      id="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                      onClick={() => document.getElementById('image')?.click()}
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
                       Choose Image
                     </Button>
-                  </Label>
+                  </div>
                 </div>
-              )}
+                <div className="relative">
+                  <img
+                    src={imagePreview || noPhotoImage}
+                    alt={imagePreview ? "Ingredient preview" : "No photo placeholder"}
+                    className="w-24 h-24 object-cover rounded-lg"
+                  />
+                  {imagePreview && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      className="absolute -top-2 -right-2 w-6 h-6 p-0"
+                      onClick={() => setImagePreview(null)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
