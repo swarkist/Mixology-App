@@ -115,8 +115,8 @@ export const EditIngredient = (): JSX.Element => {
     if (file) {
       console.log('EditIngredient: File selected:', file.name, file.size);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
         console.log('EditIngredient: Image loaded, preview set');
         setImagePreview(result);
       };
@@ -355,9 +355,9 @@ export const EditIngredient = (): JSX.Element => {
                     accept="image/*"
                     onChange={handleImageUpload}
                     className="hidden"
-                    id="image-upload"
+                    id="image-upload-edit"
                   />
-                  <Label htmlFor="image-upload" className="cursor-pointer">
+                  <Label htmlFor="image-upload-edit" className="cursor-pointer">
                     <Button type="button" variant="outline" className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]">
                       Choose Image
                     </Button>
