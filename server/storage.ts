@@ -400,6 +400,7 @@ export class MemStorage implements IStorage {
       
       // Handle ingredients
       if (update.ingredients) {
+        console.log('Processing ingredients for update:', update.ingredients);
         for (let i = 0; i < update.ingredients.length; i++) {
           const ingredient = update.ingredients[i];
           
@@ -426,6 +427,7 @@ export class MemStorage implements IStorage {
               updatedAt: new Date(),
             };
             this.ingredients.set(newIngredientId, dbIngredient);
+            console.log('Created new ingredient:', dbIngredient);
           }
           
           if (dbIngredient) {
@@ -439,6 +441,7 @@ export class MemStorage implements IStorage {
               order: i,
             };
             this.cocktailIngredients.set(ingredientId, cocktailIngredient);
+            console.log('Created cocktail ingredient:', cocktailIngredient);
             await this.incrementIngredientUsage(dbIngredient.id);
           }
         }
@@ -569,6 +572,13 @@ export class MemStorage implements IStorage {
     const cocktail = this.cocktails.get(id);
     if (!cocktail) return undefined;
     
+    console.log(`\n=== getCocktailWithDetails DEBUG for ID ${id} ===`);
+    console.log('All cocktailIngredients:', Array.from(this.cocktailIngredients.values()));
+    console.log('All cocktailInstructions:', Array.from(this.cocktailInstructions.values()));
+    console.log('All cocktailTags:', Array.from(this.cocktailTags.values()));
+    console.log('All ingredients:', Array.from(this.ingredients.values()));
+    console.log('All tags:', Array.from(this.tags.values()));
+    
     const ingredients = Array.from(this.cocktailIngredients.values())
       .filter(ci => ci.cocktailId === id)
       .map(ci => ({
@@ -589,6 +599,11 @@ export class MemStorage implements IStorage {
     const tags = tagIds
       .map(tagId => this.tags.get(tagId))
       .filter((tag): tag is Tag => tag !== undefined);
+    
+    console.log('Filtered ingredients for cocktail:', ingredients);
+    console.log('Filtered instructions for cocktail:', instructions);  
+    console.log('Filtered tags for cocktail:', tags);
+    console.log('=== END DEBUG ===\n');
     
     return {
       cocktail,
