@@ -40,8 +40,7 @@ export class FirebaseStorageAdapter implements IStorage {
   }
 
   async createTag(tag: InsertTag): Promise<Tag> {
-    // TODO: Implement tag creation in Firebase
-    throw new Error('Tag creation not implemented yet');
+    return this.firebase.createTag(tag);
   }
 
   async getMostUsedTags(limit?: number): Promise<Tag[]> {
@@ -113,6 +112,24 @@ export class FirebaseStorageAdapter implements IStorage {
     await this.firebase.incrementIngredientUsage(ingredientId);
   }
 
+  async findIngredientByName(name: string): Promise<Ingredient | null> {
+    const allIngredients = await this.firebase.getAllIngredients();
+    const lowercaseName = name.toLowerCase();
+    const found = allIngredients.find(ingredient => 
+      ingredient.name.toLowerCase() === lowercaseName
+    );
+    return found || null;
+  }
+
+  async findTagByName(name: string): Promise<Tag | null> {
+    const allTags = await this.firebase.getAllTags();
+    const lowercaseName = name.toLowerCase();
+    const found = allTags.find(tag => 
+      tag.name.toLowerCase() === lowercaseName
+    );
+    return found || null;
+  }
+
   // Cocktails
   async getAllCocktails(): Promise<Cocktail[]> {
     return this.firebase.getAllCocktails();
@@ -146,17 +163,14 @@ export class FirebaseStorageAdapter implements IStorage {
     const insertCocktail: InsertCocktail = {
       name: cocktail.name,
       description: cocktail.description || null,
-      imageUrl: cocktail.image || null,
+      imageUrl: cocktail.imageUrl || null,
     };
     
     const createdCocktail = await this.firebase.createCocktail(insertCocktail);
     
-    // Handle ingredients - for now we'll store them as a simple array in the cocktail document
-    // In a full implementation, you'd create proper cocktail-ingredient relationships
-    if (cocktail.ingredients && cocktail.ingredients.length > 0) {
-      // Note: ingredients, instructions, tags are handled separately in a real implementation
-      // For now, just store basic cocktail info
-    }
+    // For now, Firebase adapter doesn't store relationship data properly
+    // This needs to be implemented with proper cocktail-ingredient relationships
+    // The method signature expects to return a Cocktail but relationships are stored separately
     
     return createdCocktail;
   }

@@ -185,8 +185,8 @@ export const CocktailRecipe = (): JSX.Element => {
               {ingredients && ingredients.length > 0 ? (
                 ingredients.map((item: any, index: number) => (
                   <div key={index} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
-                    <span className="text-white font-medium">{item.ingredient.name}</span>
-                    <span className="text-[#f2c40c] font-semibold">{item.amount}</span>
+                    <span className="text-white font-medium">{item.ingredient?.name || 'Unknown ingredient'}</span>
+                    <span className="text-[#f2c40c] font-semibold">{item.amount} {item.unit}</span>
                   </div>
                 ))
               ) : (
@@ -209,7 +209,7 @@ export const CocktailRecipe = (): JSX.Element => {
                 instructions.map((step: any, index: number) => (
                   <div key={index} className="flex gap-4">
                     <div className="flex-shrink-0 w-8 h-8 bg-[#f2c40c] text-[#161611] rounded-full flex items-center justify-center font-bold text-sm">
-                      {index + 1}
+                      {step.stepNumber || index + 1}
                     </div>
                     <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] pt-1">
                       {step.instruction}
@@ -225,7 +225,27 @@ export const CocktailRecipe = (): JSX.Element => {
           </CardContent>
         </Card>
 
-
+        {/* Tags Section */}
+        <Card className="bg-[#2a2920] border-[#4a4735]">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Tags
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {cocktailDetails.tags && cocktailDetails.tags.length > 0 ? (
+                cocktailDetails.tags.map((tag: any, index: number) => (
+                  <Badge key={index} variant="outline" className="border-[#f2c40c] text-[#f2c40c]">
+                    {tag.name}
+                  </Badge>
+                ))
+              ) : (
+                <div className="text-[#bab59b] text-center p-4 w-full">
+                  No tags assigned to this recipe.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex gap-4 pb-6">

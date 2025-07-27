@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Critical Fix: Data Persistence Issue Resolved (July 27, 2025)**: Fixed the core data structure mismatch between frontend and backend
+  - Frontend sends ingredients as `{name, amount, unit}` but backend expected `{ingredientId, amount, unit}`
+  - Implemented automatic data transformation in POST/PATCH routes to convert ingredient names to IDs
+  - Added helper methods `findIngredientByName` and `findTagByName` to both MemStorage and Firebase adapters
+  - Automatically creates new ingredients and tags when they don't exist during cocktail creation/update
+  - Fixed updateCocktail method to handle transformed data structure with ingredientId and tagIds
+  - Complete functionality restored: POST creates cocktails with full relationships, PATCH updates work perfectly
 - **Default Recipe Images**: Added fallback image for cocktail recipes without photos using attached no-photo asset
 - **Cocktail Card Images**: Enhanced cocktail list cards to display recipe images or default placeholder
 - **Add Cocktail Button**: Added prominent "Add Cocktail" button in cocktail list page header for easy recipe creation

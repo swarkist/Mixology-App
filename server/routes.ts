@@ -158,9 +158,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cocktails", async (req, res) => {
     try {
-      // For now, we'll accept the form data as-is since we're storing ingredients as simple arrays
-      // In a full implementation, you'd resolve ingredient names to IDs and use proper relationships
-      const cocktail = await storage.createCocktail(req.body);
+      console.log('\n=== POST /api/cocktails ===');
+      console.log('Request body:', JSON.stringify(req.body, null, 2));
+      
+      // Transform ingredients from {name, amount, unit} to {ingredientId, amount, unit}
+      const transformedData = { ...req.body };
+      
+      if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
+        console.log('Transforming ingredients...');
+        transformedData.ingredients = await Promise.all(
+          req.body.ingredients.map(async (ingredient: any) => {
+            if (ingredient.name) {
+              // Find or create ingredient by name
+              let existingIngredient = await storage.findIngredientByName(ingredient.name);
+              if (!existingIngredient) {
+                console.log(`Creating new ingredient: ${ingredient.name}`);
+                existingIngredient = await storage.createIngredient({
+                  name: ingredient.name,
+                  category: 'spirits', // Default category
+                  subCategory: null,
+                  description: null,
+                  preferredBrand: null,
+                  abv: null,
+                  imageUrl: null,
+                  inMyBar: false
+                });
+              }
+              return {
+                ingredientId: existingIngredient.id,
+                amount: ingredient.amount.toString(),
+                unit: ingredient.unit
+              };
+            }
+            return ingredient;
+          })
+        );
+      }
+      
+      // Transform tags from string array to tag IDs
+      if (req.body.tags && Array.isArray(req.body.tags)) {
+        console.log('Transforming tags...');
+        transformedData.tagIds = await Promise.all(
+          req.body.tags.map(async (tagName: string) => {
+            let existingTag = await storage.findTagByName(tagName);
+            if (!existingTag) {
+              console.log(`Creating new tag: ${tagName}`);
+              existingTag = await storage.createTag({ name: tagName });
+            }
+            return existingTag.id;
+          })
+        );
+        delete transformedData.tags;
+      }
+      
+      console.log('Transformed data:', JSON.stringify(transformedData, null, 2));
+      
+      const cocktail = await storage.createCocktail(transformedData);
+      console.log('Created cocktail:', JSON.stringify(cocktail, null, 2));
       res.status(201).json(cocktail);
     } catch (error) {
       console.error("Cocktail creation error:", error);
@@ -175,7 +229,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     
     try {
-      const updated = await storage.updateCocktail(id, req.body);
+      // Transform ingredients from {name, amount, unit} to {ingredientId, amount, unit}
+      const transformedData = { ...req.body };
+      
+      if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
+        console.log('Transforming ingredients for PATCH...');
+        transformedData.ingredients = await Promise.all(
+          req.body.ingredients.map(async (ingredient: any) => {
+            if (ingredient.name) {
+              // Find or create ingredient by name
+              let existingIngredient = await storage.findIngredientByName(ingredient.name);
+              if (!existingIngredient) {
+                console.log(`Creating new ingredient during PATCH: ${ingredient.name}`);
+                existingIngredient = await storage.createIngredient({
+                  name: ingredient.name,
+                  category: 'spirits', // Default category
+                  subCategory: null,
+                  description: null,
+                  preferredBrand: null,
+                  abv: null,
+                  imageUrl: null,
+                  inMyBar: false
+                });
+              }
+              return {
+                ingredientId: existingIngredient.id,
+                amount: ingredient.amount.toString(),
+                unit: ingredient.unit
+              };
+            }
+            return ingredient;
+          })
+        );
+      }
+      
+      // Transform tags from string array to tag IDs
+      if (req.body.tags && Array.isArray(req.body.tags)) {
+        console.log('Transforming tags for PATCH...');
+        transformedData.tagIds = await Promise.all(
+          req.body.tags.map(async (tagName: string) => {
+            let existingTag = await storage.findTagByName(tagName);
+            if (!existingTag) {
+              console.log(`Creating new tag during PATCH: ${tagName}`);
+              existingTag = await storage.createTag({ name: tagName });
+            }
+            return existingTag.id;
+          })
+        );
+        delete transformedData.tags;
+      }
+      
+      console.log('Transformed PATCH data:', JSON.stringify(transformedData, null, 2));
+      
+      const updated = await storage.updateCocktail(id, transformedData);
       console.log('Updated cocktail result:', JSON.stringify(updated, null, 2));
       res.json(updated);
     } catch (error) {
