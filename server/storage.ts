@@ -34,6 +34,7 @@ export interface IStorage {
   getIngredientsInMyBar(): Promise<Ingredient[]>;
   createIngredient(ingredient: IngredientForm): Promise<Ingredient>;
   updateIngredient(id: number, ingredient: Partial<InsertIngredient>): Promise<Ingredient>;
+  deleteIngredient(id: number): Promise<boolean>;
   toggleMyBar(ingredientId: number): Promise<Ingredient>;
   incrementIngredientUsage(ingredientId: number): Promise<void>;
   findIngredientByName(name: string): Promise<Ingredient | null>;
@@ -283,6 +284,34 @@ export class MemStorage implements IStorage {
     const updated = { ...ingredient, ...update, updatedAt: new Date() };
     this.ingredients.set(id, updated);
     return updated;
+  }
+
+  async deleteIngredient(id: number): Promise<boolean> {
+    const ingredient = this.ingredients.get(id);
+    if (!ingredient) return false;
+    
+    // Remove the ingredient
+    this.ingredients.delete(id);
+    
+    // Remove related ingredient-tag relationships
+    const tagRelationIds = Array.from(this.ingredientTags.entries())
+      .filter(([, it]) => it.ingredientId === id)
+      .map(([relationId]) => relationId);
+    
+    for (const relationId of tagRelationIds) {
+      this.ingredientTags.delete(relationId);
+    }
+    
+    // Remove ingredient from any cocktail recipes (but don't delete the cocktails)
+    const cocktailIngredientIds = Array.from(this.cocktailIngredients.entries())
+      .filter(([, ci]) => ci.ingredientId === id)
+      .map(([relationId]) => relationId);
+    
+    for (const relationId of cocktailIngredientIds) {
+      this.cocktailIngredients.delete(relationId);
+    }
+    
+    return true;
   }
 
   async toggleMyBar(ingredientId: number): Promise<Ingredient> {

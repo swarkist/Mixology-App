@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useLocation, useParams } from "wouter";
-import { ArrowLeft, Upload, X } from "lucide-react";
+import { ArrowLeft, Upload, X, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,6 +64,17 @@ export const EditIngredient = (): JSX.Element => {
     },
   });
 
+  // Delete ingredient mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("DELETE", `/api/ingredients/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
+      setLocation("/ingredients");
+    },
+  });
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -91,6 +102,12 @@ export const EditIngredient = (): JSX.Element => {
     
     console.log('EditIngredient onSubmit:', ingredientData);
     updateMutation.mutate(ingredientData);
+  };
+
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete this ingredient? This action cannot be undone and will remove the ingredient from all cocktail recipes.")) {
+      deleteMutation.mutate();
+    }
   };
 
   if (isLoading) {
@@ -133,6 +150,15 @@ export const EditIngredient = (): JSX.Element => {
             </h1>
           </div>
           <div className="flex gap-2">
+            <Button 
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              variant="outline"
+              className="bg-transparent border-red-600 text-red-400 hover:border-red-500 hover:text-red-300 hover:bg-red-950/20"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
             <Link href="/ingredients">
               <Button 
                 variant="outline"

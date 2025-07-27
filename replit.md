@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **Added Ingredient Delete Functionality (July 27, 2025)**: Complete ingredient deletion with proper cleanup
+  - Added deleteIngredient method to IStorage interface and all implementations (MemStorage, PersistentMemStorage)
+  - Implemented DELETE /api/ingredients/:id API endpoint with proper error handling
+  - Added red delete button to EditIngredient page with confirmation dialog and loading states
+  - Proper cleanup: removes ingredient-tag relationships and removes ingredient from cocktail recipes
+  - Deletion persists across server restarts with PersistentMemStorage integration
+  - Users can now safely delete ingredients they no longer need from their bar
 - **Implemented Complete Data Persistence System (July 27, 2025)**: Revolutionary data persistence solution
   - Created PersistentMemStorage class with file-based storage (data/storage.json) for complete data persistence
   - Successfully replaced in-memory storage with persistent storage that survives server restarts

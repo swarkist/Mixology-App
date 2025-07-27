@@ -176,6 +176,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/ingredients/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const deleted = await storage.deleteIngredient(id);
+      if (deleted) {
+        res.json({ message: "Ingredient deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Ingredient not found" });
+      }
+    } catch (error) {
+      console.error('Error deleting ingredient:', error);
+      res.status(500).json({ message: "Error deleting ingredient", error });
+    }
+  });
+
   // =================== COCKTAILS ===================
   app.get("/api/cocktails", async (req, res) => {
     const { search, featured, popular, ingredients, matchAll } = req.query;

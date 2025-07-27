@@ -284,6 +284,35 @@ export class PersistentMemStorage implements IStorage {
     return updated;
   }
 
+  async deleteIngredient(id: number): Promise<boolean> {
+    const ingredient = this.ingredients.get(id);
+    if (!ingredient) return false;
+    
+    // Remove the ingredient
+    this.ingredients.delete(id);
+    
+    // Remove related ingredient-tag relationships
+    const tagRelationIds = Array.from(this.ingredientTags.entries())
+      .filter(([, it]) => it.ingredientId === id)
+      .map(([relationId]) => relationId);
+    
+    for (const relationId of tagRelationIds) {
+      this.ingredientTags.delete(relationId);
+    }
+    
+    // Remove ingredient from any cocktail recipes (but don't delete the cocktails)
+    const cocktailIngredientIds = Array.from(this.cocktailIngredients.entries())
+      .filter(([, ci]) => ci.ingredientId === id)
+      .map(([relationId]) => relationId);
+    
+    for (const relationId of cocktailIngredientIds) {
+      this.cocktailIngredients.delete(relationId);
+    }
+    
+    await this.saveData();
+    return true;
+  }
+
   async toggleMyBar(ingredientId: number): Promise<Ingredient> {
     const ingredient = this.ingredients.get(ingredientId);
     if (!ingredient) throw new Error(`Ingredient ${ingredientId} not found`);
