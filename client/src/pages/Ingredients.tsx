@@ -48,7 +48,12 @@ export const Ingredients = (): JSX.Element => {
       return apiRequest("PATCH", `/api/ingredients/${id}/toggle-mybar`, { inMyBar });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
+      // Invalidate all ingredient queries to ensure proper cache updates across all views
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          return !!(query.queryKey[0] && typeof query.queryKey[0] === 'string' && query.queryKey[0].startsWith('/api/ingredients'));
+        }
+      });
     },
   });
 
