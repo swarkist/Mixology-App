@@ -186,9 +186,10 @@ export const CocktailList = (): JSX.Element => {
           </form>
         </div>
 
-        {/* Sort and Filter Buttons */}
+        {/* Filter and Action Buttons */}
         <div className="flex gap-3 pl-3 pr-4 py-3">
-          <Select>
+          {/* Sort by and Filter by dropdowns - temporarily hidden */}
+          {/* <Select>
             <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#ffffff]">
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
@@ -203,9 +204,8 @@ export const CocktailList = (): JSX.Element => {
                 Popularity
               </SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
 
-{/* Filter by dropdown - temporarily hidden */}
           {/* <Select>
             <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#ffffff]">
               <SelectValue placeholder="Filter by" />
