@@ -4,11 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Star, Heart, Edit } from "lucide-react";
+import { Search, Plus, Star, Heart, Edit, Edit2, BarChart3, Check } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { PreferredBrand } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export default function PreferredBrands() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,126 +45,169 @@ export default function PreferredBrands() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <TopNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading preferred brands...</div>
+      <div className="min-h-screen bg-[#161611] text-white p-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+            <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
+              <CardContent className="p-4">
+                <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
+                <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#171712]">
       <TopNavigation />
-      <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground mb-2">
-              Preferred Brands
-            </h1>
-            <p className="text-muted-foreground">
-              Manage your preferred spirit and mixer brands
-            </p>
+      
+      <div className="px-40 py-5">
+        {/* Header */}
+        <div className="p-4 mb-3">
+          <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+            Preferred Brands
+          </h1>
+          <p className="text-sm text-[#bab59c]">
+            Manage your preferred spirit and mixer brands. Build your collection with {brands?.length || 0} brands.
+          </p>
+        </div>
+
+        {/* Search Form */}
+        <div className="px-4 py-3">
+          <div className="h-12">
+            <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
+              <div className="pl-4 flex items-center">
+                <Search className="h-5 w-5 text-[#bab59c]" />
+              </div>
+              <Input
+                type="text"
+                placeholder="Search preferred brands..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="flex-1 bg-transparent border-none text-white placeholder-[#bab59c] focus:ring-0 focus:outline-none px-3"
+              />
+            </div>
           </div>
+        </div>
+
+        {/* Add Brand Button */}
+        <div className="px-4 py-3">
           <Link href="/add-preferred-brand">
-            <Button className="w-full md:w-auto">
+            <Button className="bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
               <Plus className="w-4 h-4 mr-2" />
               Add Preferred Brand
             </Button>
           </Link>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
-            placeholder="Search preferred brands..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Brands Grid */}
-        {brands.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-muted-foreground mb-4">
-              {searchTerm ? "No brands found matching your search." : "No preferred brands added yet."}
+        {/* Stats Bar */}
+        {brands && (
+          <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
+            <div className="flex items-center gap-6 text-sm text-[#bab59c]">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-4 w-4" />
+                <span>Total: {brands.length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Check className="h-4 w-4 text-[#f2c40c]" />
+                <span>In My Bar: {brands.filter((b: PreferredBrand) => b.inMyBar).length}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                <span>Used In: {brands.reduce((sum: number, b: PreferredBrand) => sum + (b.usedInRecipesCount || 0), 0)} recipes</span>
+              </div>
             </div>
-            <Link href="/add-preferred-brand">
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Your First Preferred Brand
-              </Button>
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {brands.map((brand: PreferredBrand) => (
-              <Card key={brand.id} className="group hover:shadow-lg transition-all duration-200">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-semibold line-clamp-2 group-hover:text-primary transition-colors">
-                        {brand.name}
-                      </CardTitle>
-                      {brand.proof && (
-                        <Badge variant="secondary" className="mt-2">
-                          {brand.proof} Proof
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="space-y-4">
-
-                  {/* Brand Image */}
-                  {brand.imageUrl && (
-                    <div className="relative aspect-video rounded-md overflow-hidden bg-muted">
-                      <img
-                        src={brand.imageUrl}
-                        alt={brand.name}
-                        className="object-cover w-full h-full"
-                      />
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center justify-between pt-2">
-                    <Button
-                      variant={brand.inMyBar ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handleToggleMyBar(brand)}
-                      disabled={toggleMyBarMutation.isPending}
-                      className="flex-1 mr-2"
-                    >
-                      <Heart 
-                        className={`w-4 h-4 mr-2 ${brand.inMyBar ? 'fill-current' : ''}`} 
-                      />
-                      {brand.inMyBar ? "In My Bar" : "Add to Bar"}
-                    </Button>
-
-                    <Link href={`/edit-preferred-brand/${brand.id}`}>
-                      <Button variant="ghost" size="sm">
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                    </Link>
-                  </div>
-
-                  {/* Usage Stats */}
-                  {brand.usedInRecipesCount > 0 && (
-                    <div className="text-xs text-muted-foreground text-center pt-2 border-t">
-                      Used in {brand.usedInRecipesCount} recipe{brand.usedInRecipesCount !== 1 ? 's' : ''}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
           </div>
         )}
+
+        {/* Content */}
+        <div className="px-4 py-6">
+          {brands && brands.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {brands.map((brand: PreferredBrand) => (
+                <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                  {/* Image Section */}
+                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                    <img
+                      src={brand.imageUrl || noPhotoImage}
+                      alt={brand.name}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                    />
+                  </div>
+
+                  {/* Content Section */}
+                  <CardContent className="p-4 space-y-3">
+                    {/* Title */}
+                    <h3 className="text-lg font-semibold text-white mb-1 [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-1">
+                      {brand.name}
+                    </h3>
+
+                    {/* Proof Badge */}
+                    {brand.proof && (
+                      <div className="flex flex-wrap gap-1">
+                        <Badge className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] text-xs font-medium">
+                          {brand.proof}° Proof
+                        </Badge>
+                      </div>
+                    )}
+
+                    {/* Usage Stats */}
+                    {brand.usedInRecipesCount > 0 && (
+                      <p className="text-xs text-[#bab59c] mb-3">
+                        Used in {brand.usedInRecipesCount} recipe{brand.usedInRecipesCount !== 1 ? 's' : ''}
+                      </p>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center justify-between gap-2 pt-2">
+                      <Button
+                        onClick={() => handleToggleMyBar(brand)}
+                        disabled={toggleMyBarMutation.isPending}
+                        className={`flex-1 text-xs font-medium transition-all duration-200 ${
+                          brand.inMyBar
+                            ? "bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+                            : "bg-transparent border border-[#544f3b] text-[#bab59c] hover:border-[#f2c40c] hover:text-[#f2c40c]"
+                        }`}
+                      >
+                        <Heart className={`w-3 h-3 mr-1 ${brand.inMyBar ? 'fill-current' : ''}`} />
+                        {brand.inMyBar ? "In My Bar" : "Add to Bar"}
+                      </Button>
+
+                      <Link href={`/edit-preferred-brand/${brand.id}`}>
+                        <Button
+                          size="sm"
+                          className="bg-transparent border border-[#544f3b] text-[#bab59c] hover:border-[#f2c40c] hover:text-[#f2c40c] px-3"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Card className="bg-[#383629] border-[#544f3b] max-w-md mx-auto">
+                <CardContent className="p-8 text-center">
+                  <div className="text-[#bab59c] mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    {searchTerm ? "No brands found matching your search." : "No preferred brands added yet."}
+                  </div>
+                  <Link href="/add-preferred-brand">
+                    <Button className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-semibold">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Preferred Brand
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
