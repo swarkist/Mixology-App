@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025) 
+- **MY BAR COUNT CALCULATION FIXED (July 28, 2025)**: Successfully implemented dynamic My Bar cocktail count calculation with enhanced regression testing
+  - **Dynamic Count Logic**: My Bar page now calculates unique cocktails containing My Bar ingredients in real-time
+  - **Correct Logic Implementation**: Counts unique cocktails (not sum of ingredient usage counts) to avoid double-counting
+  - **Real-time Updates**: Count automatically updates when ingredients are toggled in/out of My Bar
+  - **Enhanced Testing**: Added comprehensive regression test covering all My Bar count scenarios (0, 1, 2+ cocktails)
+  - **Data-driven Calculation**: Uses actual ingredient-cocktail relationships for accurate counting
+  - **User Confirmed Working**: My Bar count correctly shows 1 when only White Rum in bar, 2 when both White Rum and Grenadine
 - **REGRESSION TESTS UPDATED FOR MY BAR (July 28, 2025)**: Enhanced regression testing framework with comprehensive My Bar functionality coverage
   - **Fixed API Test Errors**: Resolved missing `apiRequest` function and variable references in regression tests
   - **Comprehensive My Bar Testing**: Added 6 new test cases covering My Bar toggle, filtering, and combined search functionality

@@ -359,6 +359,111 @@ describe('Cocktail Management API Regression Tests', () => {
       const notFoundInMyBar = myBarResultsAfter.find((i: any) => i.id === newIngredient.id);
       expect(notFoundInMyBar).toBeUndefined();
     });
+
+    it('should correctly calculate My Bar cocktail count', async () => {
+      // Create test ingredients that will be used in cocktails
+      const whiteRumIngredient = await testManager.createTestIngredient({
+        name: 'MyBar_Count_Test_White_Rum',
+        category: 'spirits',
+        subCategory: 'rum',
+        abv: 40
+      });
+
+      const grenadineIngredient = await testManager.createTestIngredient({
+        name: 'MyBar_Count_Test_Grenadine',
+        category: 'mixers',
+        abv: 0
+      });
+
+      const ginIngredient = await testManager.createTestIngredient({
+        name: 'MyBar_Count_Test_Gin',
+        category: 'spirits',
+        subCategory: 'gin',
+        abv: 47
+      });
+
+      // Create test cocktails using these ingredients
+      const cocktail1 = await testManager.createTestCocktail({
+        name: 'MyBar_Count_Test_Rum_Punch',
+        description: 'Uses both white rum and grenadine',
+        ingredients: [
+          { name: whiteRumIngredient.name, amount: 1, unit: 'oz' },
+          { name: grenadineIngredient.name, amount: 0.25, unit: 'oz' }
+        ],
+        instructions: ['Mix ingredients', 'Serve chilled'],
+        tags: ['test']
+      });
+
+      const cocktail2 = await testManager.createTestCocktail({
+        name: 'MyBar_Count_Test_Grenadine_Special',
+        description: 'Uses only grenadine',
+        ingredients: [
+          { name: grenadineIngredient.name, amount: 0.5, unit: 'oz' }
+        ],
+        instructions: ['Pour and serve'],
+        tags: ['test']
+      });
+
+      const cocktail3 = await testManager.createTestCocktail({
+        name: 'MyBar_Count_Test_Gin_Cocktail',
+        description: 'Uses only gin (not in My Bar)',
+        ingredients: [
+          { name: ginIngredient.name, amount: 2, unit: 'oz' }
+        ],
+        instructions: ['Pour gin', 'Add garnish'],
+        tags: ['test']
+      });
+
+      // Test scenario 1: No ingredients in My Bar = 0 cocktails
+      const myBarResultsEmpty = await apiRequest('/ingredients?inMyBar=true');
+      const myBarIngredientsEmpty = myBarResultsEmpty.filter((i: any) => 
+        [whiteRumIngredient.id, grenadineIngredient.id, ginIngredient.id].includes(i.id)
+      );
+      expect(myBarIngredientsEmpty.length).toBe(0);
+
+      // Test scenario 2: Add White Rum to My Bar = 1 cocktail (cocktail1)
+      await apiRequest(`/ingredients/${whiteRumIngredient.id}/toggle-mybar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ inMyBar: true }),
+      });
+
+      const myBarResultsWhiteRum = await apiRequest('/ingredients?inMyBar=true');
+      const whiteRumInMyBar = myBarResultsWhiteRum.find((i: any) => i.id === whiteRumIngredient.id);
+      expect(whiteRumInMyBar).toBeDefined();
+      expect(whiteRumInMyBar.inMyBar).toBe(true);
+
+      // Test scenario 3: Add Grenadine to My Bar = 2 cocktails (cocktail1, cocktail2)
+      await apiRequest(`/ingredients/${grenadineIngredient.id}/toggle-mybar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ inMyBar: true }),
+      });
+
+      const myBarResultsBoth = await apiRequest('/ingredients?inMyBar=true');
+      const myBarIngredientsBoth = myBarResultsBoth.filter((i: any) => 
+        [whiteRumIngredient.id, grenadineIngredient.id].includes(i.id)
+      );
+      expect(myBarIngredientsBoth.length).toBe(2);
+
+      // Test scenario 4: Remove White Rum from My Bar = 2 cocktails (still cocktail1 and cocktail2, since grenadine is in both)
+      await apiRequest(`/ingredients/${whiteRumIngredient.id}/toggle-mybar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ inMyBar: false }),
+      });
+
+      const myBarResultsGrenadineOnly = await apiRequest('/ingredients?inMyBar=true');
+      const grenadineOnlyInMyBar = myBarResultsGrenadineOnly.find((i: any) => i.id === grenadineIngredient.id);
+      expect(grenadineOnlyInMyBar).toBeDefined();
+      expect(grenadineOnlyInMyBar.inMyBar).toBe(true);
+
+      const whiteRumNotInMyBar = myBarResultsGrenadineOnly.find((i: any) => i.id === whiteRumIngredient.id);
+      expect(whiteRumNotInMyBar).toBeUndefined();
+
+      // Verify gin is never in My Bar throughout the test
+      const ginNotInMyBar = myBarResultsGrenadineOnly.find((i: any) => i.id === ginIngredient.id);
+      expect(ginNotInMyBar).toBeUndefined();
+
+      console.log('✅ My Bar count calculation test completed successfully');
+    });
   });
 
   describe('Tags System', () => {
