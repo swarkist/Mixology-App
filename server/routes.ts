@@ -542,6 +542,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Debug endpoint to check ingredient usage data
+  app.get("/api/debug/ingredient-usage/:id", async (req, res) => {
+    try {
+      const ingredientId = parseInt(req.params.id);
+      console.log(`Debug check for ingredient ${ingredientId}`);
+      
+      // Get all cocktails and their detailed information
+      const cocktails = await storage.getAllCocktails();
+      const usageInfo = [];
+      
+      for (const cocktail of cocktails) {
+        const cocktailDetails = await storage.getCocktailWithDetails(cocktail.id);
+        if (cocktailDetails) {
+          const usesIngredient = cocktailDetails.ingredients.some(ci => ci.ingredientId === ingredientId);
+          if (usesIngredient) {
+            const ingredientInfo = cocktailDetails.ingredients.find(ci => ci.ingredientId === ingredientId);
+            usageInfo.push({
+              cocktailId: cocktail.id,
+              cocktailName: cocktail.name,
+              amount: ingredientInfo?.amount,
+              unit: ingredientInfo?.unit
+            });
+          }
+        }
+      }
+      
+      const ingredient = await storage.getIngredient(ingredientId);
+      
+      res.json({
+        ingredientId,
+        ingredientName: ingredient?.name,
+        currentCount: ingredient?.usedInRecipesCount,
+        actualUsage: usageInfo,
+        actualCount: usageInfo.length
+      });
+    } catch (error) {
+      console.error('Error debugging ingredient usage:', error);
+      res.status(500).json({ message: "Error debugging", error });
+    }
+  });
+
   // Add Firebase test routes
   app.use("/api", firebaseTestRoutes);
 
