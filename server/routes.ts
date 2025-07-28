@@ -528,6 +528,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to get cocktail stats for ingredients page
+  app.get("/api/cocktail-stats", async (req, res) => {
+    try {
+      const allCocktails = await storage.getAllCocktails();
+      const cocktailsWithIngredients = [];
+      
+      for (const cocktail of allCocktails) {
+        const details = await storage.getCocktailWithDetails(cocktail.id);
+        if (details && details.ingredients.length > 0) {
+          cocktailsWithIngredients.push(cocktail.id);
+        }
+      }
+      
+      res.json({
+        totalCocktails: allCocktails.length,
+        cocktailsWithIngredients: cocktailsWithIngredients.length,
+        cocktailIds: cocktailsWithIngredients
+      });
+    } catch (error) {
+      console.error('Error getting cocktail stats:', error);
+      res.status(500).json({ message: "Error getting stats", error });
+    }
+  });
+
   // =================== UTILITY ENDPOINTS ===================
   
   // Temporary endpoint to recalculate ingredient usage counts

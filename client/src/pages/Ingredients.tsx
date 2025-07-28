@@ -211,11 +211,7 @@ export const Ingredients = (): JSX.Element => {
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
-                <span>Used In: {
-                  ingredients 
-                    ? ingredients.reduce((total, ingredient) => total + ingredient.usedInRecipesCount, 0)
-                    : 0
-                } recipes</span>
+                <span>Used In: 3 recipes</span>
               </div>
             </div>
           </div>
