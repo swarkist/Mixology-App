@@ -247,15 +247,14 @@ export const AddIngredient = (): JSX.Element => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="abv" className="text-white">ABV (%)</Label>
+                  <Label htmlFor="abv" className="text-white">Proof</Label>
                   <Input
                     id="abv"
                     {...register("abv", { valueAsNumber: true })}
-                    placeholder="e.g., 40"
+                    placeholder="e.g., 80"
                     type="number"
-                    step="0.1"
+                    step="1"
                     min="0"
-                    max="100"
                     className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                   />
                 </div>

@@ -25,7 +25,7 @@ export const ingredients = pgTable("ingredients", {
   subCategory: text("sub_category"), // for spirits: tequila, whiskey, rum, vodka, gin, scotch, moonshine, brandy
   description: text("description"),
   preferredBrand: text("preferred_brand"),
-  abv: real("abv"), // alcohol by volume percentage
+  abv: integer("abv"), // proof value (can exceed 100)
   imageUrl: text("image_url"),
   inMyBar: boolean("in_my_bar").default(false).notNull(), // for "My Bar" feature
   usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),

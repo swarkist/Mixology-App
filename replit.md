@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025) 
+- **DATABASE FIELD ENHANCEMENT - PROOF FIELD (July 28, 2025)**: Successfully changed ABV field to "Proof" field with integer data type
+  - **Field Rename**: Changed "ABV %" label to "Proof" in both AddIngredient and EditIngredient forms
+  - **Data Type Change**: Updated schema from `real("abv")` to `integer("abv")` to accept integer values that can exceed 100
+  - **Input Validation**: Removed max="100" restriction, changed step from "0.1" to "1", updated placeholder from "40" to "80"
+  - **Test Updates**: Updated regression tests to handle proof values over 200 (instead of rejecting ABV > 100)
+  - **Backend Compatibility**: All existing Firebase storage and API endpoints continue to work with integer proof values
+  - **User Benefit**: Users can now enter proof values like 151 (for 151 Rum) or higher proof spirits without restriction
 - **MY BAR COUNT CALCULATION FIXED (July 28, 2025)**: Successfully implemented dynamic My Bar cocktail count calculation with enhanced regression testing
   - **Dynamic Count Logic**: My Bar page now calculates unique cocktails containing My Bar ingredients in real-time
   - **Correct Logic Implementation**: Counts unique cocktails (not sum of ingredient usage counts) to avoid double-counting

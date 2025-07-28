@@ -294,15 +294,14 @@ export const EditIngredient = (): JSX.Element => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="abv" className="text-white">ABV %</Label>
+                  <Label htmlFor="abv" className="text-white">Proof</Label>
                   <Input
                     id="abv"
                     type="number"
-                    step="0.1"
+                    step="1"
                     min="0"
-                    max="100"
                     {...register("abv", { valueAsNumber: true })}
-                    placeholder="e.g., 40"
+                    placeholder="e.g., 80"
                     className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                   />
                 </div>
