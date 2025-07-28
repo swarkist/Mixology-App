@@ -163,6 +163,10 @@ export class FirebaseStorageAdapter implements IStorage {
     await this.firebase.incrementIngredientUsage(ingredientId);
   }
 
+  async recalculateIngredientUsageCounts(): Promise<void> {
+    await this.firebase.recalculateIngredientUsageCounts();
+  }
+
   async deleteIngredient(id: number): Promise<boolean> {
     return this.firebase.deleteIngredient(id);
   }

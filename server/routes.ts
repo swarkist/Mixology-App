@@ -528,6 +528,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =================== UTILITY ENDPOINTS ===================
+  
+  // Temporary endpoint to recalculate ingredient usage counts
+  app.post("/api/recalculate-ingredient-counts", async (req, res) => {
+    try {
+      console.log('Manual recalculation of ingredient usage counts requested');
+      await storage.recalculateIngredientUsageCounts();
+      res.json({ message: "Ingredient usage counts recalculated successfully" });
+    } catch (error) {
+      console.error('Error recalculating ingredient counts:', error);
+      res.status(500).json({ message: "Error recalculating counts", error });
+    }
+  });
+
   // Add Firebase test routes
   app.use("/api", firebaseTestRoutes);
 

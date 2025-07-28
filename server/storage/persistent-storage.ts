@@ -348,6 +348,28 @@ export class PersistentMemStorage implements IStorage {
     }
   }
 
+  async recalculateIngredientUsageCounts(): Promise<void> {
+    // Count usage for each ingredient based on current cocktail-ingredient relationships
+    const usageCounts = new Map<number, number>();
+    
+    for (const relation of Array.from(this.cocktailIngredients.values())) {
+      const currentCount = usageCounts.get(relation.ingredientId) || 0;
+      usageCounts.set(relation.ingredientId, currentCount + 1);
+    }
+    
+    // Update each ingredient with correct usage count
+    for (const ingredient of Array.from(this.ingredients.values())) {
+      const correctCount = usageCounts.get(ingredient.id) || 0;
+      if (ingredient.usedInRecipesCount !== correctCount) {
+        ingredient.usedInRecipesCount = correctCount;
+        ingredient.updatedAt = new Date();
+        this.ingredients.set(ingredient.id, ingredient);
+      }
+    }
+    
+    await this.saveData();
+  }
+
   async findIngredientByName(name: string): Promise<Ingredient | null> {
     const lowercaseName = name.toLowerCase();
     for (const ingredient of Array.from(this.ingredients.values())) {

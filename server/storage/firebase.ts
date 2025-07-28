@@ -119,6 +119,8 @@ export class FirebaseStorage implements IStorage {
         await this.cocktailIngredientsCollection.doc(ingredientDocId.toString()).set(ingredientData);
         console.log(`✓ Ingredient ${i + 1} stored`);
       }
+      // Recalculate all ingredient usage counts to ensure accuracy
+      await this.recalculateIngredientUsageCounts();
     } else {
       console.log('No ingredients to store');
     }
@@ -239,6 +241,9 @@ export class FirebaseStorage implements IStorage {
         await this.cocktailIngredientsCollection.doc(ingredientDocId.toString()).set(ingredientData);
       }
       console.log('✓ New ingredient relationships added');
+      
+      // Recalculate all ingredient usage counts to ensure accuracy
+      await this.recalculateIngredientUsageCounts();
     }
     
     // Update tags if provided
@@ -521,6 +526,41 @@ export class FirebaseStorage implements IStorage {
       usedInRecipesCount: ingredient.usedInRecipesCount + 1,
       updatedAt: new Date()
     });
+  }
+
+  async recalculateIngredientUsageCounts(): Promise<void> {
+    console.log('Recalculating ingredient usage counts...');
+    
+    // Get all ingredients
+    const ingredients = await this.getAllIngredients();
+    
+    // Get all cocktail-ingredient relationships
+    const cocktailIngredientsSnapshot = await this.cocktailIngredientsCollection.get();
+    
+    // Count usage for each ingredient
+    const usageCounts = new Map<number, number>();
+    
+    cocktailIngredientsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      const ingredientId = data.ingredientId;
+      if (ingredientId) {
+        usageCounts.set(ingredientId, (usageCounts.get(ingredientId) || 0) + 1);
+      }
+    });
+    
+    // Update each ingredient with correct usage count
+    for (const ingredient of ingredients) {
+      const correctCount = usageCounts.get(ingredient.id) || 0;
+      if (ingredient.usedInRecipesCount !== correctCount) {
+        console.log(`Updating ingredient ${ingredient.name} (${ingredient.id}): ${ingredient.usedInRecipesCount} → ${correctCount}`);
+        await this.ingredientsCollection.doc(ingredient.id.toString()).update({
+          usedInRecipesCount: correctCount,
+          updatedAt: new Date()
+        });
+      }
+    }
+    
+    console.log('✓ Ingredient usage counts recalculated');
   }
 
   async resetIngredientUsage(id: number): Promise<Ingredient | null> {
