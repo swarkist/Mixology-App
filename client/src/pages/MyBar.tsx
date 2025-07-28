@@ -211,7 +211,7 @@ export const MyBar = (): JSX.Element => {
                 <Star className="h-4 w-4" />
                 <span>Used In: {
                   allMyBarIngredients 
-                    ? allMyBarIngredients.reduce((total, ingredient) => total + (ingredient.usedInRecipesCount > 0 ? 1 : 0), 0)
+                    ? allMyBarIngredients.reduce((total, ingredient) => total + ingredient.usedInRecipesCount, 0)
                     : 0
                 } recipes with My Bar ingredients</span>
               </div>
