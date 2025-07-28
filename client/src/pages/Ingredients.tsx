@@ -16,7 +16,7 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
@@ -33,6 +33,15 @@ export const Ingredients = (): JSX.Element => {
   // Calculate showOnlyMyBar from current URL
   const currentUrlParams = new URLSearchParams(window.location.search);
   const showOnlyMyBar = currentUrlParams.get("mybar") === "true";
+  
+  // Handle My Bar toggle via navigation
+  const handleMyBarToggle = (checked: boolean) => {
+    if (checked) {
+      setLocation("/ingredients?mybar=true");
+    } else {
+      setLocation("/ingredients");
+    }
+  };
 
   // Build query string
   const buildQueryString = () => {
@@ -156,7 +165,7 @@ export const Ingredients = (): JSX.Element => {
             <Checkbox
               id="mybar"
               checked={showOnlyMyBar}
-              onCheckedChange={(checked) => setShowOnlyMyBar(checked === true)}
+              onCheckedChange={(checked) => handleMyBarToggle(checked === true)}
               className="border-[#544f3b] data-[state=checked]:bg-[#f2c40c] data-[state=checked]:border-[#f2c40c]"
             />
             <label 
