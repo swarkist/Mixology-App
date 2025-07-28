@@ -22,9 +22,10 @@ export const FooterSection = (): JSX.Element => {
     <footer className="flex justify-center w-full bg-[#161611]">
       <div className="flex flex-col max-w-[960px] w-full">
         <div className="flex flex-col gap-6 px-5 py-10 w-full">
+          
           {/* Navigation Links */}
           <nav className="flex flex-wrap items-center justify-between gap-[24px_24px] w-full">
-            {footerLinks.map((link, index) => (
+            {/* footerLinks.map((link, index) => (
               <div key={index} className="flex flex-col w-40 items-center">
                 <Link href={link.href}>
                   <span className="font-normal text-[#bab59b] text-base text-center leading-6 w-full [font-family:'Plus_Jakarta_Sans',Helvetica] tracking-[0] hover:text-white transition-colors cursor-pointer">
@@ -32,12 +33,12 @@ export const FooterSection = (): JSX.Element => {
                   </span>
                 </Link>
               </div>
-            ))}
+            )) */}
           </nav>
 
           {/* Social Media Icons */}
           <div className="flex justify-center gap-4">
-            {socialIcons.map((social, index) => (
+            {/* socialIcons.map((social, index) => (
               <a
                 key={index}
                 href="#"
@@ -69,7 +70,7 @@ export const FooterSection = (): JSX.Element => {
                   )}
                 </svg>
               </a>
-            ))}
+            )) */}
           </div>
 
           {/* Divider Line */}
@@ -78,7 +79,7 @@ export const FooterSection = (): JSX.Element => {
           {/* Copyright Text */}
           <div className="flex justify-center w-full">
             <p className="[font-family:'Plus_Jakarta_Sans',Helvetica] font-normal text-[#bab59b] text-base text-center tracking-[0] leading-6">
-              © 2024 Mixology. All rights reserved.
+              © 2025 Mixology. All rights reserved.
             </p>
           </div>
         </div>

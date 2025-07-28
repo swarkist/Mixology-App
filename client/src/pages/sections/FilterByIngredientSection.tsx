@@ -38,7 +38,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
           >
             <div className="flex flex-col items-center gap-2 absolute top-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/3 w-full max-w-[633px] px-4">
               <h1 className="font-extrabold text-white md:text-5xl text-center tracking-tight [font-family:'Plus_Jakarta_Sans',Helvetica] text-[47px]">
-                Mixology With Some Twists
+                Some Twists On Mixology
               </h1>
               <p className="text-white text-center [font-family:'Plus_Jakarta_Sans',Helvetica]">My bar where I pull recipes and tweak them to fit my flavor pallet.</p>
             </div>
