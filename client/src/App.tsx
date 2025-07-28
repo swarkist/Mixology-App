@@ -12,6 +12,9 @@ import { Ingredients } from "@/pages/Ingredients";
 import { AddCocktail } from "@/pages/AddCocktail";
 import { AddIngredient } from "@/pages/AddIngredient";
 import { EditIngredient } from "@/pages/EditIngredient";
+import PreferredBrands from "@/pages/PreferredBrands";
+import AddPreferredBrand from "@/pages/AddPreferredBrand";
+import EditPreferredBrand from "@/pages/EditPreferredBrand";
 import { BulkUpload } from "@/pages/BulkUpload";
 import { MyBar } from "@/pages/MyBar";
 
@@ -27,6 +30,9 @@ function Router() {
       <Route path="/my-bar" component={MyBar} />
       <Route path="/add-ingredient" component={AddIngredient} />
       <Route path="/edit-ingredient/:id" component={EditIngredient} />
+      <Route path="/preferred-brands" component={PreferredBrands} />
+      <Route path="/add-preferred-brand" component={AddPreferredBrand} />
+      <Route path="/edit-preferred-brand/:id" component={EditPreferredBrand} />
       <Route path="/bulk-upload" component={BulkUpload} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       {/* Fallback to 404 */}

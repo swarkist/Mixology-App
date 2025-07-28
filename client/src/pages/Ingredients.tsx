@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest } from "@/lib/queryClient";
 import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
-import { TopNavigation } from "@/components/TopNavigation";
+import TopNavigation from "@/components/TopNavigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
@@ -55,10 +55,8 @@ export const Ingredients = (): JSX.Element => {
   };
 
   const handleToggleMyBar = (ingredient: Ingredient) => {
-    toggleMyBarMutation.mutate({
-      id: ingredient.id.toString(),
-      inMyBar: !ingredient.inMyBar,
-    });
+    // My Bar functionality has been moved to preferred brands system
+    console.log("My Bar functionality moved to preferred brands");
   };
 
   // Get subcategories for selected category  
@@ -207,7 +205,7 @@ export const Ingredients = (): JSX.Element => {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-[#f2c40c]" />
-                <span>In My Bar: {ingredients.filter(i => i.inMyBar).length}</span>
+                <span>In My Bar: 0</span>
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
@@ -252,11 +250,7 @@ export const Ingredients = (): JSX.Element => {
                           </div>
                         )}
                       </div>
-                      {ingredient.abv && ingredient.abv > 0 && (
-                        <div className="flex items-center gap-1 text-[#f2c40c] text-xs font-semibold">
-                          <span>{ingredient.abv} Proof</span>
-                        </div>
-                      )}
+                      {/* ABV/Proof display removed - now managed in preferred brands */}
                     </div>
                     <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
                       {ingredient.name}
@@ -269,11 +263,7 @@ export const Ingredients = (): JSX.Element => {
                           {ingredient.subCategory}
                         </p>
                       )}
-                      {ingredient.preferredBrand && (
-                        <p className="text-[#bab59b] text-xs [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                          Brand: {ingredient.preferredBrand}
-                        </p>
-                      )}
+                      {/* Preferred brand display removed - now managed in separate preferred brands system */}
                       {ingredient.description && (
                         <p className="text-[#bab59b] text-xs [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-2">
                           {ingredient.description}
@@ -283,23 +273,13 @@ export const Ingredients = (): JSX.Element => {
                         <Button
                           size="sm"
                           onClick={() => handleToggleMyBar(ingredient)}
-                          disabled={toggleMyBarMutation.isPending}
-                          className={ingredient.inMyBar 
-                            ? "bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold flex-1"
-                            : "bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] flex-1"
-                          }
+                          className="bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] flex-1"
+                          disabled
                         >
-                          {ingredient.inMyBar ? (
-                            <>
-                              <Check className="h-3 w-3 mr-1" />
-                              In My Bar
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-3 w-3 mr-1" />
-                              Add to Bar
-                            </>
-                          )}
+                          <>
+                            <Plus className="h-3 w-3 mr-1" />
+                            My Bar (Use Preferred Brands)
+                          </>
                         </Button>
                         <Link href={`/edit-ingredient/${ingredient.id}`}>
                           <Button

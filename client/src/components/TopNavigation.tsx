@@ -12,10 +12,11 @@ interface NavItem {
 const navItems: NavItem[] = [
   { label: "Cocktails", href: "/cocktails" },
   { label: "Ingredients", href: "/ingredients" },
+  { label: "Preferred Brands", href: "/preferred-brands" },
   { label: "My Bar", href: "/my-bar" },
 ];
 
-export const TopNavigation = (): JSX.Element => {
+const TopNavigation = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState("");
   const [location, setLocation] = useLocation();
 
@@ -87,3 +88,5 @@ export const TopNavigation = (): JSX.Element => {
     </nav>
   );
 };
+
+export default TopNavigation;

@@ -1,14 +1,22 @@
 import { db } from '../firebase';
 import type { IStorage } from '../storage';
-import type { Cocktail, Ingredient, CocktailIngredient, CocktailInstruction, Tag, InsertCocktail, InsertIngredient } from '@shared/schema';
+import type { 
+  Cocktail, Ingredient, CocktailIngredient, CocktailInstruction, Tag, 
+  PreferredBrand, InsertCocktail, InsertIngredient, InsertPreferredBrand,
+  CocktailForm, IngredientForm, PreferredBrandForm 
+} from '@shared/schema';
 
 export class FirebaseStorage implements IStorage {
   private cocktailsCollection = db.collection('cocktails');
   private ingredientsCollection = db.collection('ingredients');
+  private preferredBrandsCollection = db.collection('preferred_brands');
   private cocktailIngredientsCollection = db.collection('cocktail_ingredients');
   private cocktailInstructionsCollection = db.collection('cocktail_instructions');
   private tagsCollection = db.collection('tags');
   private cocktailTagsCollection = db.collection('cocktail_tags');
+  private ingredientTagsCollection = db.collection('ingredient_tags');
+  private preferredBrandIngredientsCollection = db.collection('preferred_brand_ingredients');
+  private preferredBrandTagsCollection = db.collection('preferred_brand_tags');
 
   // Cocktail operations
   async getAllCocktails(): Promise<Cocktail[]> {
@@ -863,5 +871,368 @@ export class FirebaseStorage implements IStorage {
       console.error('Error fetching cocktail tags:', error);
       return [];
     }
+  }
+
+  // Preferred Brands methods
+  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
+    try {
+      const snapshot = await this.preferredBrandsCollection.get();
+      return snapshot.docs.map((doc: any) => {
+        const data = doc.data();
+        return {
+          id: parseInt(doc.id),
+          name: data.name || 'Untitled Brand',
+          proof: data.proof || null,
+          imageUrl: data.imageUrl || null,
+          inMyBar: data.inMyBar || false,
+          usedInRecipesCount: data.usedInRecipesCount || 0,
+          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+          updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+        } as PreferredBrand;
+      });
+    } catch (error) {
+      console.error('Error fetching preferred brands from Firebase:', error);
+      return [];
+    }
+  }
+
+  async getPreferredBrand(id: number): Promise<PreferredBrand | undefined> {
+    try {
+      const doc = await this.preferredBrandsCollection.doc(id.toString()).get();
+      if (!doc.exists) return undefined;
+      
+      const data = doc.data() || {};
+      return {
+        id: parseInt(doc.id),
+        name: data.name || 'Untitled Brand',
+        proof: data.proof || null,
+        imageUrl: data.imageUrl || null,
+        inMyBar: data.inMyBar || false,
+        usedInRecipesCount: data.usedInRecipesCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      } as PreferredBrand;
+    } catch (error) {
+      console.error('Error fetching preferred brand:', error);
+      return undefined;
+    }
+  }
+
+  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
+    const allBrands = await this.getAllPreferredBrands();
+    return allBrands.filter(brand => 
+      brand.name.toLowerCase().includes(query.toLowerCase())
+    );
+  }
+
+  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
+    try {
+      const snapshot = await this.preferredBrandsCollection.where('inMyBar', '==', true).get();
+      return snapshot.docs.map((doc: any) => {
+        const data = doc.data();
+        return {
+          id: parseInt(doc.id),
+          name: data.name || 'Untitled Brand',
+          proof: data.proof || null,
+          imageUrl: data.imageUrl || null,
+          inMyBar: data.inMyBar || false,
+          usedInRecipesCount: data.usedInRecipesCount || 0,
+          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+          updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+        } as PreferredBrand;
+      });
+    } catch (error) {
+      console.error('Error fetching My Bar preferred brands:', error);
+      return [];
+    }
+  }
+
+  async createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand> {
+    try {
+      const id = Date.now();
+      const docRef = this.preferredBrandsCollection.doc(id.toString());
+      
+      const brandData = {
+        name: brand.name,
+        proof: brand.proof || null,
+        imageUrl: brand.imageUrl || null,
+        inMyBar: brand.inMyBar || false,
+        usedInRecipesCount: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      await docRef.set(brandData);
+
+      return {
+        id,
+        ...brandData,
+      } as PreferredBrand;
+    } catch (error) {
+      console.error('Error creating preferred brand:', error);
+      throw error;
+    }
+  }
+
+  async updatePreferredBrand(id: number, updates: Partial<InsertPreferredBrand>): Promise<PreferredBrand> {
+    try {
+      const docRef = this.preferredBrandsCollection.doc(id.toString());
+      await docRef.update({ ...updates, updatedAt: new Date() });
+      
+      const updated = await this.getPreferredBrand(id);
+      if (!updated) throw new Error('Preferred brand not found after update');
+      return updated;
+    } catch (error) {
+      console.error('Error updating preferred brand:', error);
+      throw error;
+    }
+  }
+
+  async deletePreferredBrand(id: number): Promise<boolean> {
+    try {
+      await this.preferredBrandsCollection.doc(id.toString()).delete();
+      return true;
+    } catch (error) {
+      console.error('Error deleting preferred brand:', error);
+      return false;
+    }
+  }
+
+  async toggleMyBarBrand(brandId: number): Promise<PreferredBrand> {
+    try {
+      const brand = await this.getPreferredBrand(brandId);
+      if (!brand) throw new Error('Preferred brand not found');
+      
+      const newInMyBar = !brand.inMyBar;
+      await this.updatePreferredBrand(brandId, { inMyBar: newInMyBar });
+      
+      const updated = await this.getPreferredBrand(brandId);
+      if (!updated) throw new Error('Preferred brand not found after toggle');
+      return updated;
+    } catch (error) {
+      console.error('Error toggling My Bar for preferred brand:', error);
+      throw error;
+    }
+  }
+
+  async incrementPreferredBrandUsage(brandId: number): Promise<void> {
+    try {
+      const brand = await this.getPreferredBrand(brandId);
+      if (brand) {
+        await this.updatePreferredBrand(brandId, {
+          usedInRecipesCount: brand.usedInRecipesCount + 1
+        });
+      }
+    } catch (error) {
+      console.error('Error incrementing preferred brand usage:', error);
+    }
+  }
+
+  async recalculatePreferredBrandUsageCounts(): Promise<void> {
+    console.log('Preferred brand usage count recalculation not implemented yet');
+  }
+
+  async findPreferredBrandByName(name: string): Promise<PreferredBrand | null> {
+    try {
+      const snapshot = await this.preferredBrandsCollection.where('name', '==', name).get();
+      if (snapshot.empty) return null;
+      
+      const doc = snapshot.docs[0];
+      const data = doc.data();
+      return {
+        id: parseInt(doc.id),
+        name: data.name,
+        proof: data.proof || null,
+        imageUrl: data.imageUrl || null,
+        inMyBar: data.inMyBar || false,
+        usedInRecipesCount: data.usedInRecipesCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      } as PreferredBrand;
+    } catch (error) {
+      console.error('Error finding preferred brand by name:', error);
+      return null;
+    }
+  }
+
+  async getPreferredBrandWithDetails(id: number): Promise<{
+    brand: PreferredBrand;
+    ingredients: Ingredient[];
+    tags: Tag[];
+  } | undefined> {
+    try {
+      const brand = await this.getPreferredBrand(id);
+      if (!brand) return undefined;
+
+      // Get associated ingredients
+      const ingredientRefs = await this.preferredBrandIngredientsCollection
+        .where('preferredBrandId', '==', id).get();
+      
+      const ingredients: Ingredient[] = [];
+      for (const ref of ingredientRefs.docs) {
+        const refData = ref.data();
+        const ingredient = await this.getIngredient(refData.ingredientId);
+        if (ingredient) ingredients.push(ingredient);
+      }
+
+      // Get tags
+      const tagRefs = await this.preferredBrandTagsCollection
+        .where('preferredBrandId', '==', id).get();
+      
+      const tags: Tag[] = [];
+      for (const ref of tagRefs.docs) {
+        const refData = ref.data();
+        const tag = await this.getTag(refData.tagId);
+        if (tag) tags.push(tag);
+      }
+
+      return { brand, ingredients, tags };
+    } catch (error) {
+      console.error('Error getting preferred brand details:', error);
+      return undefined;
+    }
+  }
+
+  async getIngredientWithDetails(id: number): Promise<{
+    ingredient: Ingredient;
+    preferredBrands: PreferredBrand[];
+    tags: Tag[];
+  } | undefined> {
+    try {
+      const ingredient = await this.getIngredient(id);
+      if (!ingredient) return undefined;
+
+      // Get associated preferred brands
+      const brandRefs = await this.preferredBrandIngredientsCollection
+        .where('ingredientId', '==', id).get();
+      
+      const preferredBrands: PreferredBrand[] = [];
+      for (const ref of brandRefs.docs) {
+        const refData = ref.data();
+        const brand = await this.getPreferredBrand(refData.preferredBrandId);
+        if (brand) preferredBrands.push(brand);
+      }
+
+      // Get tags  
+      const tagSnapshot = await this.ingredientTagsCollection
+        .where('ingredientId', '==', id).get();
+      
+      const tags: Tag[] = [];
+      for (const ref of tagSnapshot.docs) {
+        const refData = ref.data();
+        const tag = await this.getTag(refData.tagId);
+        if (tag) tags.push(tag);
+      }
+
+      return { ingredient, preferredBrands, tags };
+    } catch (error) {
+      console.error('Error getting ingredient details:', error);
+      return undefined;
+    }
+  }
+
+  private async getTag(id: number): Promise<Tag | undefined> {
+    try {
+      const doc = await this.tagsCollection.doc(id.toString()).get();
+      if (!doc.exists) return undefined;
+      
+      const data = doc.data() || {};
+      return {
+        id: parseInt(doc.id),
+        name: data.name,
+        usageCount: data.usageCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+      } as Tag;
+    } catch (error) {
+      console.error('Error fetching tag:', error);
+      return undefined;
+    }
+  }
+
+  // =================== PREFERRED BRANDS ===================
+  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
+    const snapshot = await this.preferredBrandsCollection.get();
+    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand));
+  }
+
+  async getPreferredBrand(id: number): Promise<PreferredBrand | null> {
+    const doc = await this.preferredBrandsCollection.doc(id.toString()).get();
+    if (!doc.exists) return null;
+    return { id, ...doc.data() } as PreferredBrand;
+  }
+
+  async getPreferredBrandWithDetails(id: number): Promise<{ brand: PreferredBrand; ingredients: any[]; tags: any[] } | null> {
+    const brand = await this.getPreferredBrand(id);
+    if (!brand) return null;
+
+    // Get associated ingredients and tags (if we implement these relationships later)
+    const ingredients: any[] = [];
+    const tags: any[] = [];
+
+    return { brand, ingredients, tags };
+  }
+
+  async createPreferredBrand(data: InsertPreferredBrand): Promise<PreferredBrand> {
+    const id = Date.now(); // Simple ID generation
+    const now = new Date();
+    
+    const brandData = {
+      ...data,
+      usedInRecipesCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await this.preferredBrandsCollection.doc(id.toString()).set(brandData);
+    return { id, ...brandData } as PreferredBrand;
+  }
+
+  async updatePreferredBrand(id: number, data: Partial<Omit<PreferredBrand, 'id' | 'createdAt'>>): Promise<PreferredBrand | null> {
+    const existing = await this.getPreferredBrand(id);
+    if (!existing) return null;
+
+    const updateData = {
+      ...data,
+      updatedAt: new Date(),
+    };
+
+    await this.preferredBrandsCollection.doc(id.toString()).update(updateData);
+    return { ...existing, ...updateData } as PreferredBrand;
+  }
+
+  async deletePreferredBrand(id: number): Promise<boolean> {
+    const doc = await this.preferredBrandsCollection.doc(id.toString()).get();
+    if (!doc.exists) return false;
+
+    await this.preferredBrandsCollection.doc(id.toString()).delete();
+    return true;
+  }
+
+  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
+    const snapshot = await this.preferredBrandsCollection
+      .where('inMyBar', '==', true)
+      .get();
+    
+    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand));
+  }
+
+  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
+    // Simple search implementation - Firebase doesn't have built-in full-text search
+    const snapshot = await this.preferredBrandsCollection.get();
+    const lowerQuery = query.toLowerCase();
+    
+    return snapshot.docs
+      .map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand))
+      .filter(brand => 
+        brand.name.toLowerCase().includes(lowerQuery)
+      );
+  }
+
+  async toggleMyBarBrand(id: number): Promise<PreferredBrand | null> {
+    const brand = await this.getPreferredBrand(id);
+    if (!brand) return null;
+
+    const updatedBrand = await this.updatePreferredBrand(id, { inMyBar: !brand.inMyBar });
+    return updatedBrand;
   }
 }

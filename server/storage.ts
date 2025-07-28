@@ -1,10 +1,11 @@
 
 import { 
   users, cocktails, ingredients, tags, cocktailIngredients, cocktailInstructions, 
-  cocktailTags, ingredientTags,
+  cocktailTags, ingredientTags, preferredBrands, preferredBrandIngredients, preferredBrandTags,
   type User, type InsertUser, type Cocktail, type InsertCocktail, 
   type Ingredient, type InsertIngredient, type Tag, type InsertTag,
-  type CocktailIngredient, type CocktailInstruction, type CocktailForm, type IngredientForm
+  type PreferredBrand, type InsertPreferredBrand,
+  type CocktailIngredient, type CocktailInstruction, type CocktailForm, type IngredientForm, type PreferredBrandForm
 } from "@shared/schema";
 
 // Comprehensive storage interface for all MVP features
@@ -31,15 +32,40 @@ export interface IStorage {
   getIngredient(id: number): Promise<Ingredient | undefined>;
   searchIngredients(query: string): Promise<Ingredient[]>;
   getIngredientsByCategory(category: string): Promise<Ingredient[]>;
-  getIngredientsInMyBar(): Promise<Ingredient[]>;
   createIngredient(ingredient: IngredientForm): Promise<Ingredient>;
   updateIngredient(id: number, ingredient: Partial<InsertIngredient>): Promise<Ingredient>;
   deleteIngredient(id: number): Promise<boolean>;
-  toggleMyBar(ingredientId: number): Promise<Ingredient>;
   incrementIngredientUsage(ingredientId: number): Promise<void>;
   recalculateIngredientUsageCounts(): Promise<void>;
   findIngredientByName(name: string): Promise<Ingredient | null>;
   findTagByName(name: string): Promise<Tag | null>;
+
+  // Preferred Brands
+  getAllPreferredBrands(): Promise<PreferredBrand[]>;
+  getPreferredBrand(id: number): Promise<PreferredBrand | undefined>;
+  searchPreferredBrands(query: string): Promise<PreferredBrand[]>;
+  getPreferredBrandsInMyBar(): Promise<PreferredBrand[]>;
+  createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand>;
+  updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand>;
+  deletePreferredBrand(id: number): Promise<boolean>;
+  toggleMyBarBrand(brandId: number): Promise<PreferredBrand>;
+  incrementPreferredBrandUsage(brandId: number): Promise<void>;
+  recalculatePreferredBrandUsageCounts(): Promise<void>;
+  findPreferredBrandByName(name: string): Promise<PreferredBrand | null>;
+  
+  // Preferred Brand Details
+  getPreferredBrandWithDetails(id: number): Promise<{
+    brand: PreferredBrand;
+    ingredients: Ingredient[];
+    tags: Tag[];
+  } | undefined>;
+
+  // Ingredient Details  
+  getIngredientWithDetails(id: number): Promise<{
+    ingredient: Ingredient;
+    preferredBrands: PreferredBrand[];
+    tags: Tag[];
+  } | undefined>;
 
   // Cocktails  
   getAllCocktails(): Promise<Cocktail[]>;

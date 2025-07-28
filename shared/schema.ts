@@ -24,13 +24,29 @@ export const ingredients = pgTable("ingredients", {
   category: text("category").notNull(), // spirits, mixers, juices, syrups, bitters, garnishes, other
   subCategory: text("sub_category"), // for spirits: tequila, whiskey, rum, vodka, gin, scotch, moonshine, brandy
   description: text("description"),
-  preferredBrand: text("preferred_brand"),
-  abv: integer("abv"), // proof value (can exceed 100)
+  imageUrl: text("image_url"),
+  usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Preferred Brands table
+export const preferredBrands = pgTable("preferred_brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  proof: integer("proof"), // proof value (can exceed 100)
   imageUrl: text("image_url"),
   inMyBar: boolean("in_my_bar").default(false).notNull(), // for "My Bar" feature
   usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Preferred Brand Ingredients - junction table
+export const preferredBrandIngredients = pgTable("preferred_brand_ingredients", {
+  id: serial("id").primaryKey(),
+  preferredBrandId: integer("preferred_brand_id").notNull().references(() => preferredBrands.id, { onDelete: "cascade" }),
+  ingredientId: integer("ingredient_id").notNull().references(() => ingredients.id, { onDelete: "cascade" }),
 });
 
 // Cocktails table
@@ -78,6 +94,13 @@ export const ingredientTags = pgTable("ingredient_tags", {
   tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
 });
 
+// Preferred Brand tags - junction table
+export const preferredBrandTags = pgTable("preferred_brand_tags", {
+  id: serial("id").primaryKey(),
+  preferredBrandId: integer("preferred_brand_id").notNull().references(() => preferredBrands.id, { onDelete: "cascade" }),
+  tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
+});
+
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -119,6 +142,21 @@ export const insertIngredientTagSchema = createInsertSchema(ingredientTags).omit
   id: true,
 });
 
+export const insertPreferredBrandSchema = createInsertSchema(preferredBrands).omit({
+  id: true,
+  usedInRecipesCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPreferredBrandIngredientSchema = createInsertSchema(preferredBrandIngredients).omit({
+  id: true,
+});
+
+export const insertPreferredBrandTagSchema = createInsertSchema(preferredBrandTags).omit({
+  id: true,
+});
+
 // Extended schemas for forms
 export const cocktailFormSchema = insertCocktailSchema.extend({
   ingredients: z.array(z.object({
@@ -134,6 +172,11 @@ export const ingredientFormSchema = insertIngredientSchema.extend({
   tagIds: z.array(z.number()).optional(),
 });
 
+export const preferredBrandFormSchema = insertPreferredBrandSchema.extend({
+  tagIds: z.array(z.number()).optional(),
+  ingredientIds: z.array(z.number()).optional(),
+});
+
 // Type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -144,6 +187,9 @@ export type Tag = typeof tags.$inferSelect;
 export type InsertIngredient = z.infer<typeof insertIngredientSchema>;
 export type Ingredient = typeof ingredients.$inferSelect;
 
+export type InsertPreferredBrand = z.infer<typeof insertPreferredBrandSchema>;
+export type PreferredBrand = typeof preferredBrands.$inferSelect;
+
 export type InsertCocktail = z.infer<typeof insertCocktailSchema>;
 export type Cocktail = typeof cocktails.$inferSelect;
 
@@ -151,9 +197,12 @@ export type CocktailIngredient = typeof cocktailIngredients.$inferSelect;
 export type CocktailInstruction = typeof cocktailInstructions.$inferSelect;
 export type CocktailTag = typeof cocktailTags.$inferSelect;
 export type IngredientTag = typeof ingredientTags.$inferSelect;
+export type PreferredBrandIngredient = typeof preferredBrandIngredients.$inferSelect;
+export type PreferredBrandTag = typeof preferredBrandTags.$inferSelect;
 
 export type CocktailForm = z.infer<typeof cocktailFormSchema>;
 export type IngredientForm = z.infer<typeof ingredientFormSchema>;
+export type PreferredBrandForm = z.infer<typeof preferredBrandFormSchema>;
 
 // Constants from PRD
 export const INGREDIENT_CATEGORIES = [

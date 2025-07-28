@@ -3,8 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
   insertTagSchema, insertIngredientSchema, insertCocktailSchema,
-  cocktailFormSchema, ingredientFormSchema,
-  type Cocktail, type Ingredient
+  cocktailFormSchema, ingredientFormSchema, insertPreferredBrandSchema, preferredBrandFormSchema,
+  type Cocktail, type Ingredient, type PreferredBrand
 } from "@shared/schema";
 import firebaseTestRoutes from "./routes/firebase-test";
 
@@ -82,11 +82,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       let ingredients;
       
-      // Start with all ingredients or My Bar ingredients
+      // Get all ingredients first, then filter by My Bar if needed
+      ingredients = await storage.getAllIngredients();
+      
+      // Filter by My Bar if requested
       if (mybar === 'true' || inMyBar === 'true') {
-        ingredients = await storage.getIngredientsInMyBar();
-      } else {
-        ingredients = await storage.getAllIngredients();
+        // For now, return empty array since ingredients don't have inMyBar field anymore
+        ingredients = [];
       }
       
       // Apply search filter if provided
@@ -94,8 +96,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const searchTerm = search.toString().toLowerCase();
         ingredients = ingredients.filter(ingredient => 
           ingredient.name.toLowerCase().includes(searchTerm) ||
-          ingredient.description?.toLowerCase().includes(searchTerm) ||
-          ingredient.preferredBrand?.toLowerCase().includes(searchTerm)
+          ingredient.description?.toLowerCase().includes(searchTerm)
         );
       }
       
@@ -186,8 +187,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const id = parseInt(req.params.id);
     
     try {
-      const updated = await storage.toggleMyBar(id);
-      res.json(updated);
+      const ingredient = await storage.getIngredient(id);
+      if (!ingredient) {
+        return res.status(404).json({ message: "Ingredient not found" });
+      }
+      
+      // For now, just return the ingredient as-is since inMyBar functionality will be moved to preferred brands
+      res.json(ingredient);
     } catch (error) {
       res.status(404).json({ message: "Ingredient not found", error });
     }
@@ -272,10 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   category: 'spirits', // Default category
                   subCategory: null,
                   description: null,
-                  preferredBrand: null,
-                  abv: null,
-                  imageUrl: null,
-                  inMyBar: false
+                  imageUrl: null
                 });
               }
               return {
@@ -365,10 +368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   category: 'spirits', // Default category
                   subCategory: null,
                   description: null,
-                  preferredBrand: null,
-                  abv: null,
-                  imageUrl: null,
-                  inMyBar: false
+                  imageUrl: null
                 });
               }
               return {
@@ -612,9 +612,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('Calculating My Bar cocktail count...');
       
-      // Get My Bar ingredients using same approach as the ingredients endpoint
-      const myBarIngredients = await storage.getIngredientsInMyBar();
-      const myBarIngredientIds = myBarIngredients.map((ingredient: any) => ingredient.id);
+      // For now, return 0 count since My Bar functionality will be moved to preferred brands
+      res.json({ count: 0, cocktailIds: [] });
+      return;
       
       console.log('My Bar ingredients:', myBarIngredients.map((i: any) => `${i.name} (${i.id})`));
       
@@ -652,6 +652,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error calculating My Bar cocktail count:', error);
       res.status(500).json({ error: 'Failed to calculate My Bar cocktail count' });
+    }
+  });
+
+  // =================== PREFERRED BRANDS ===================
+  app.get("/api/preferred-brands", async (req, res) => {
+    const { search, inMyBar } = req.query;
+    
+    try {
+      let brands;
+      
+      if (inMyBar === 'true') {
+        brands = await storage.getPreferredBrandsInMyBar();
+      } else if (search) {
+        brands = await storage.searchPreferredBrands(search as string);
+      } else {
+        brands = await storage.getAllPreferredBrands();
+      }
+      
+      res.json(brands);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching preferred brands", error });
+    }
+  });
+
+  app.get("/api/preferred-brands/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    const brandWithDetails = await storage.getPreferredBrandWithDetails(id);
+
+    if (!brandWithDetails) {
+      return res.status(404).json({ message: "Preferred brand not found" });
+    }
+
+    res.json(brandWithDetails);
+  });
+
+  app.post("/api/preferred-brands", async (req, res) => {
+    try {
+      const brandData = preferredBrandFormSchema.parse(req.body);
+      
+      // Handle image upload
+      if (req.body.image && typeof req.body.image === 'string') {
+        brandData.imageUrl = req.body.image;
+      }
+      
+      const brand = await storage.createPreferredBrand(brandData);
+      res.status(201).json(brand);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid preferred brand data", error });
+    }
+  });
+
+  app.patch("/api/preferred-brands/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const updateData = { ...req.body };
+      
+      // Handle image upload
+      if (req.body.image && typeof req.body.image === 'string') {
+        updateData.imageUrl = req.body.image;
+        delete updateData.image;
+      }
+      
+      const updated = await storage.updatePreferredBrand(id, updateData);
+      res.json(updated);
+    } catch (error) {
+      res.status(404).json({ message: "Preferred brand not found", error });
+    }
+  });
+
+  app.patch("/api/preferred-brands/:id/toggle-mybar", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const updated = await storage.toggleMyBarBrand(id);
+      res.json(updated);
+    } catch (error) {
+      res.status(404).json({ message: "Preferred brand not found", error });
+    }
+  });
+
+  app.delete("/api/preferred-brands/:id", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const deleted = await storage.deletePreferredBrand(id);
+      if (deleted) {
+        res.json({ message: "Preferred brand deleted successfully" });
+      } else {
+        res.status(404).json({ message: "Preferred brand not found" });
+      }
+    } catch (error) {
+      console.error('Error deleting preferred brand:', error);
+      res.status(500).json({ message: "Error deleting preferred brand", error });
     }
   });
 

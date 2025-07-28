@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 import { useQuery } from "@tanstack/react-query";
-import { TopNavigation } from "@/components/TopNavigation";
+import TopNavigation from "@/components/TopNavigation";
 import type { Cocktail } from "@shared/schema";
 
 export const FeaturedCocktailsSection = (): JSX.Element => {

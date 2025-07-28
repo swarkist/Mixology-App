@@ -24,7 +24,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
-import { TopNavigation } from "@/components/TopNavigation";
+import TopNavigation from "@/components/TopNavigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailList = (): JSX.Element => {
