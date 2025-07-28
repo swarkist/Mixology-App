@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Upload, X, Trash2 } from "lucide-react";
 import { Link } from "wouter";
@@ -108,169 +109,191 @@ export default function EditPreferredBrand() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <TopNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading preferred brand...</div>
-        </div>
+      <div className="min-h-screen bg-[#161611] text-white flex items-center justify-center">
+        <div className="text-[#bab59b]">Loading preferred brand...</div>
       </div>
     );
   }
 
   if (!brandDetails) {
     return (
-      <div className="min-h-screen bg-background">
-        <TopNavigation />
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Preferred brand not found.</div>
+      <div className="min-h-screen bg-[#161611] text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-[#bab59b] mb-4">Preferred brand not found</div>
+          <Link href="/preferred-brands">
+            <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]">
+              Back to Preferred Brands
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <TopNavigation />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/preferred-brands">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-3xl font-bold text-foreground">
+    <div className="min-h-screen bg-[#161611] text-white">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
+        <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
+          <div className="flex items-center gap-4">
+            <Link href="/preferred-brands">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+            </Link>
+            <h1 className="text-xl font-bold [font-family:'Plus_Jakarta_Sans',Helvetica]">
               Edit Preferred Brand
             </h1>
-            <p className="text-muted-foreground">
-              Update {brandDetails.brand.name}
-            </p>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              variant="outline"
+              className="bg-transparent border-red-600 text-red-400 hover:border-red-500 hover:text-red-300 hover:bg-red-950/20 h-10"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+            </Button>
+            <Link href="/preferred-brands">
+              <Button 
+                variant="outline"
+                className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629] h-10"
+              >
+                Cancel
+              </Button>
+            </Link>
+            <Button 
+              form="preferred-brand-form"
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10"
+            >
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
         </div>
+      </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Brand Details</CardTitle>
-            <CardDescription>
-              Update the details for your preferred brand
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                {/* Brand Name */}
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Brand Name *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., Grey Goose, Jack Daniel's, Cointreau"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+      {/* Form */}
+      <div className="max-w-4xl mx-auto p-4 space-y-6">
+        <Form {...form}>
+          <form id="preferred-brand-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Basic Information */}
+            <Card className="bg-[#2a2920] border-[#4a4735]">
+              <CardHeader>
+                <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Brand Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="name" className="text-white">Brand Name *</Label>
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input 
+                              id="name"
+                              placeholder="e.g., Grey Goose, Jack Daniel's, Cointreau"
+                              className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="proof" className="text-white">Proof</Label>
+                    <FormField
+                      control={form.control}
+                      name="proof"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              id="proof"
+                              type="number"
+                              placeholder="80"
+                              step="1"
+                              className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                              {...field}
+                              value={field.value || ""}
+                              onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-                {/* Proof */}
-                <FormField
-                  control={form.control}
-                  name="proof"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Proof</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          placeholder="80"
-                          step="1"
-                          {...field}
-                          value={field.value || ""}
-                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <FormLabel>Brand Image</FormLabel>
-                  {!imagePreview ? (
-                    <div className="border-2 border-dashed border-muted-foreground rounded-lg p-8 text-center">
-                      <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground mb-4">
-                        Drag and drop an image, or click to browse
-                      </p>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById("image-upload")?.click()}
+            {/* Image Upload */}
+            <Card className="bg-[#2a2920] border-[#4a4735]">
+              <CardHeader>
+                <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Brand Image
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Brand preview"
+                      className="w-full h-48 object-cover rounded-lg"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-[#544f3a] rounded-lg p-8 text-center">
+                    <Upload className="w-12 h-12 text-[#544f3a] mx-auto mb-4" />
+                    <p className="text-[#bab59b] mb-4">Upload a brand image</p>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="image-upload-edit"
+                    />
+                    <Label 
+                      htmlFor="image-upload-edit" 
+                      className="cursor-pointer inline-block"
+                    >
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]"
+                        onClick={() => {
+                          document.getElementById('image-upload-edit')?.click();
+                        }}
                       >
                         Choose Image
                       </Button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={removeImage}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-4 pt-4">
-                  <Link href="/preferred-brands" className="flex-1">
-                    <Button type="button" variant="outline" className="w-full">
-                      Cancel
-                    </Button>
-                  </Link>
-                  <Button 
-                    type="submit" 
-                    className="flex-1"
-                    disabled={updateMutation.isPending}
-                  >
-                    {updateMutation.isPending ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+                    </Label>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </form>
+        </Form>
       </div>
     </div>
   );
