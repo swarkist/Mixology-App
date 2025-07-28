@@ -33,6 +33,8 @@ export const Ingredients = (): JSX.Element => {
     queryKey: [`/api/ingredients${buildQueryString()}`],
   });
 
+
+
   // Toggle "My Bar" status mutation
   const toggleMyBarMutation = useMutation({
     mutationFn: async ({ id, inMyBar }: { id: string; inMyBar: boolean }) => {
@@ -209,7 +211,11 @@ export const Ingredients = (): JSX.Element => {
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
-                <span>Most Used: {ingredients.filter(i => i.usedInRecipesCount > 0).length}</span>
+                <span>Used In: {
+                  ingredients 
+                    ? ingredients.reduce((total, ingredient) => total + (ingredient.usedInRecipesCount > 0 ? 1 : 0), 0)
+                    : 0
+                } recipes</span>
               </div>
             </div>
           </div>
