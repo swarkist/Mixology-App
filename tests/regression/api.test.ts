@@ -35,8 +35,9 @@ let createdIngredientId: number;
 
 describe('Cocktail Management API Regression Tests', () => {
   beforeAll(async () => {
-    // Initialize test data manager
+    // Initialize test data manager with production data protection
     testManager = new TestDataManager();
+    await testManager.init(); // Take production data snapshot
     
     // Wait for server to be ready
     await new Promise(resolve => setTimeout(resolve, 2000));

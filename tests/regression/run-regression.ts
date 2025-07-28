@@ -2,6 +2,7 @@
 
 import { spawn } from 'child_process';
 import { readFileSync } from 'fs';
+import { TestDataManager } from './data-isolation.js';
 
 console.log('🧪 Starting Comprehensive Regression Test Suite');
 console.log('=' .repeat(60));
@@ -30,9 +31,22 @@ async function runRegressionTests() {
     console.log(`  • ${fileName}: ${testDescriptions[fileName]}`);
   });
   console.log();
-  console.log('🛡️  Data Isolation: All test data will be automatically cleaned up');
-  console.log('📊 Test data uses unique prefixes to avoid production data conflicts');
+  console.log('🛡️  ENHANCED Data Protection: Production data snapshot + automatic verification');
+  console.log('📊 Test data uses unique prefixes with protection mechanisms');
+  console.log('🚨 Emergency cleanup protocols active');
   console.log();
+  
+  // Initialize global data protection
+  let globalTestManager: TestDataManager | null = null;
+  try {
+    console.log('🔒 Initializing production data protection...');
+    globalTestManager = new TestDataManager();
+    await globalTestManager.init();
+    console.log('✅ Production data snapshot taken - ready for safe testing');
+  } catch (error) {
+    console.error('❌ Failed to initialize data protection:', error.message);
+    process.exit(1);
+  }
 
   // Check if server is running
   console.log('🚀 Checking server status...');

@@ -6,6 +6,7 @@ describe('Data Isolation Verification Tests', () => {
 
   beforeAll(async () => {
     testManager = new TestDataManager();
+    await testManager.init(); // Initialize with production data protection
     await new Promise(resolve => setTimeout(resolve, 2000));
     console.log('🛡️  Starting data isolation verification tests');
   });
