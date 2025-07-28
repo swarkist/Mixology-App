@@ -354,4 +354,13 @@ export class FirebaseStorageAdapter implements IStorage {
   } | undefined> {
     return this.firebase.getIngredientWithDetails(id);
   }
+
+  // Association management methods
+  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+    await this.firebase.associateIngredientWithPreferredBrand(ingredientId, preferredBrandId);
+  }
+
+  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+    await this.firebase.removeIngredientFromPreferredBrand(ingredientId, preferredBrandId);
+  }
 }

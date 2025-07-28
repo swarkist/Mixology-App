@@ -11,8 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { apiRequest } from "@/lib/queryClient";
-import type { Ingredient, Tag } from "@shared/schema";
+import type { Ingredient, Tag, PreferredBrand } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
+import PreferredBrandAssociation from "@/components/PreferredBrandAssociation";
 
 interface IngredientForm {
   name: string;
@@ -32,11 +33,13 @@ export const EditIngredient = (): JSX.Element => {
   const [newTag, setNewTag] = useState("");
   const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
-  // Fetch ingredient data
-  const { data: ingredient, isLoading } = useQuery<Ingredient>({
+  // Fetch ingredient data with details
+  const { data: ingredientDetails, isLoading } = useQuery({
     queryKey: [`/api/ingredients/${id}`],
     enabled: !!id,
   });
+
+  const ingredient = ingredientDetails?.ingredient;
 
   // Fetch ingredient-specific suggested tags
   const { data: mostUsedTags } = useQuery<Tag[]>({
@@ -449,6 +452,17 @@ export const EditIngredient = (): JSX.Element => {
             </CardContent>
           </Card>
         </form>
+
+        {/* Preferred Brand Associations */}
+        {ingredient && (
+          <PreferredBrandAssociation
+            ingredientId={ingredient.id}
+            associatedBrands={ingredientDetails?.preferredBrands || []}
+            onAssociationChange={() => {
+              queryClient.invalidateQueries({ queryKey: [`/api/ingredients/${id}`] });
+            }}
+          />
+        )}
       </div>
     </div>
   );

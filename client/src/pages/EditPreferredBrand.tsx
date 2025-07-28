@@ -14,6 +14,7 @@ import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
+import IngredientAssociation from "@/components/IngredientAssociation";
 
 export default function EditPreferredBrand() {
   const [, params] = useRoute("/edit-preferred-brand/:id");
@@ -294,6 +295,17 @@ export default function EditPreferredBrand() {
             </Card>
           </form>
         </Form>
+
+        {/* Ingredient Associations */}
+        {brandDetails?.brand && (
+          <IngredientAssociation
+            preferredBrandId={brandDetails.brand.id}
+            associatedIngredients={brandDetails.ingredients || []}
+            onAssociationChange={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands", brandId] });
+            }}
+          />
+        )}
       </div>
     </div>
   );

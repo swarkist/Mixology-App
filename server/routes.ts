@@ -755,6 +755,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // =================== PREFERRED BRAND ASSOCIATIONS ===================
+  app.post("/api/preferred-brands/:brandId/ingredients/:ingredientId", async (req, res) => {
+    const brandId = parseInt(req.params.brandId);
+    const ingredientId = parseInt(req.params.ingredientId);
+    
+    try {
+      await storage.associateIngredientWithPreferredBrand(ingredientId, brandId);
+      res.json({ message: "Association created successfully" });
+    } catch (error) {
+      console.error('Error creating association:', error);
+      res.status(500).json({ message: "Error creating association", error });
+    }
+  });
+
+  app.delete("/api/preferred-brands/:brandId/ingredients/:ingredientId", async (req, res) => {
+    const brandId = parseInt(req.params.brandId);
+    const ingredientId = parseInt(req.params.ingredientId);
+    
+    try {
+      await storage.removeIngredientFromPreferredBrand(ingredientId, brandId);
+      res.json({ message: "Association removed successfully" });
+    } catch (error) {
+      console.error('Error removing association:', error);
+      res.status(500).json({ message: "Error removing association", error });
+    }
+  });
+
   // Add Firebase test routes
   app.use("/api", firebaseTestRoutes);
 

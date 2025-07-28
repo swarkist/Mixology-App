@@ -1158,5 +1158,56 @@ export class FirebaseStorage implements IStorage {
     }
   }
 
+  // Association management methods
+  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+    try {
+      // Check if association already exists
+      const existingSnapshot = await this.preferredBrandIngredientsCollection
+        .where('ingredientId', '==', ingredientId)
+        .where('preferredBrandId', '==', preferredBrandId)
+        .get();
+      
+      if (!existingSnapshot.empty) {
+        console.log('Association already exists');
+        return;
+      }
+
+      // Create new association
+      const id = Date.now();
+      await this.preferredBrandIngredientsCollection.doc(id.toString()).set({
+        ingredientId,
+        preferredBrandId
+      });
+      
+      console.log(`Associated ingredient ${ingredientId} with preferred brand ${preferredBrandId}`);
+    } catch (error) {
+      console.error('Error associating ingredient with preferred brand:', error);
+      throw error;
+    }
+  }
+
+  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+    try {
+      // Find existing association
+      const snapshot = await this.preferredBrandIngredientsCollection
+        .where('ingredientId', '==', ingredientId)
+        .where('preferredBrandId', '==', preferredBrandId)
+        .get();
+      
+      if (snapshot.empty) {
+        console.log('Association does not exist');
+        return;
+      }
+
+      // Delete association
+      const deletePromises = snapshot.docs.map(doc => doc.ref.delete());
+      await Promise.all(deletePromises);
+      
+      console.log(`Removed association between ingredient ${ingredientId} and preferred brand ${preferredBrandId}`);
+    } catch (error) {
+      console.error('Error removing ingredient from preferred brand:', error);
+      throw error;
+    }
+  }
 
 }

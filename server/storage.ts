@@ -67,6 +67,10 @@ export interface IStorage {
     tags: Tag[];
   } | undefined>;
 
+  // Association management methods
+  associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void>;
+  removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void>;
+
   // Cocktails  
   getAllCocktails(): Promise<Cocktail[]>;
   getCocktail(id: number): Promise<Cocktail | undefined>;
