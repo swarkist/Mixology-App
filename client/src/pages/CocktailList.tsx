@@ -368,8 +368,6 @@ export const CocktailList = (): JSX.Element => {
           )}
         </div>
       </div>
-
-      <Navigation />
     </div>
   );
 };

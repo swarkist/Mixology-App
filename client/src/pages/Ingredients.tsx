@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,17 +16,18 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
+  const [location] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
   const [showOnlyMyBar, setShowOnlyMyBar] = useState(false);
 
-  // Parse URL params
+  // Parse URL params whenever location changes
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const mybar = urlParams.get("mybar");
-    if (mybar === "true") setShowOnlyMyBar(true);
-  }, []);
+    setShowOnlyMyBar(mybar === "true");
+  }, [location]);
 
   // Build query string
   const buildQueryString = () => {
