@@ -31,10 +31,7 @@ export default function AddPreferredBrand() {
 
   const createMutation = useMutation({
     mutationFn: (data: PreferredBrandForm) => 
-      apiRequest("/api/preferred-brands", {
-        method: "POST",
-        body: JSON.stringify(data),
-      }),
+      apiRequest("POST", "/api/preferred-brands", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
       setLocation("/preferred-brands");
