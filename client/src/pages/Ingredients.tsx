@@ -21,27 +21,13 @@ export const Ingredients = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
   
-  // Track URL changes including search parameters to force re-renders
-  const [urlKey, setUrlKey] = useState(() => `${window.location.pathname}${window.location.search}`);
+  const [showOnlyMyBar, setShowOnlyMyBar] = useState(false);
   
-  // Update urlKey when location changes
+  // Initialize showOnlyMyBar from URL on mount
   useEffect(() => {
-    const newUrlKey = `${window.location.pathname}${window.location.search}`;
-    setUrlKey(newUrlKey);
-  }, [location]);
-  
-  // Calculate showOnlyMyBar from current URL
-  const currentUrlParams = new URLSearchParams(window.location.search);
-  const showOnlyMyBar = currentUrlParams.get("mybar") === "true";
-  
-  // Handle My Bar toggle via navigation
-  const handleMyBarToggle = (checked: boolean) => {
-    if (checked) {
-      setLocation("/ingredients?mybar=true");
-    } else {
-      setLocation("/ingredients");
-    }
-  };
+    const urlParams = new URLSearchParams(window.location.search);
+    setShowOnlyMyBar(urlParams.get("mybar") === "true");
+  }, []);
 
   // Build query string
   const buildQueryString = () => {
@@ -53,9 +39,9 @@ export const Ingredients = (): JSX.Element => {
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Fetch ingredients with filters - include urlKey to force refetch on navigation
+  // Fetch ingredients with filters
   const { data: ingredients, isLoading, error } = useQuery<Ingredient[]>({
-    queryKey: [`/api/ingredients${buildQueryString()}`, urlKey],
+    queryKey: [`/api/ingredients${buildQueryString()}`],
   });
 
   // Toggle "My Bar" status mutation
@@ -165,7 +151,7 @@ export const Ingredients = (): JSX.Element => {
             <Checkbox
               id="mybar"
               checked={showOnlyMyBar}
-              onCheckedChange={(checked) => handleMyBarToggle(checked === true)}
+              onCheckedChange={(checked) => setShowOnlyMyBar(checked === true)}
               className="border-[#544f3b] data-[state=checked]:bg-[#f2c40c] data-[state=checked]:border-[#f2c40c]"
             />
             <label 

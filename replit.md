@@ -130,12 +130,12 @@ Preferred communication style: Simple, everyday language.
   - **Coverage Requirements**: 100% API endpoint coverage, comprehensive error handling, performance benchmarks
   - **Maintenance Guide**: Detailed protocols for keeping tests current with codebase evolution
   - **Test Data Isolation**: All tests use TestDataManager for complete production data protection
-- **TopNavigation Component Implementation (July 27, 2025)**: Created reusable TopNavigation component for consistent site-wide navigation
-  - Extracted navigation from FeaturedCocktailsSection into standalone TopNavigation component
-  - Updated main pages (Home, CocktailList, Ingredients) to use consistent TopNavigation
-  - Excluded detail/edit pages (CocktailRecipe, AddCocktail, EditIngredient) as requested
-  - Fixed navigation URLs for "My Bar" filtering and search functionality
-  - Removed duplicate Navigation components to prevent constructor errors
+- **Simplified Navigation System (July 27, 2025)**: Implemented user-requested simplified navigation approach
+  - TopNavigation component provides consistent navigation across main pages
+  - "Ingredients" and "My Bar" navigation links both go to /ingredients (simplified approach)
+  - My Bar filtering controlled by checkbox toggle on ingredients page (state-based, not URL-based)
+  - Removed complex URL parameter detection that was causing navigation issues
+  - My Bar toggle now works reliably using local component state
 - **Popular Recipes Filter Fix (July 27, 2025)**: Fixed PopularRecipesSection to only display cocktails with popularityCount > 0
   - Updated filtering logic to exclude recipes that haven't been made by anyone
   - Added regression test to ensure popular recipes filtering works correctly
