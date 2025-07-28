@@ -76,14 +76,14 @@ export const FilterByIngredientSection = (): JSX.Element => {
             </Link>
           </div>
           <div className="p-4 space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {featuredCocktails && featuredCocktails.length > 0 ? (
-                featuredCocktails.slice(0, 5).map((cocktail, index) => (
+                featuredCocktails.slice(0, 4).map((cocktail, index) => (
                   <Link key={`featured-${index}`} href={`/recipe/${cocktail.id}`}>
                     <Card className="w-full bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
-                      <CardContent className="p-0 space-y-3">
+                      <CardContent className="p-0 space-y-4">
                         <div
-                          className="w-full h-[247px] rounded-lg bg-cover bg-center"
+                          className="w-full h-[320px] rounded-lg bg-cover bg-center"
                           style={{ backgroundImage: `url(${cocktail.imageUrl || noPhotoImage})` }}
                         />
                         <div className="space-y-1 pb-3">
