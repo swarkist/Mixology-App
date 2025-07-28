@@ -1,33 +1,16 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-
-const API_BASE = 'http://localhost:5000/api';
-
-// Helper function for API requests
-async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-  }
-  
-  return response.json();
-}
+import { TestDataManager } from './data-isolation.js';
 
 describe('Firebase Data Persistence Tests', () => {
+  let testManager: TestDataManager;
   let testCocktailId: number;
   let testIngredientId: number;
 
-  const persistenceTestCocktail = {
-    name: 'Persistence Test Cocktail',
+  const persistenceTestCocktailTemplate = {
+    name: 'Persistence_Test_Cocktail',
     description: 'Testing Firebase data persistence',
     ingredients: [
-      { name: 'Persistence Vodka', amount: 2, unit: 'oz' }
+      { name: 'Persistence_Vodka', amount: 2, unit: 'oz' }
     ],
     instructions: [
       'Step 1: Test persistence',
@@ -38,8 +21,8 @@ describe('Firebase Data Persistence Tests', () => {
     featured: true
   };
 
-  const persistenceTestIngredient = {
-    name: 'Persistence Test Ingredient',
+  const persistenceTestIngredientTemplate = {
+    name: 'Persistence_Test_Ingredient',
     description: 'Testing ingredient persistence in Firebase',
     category: 'spirits',
     subCategory: 'rum',
@@ -49,26 +32,28 @@ describe('Firebase Data Persistence Tests', () => {
   };
 
   beforeAll(async () => {
+    // Initialize test data manager
+    testManager = new TestDataManager();
+    
     // Wait for server to be ready
     await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log('🔥 Starting Firebase persistence tests with data isolation');
   });
 
   it('should create and persist cocktail data in Firebase', async () => {
     // Create cocktail
-    const cocktail = await apiRequest('/cocktails', {
-      method: 'POST',
-      body: JSON.stringify(persistenceTestCocktail),
-    });
+    const cocktail = await testManager.createTestCocktail(persistenceTestCocktailTemplate);
 
     testCocktailId = cocktail.id;
-    expect(cocktail.name).toBe(persistenceTestCocktail.name);
+    expect(cocktail.name).toContain('Persistence_Test_Cocktail');
 
     // Wait for Firebase write
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Verify data is immediately retrievable
-    const retrieved = await apiRequest(`/cocktails/${testCocktailId}`);
-    expect(retrieved.cocktail.name).toBe(persistenceTestCocktail.name);
+    const retrieved = await testManager.getCocktail(testCocktailId);
+    expect(retrieved.cocktail.name).toContain('Persistence_Test_Cocktail');
     expect(retrieved.instructions).toHaveLength(3);
     expect(retrieved.instructions[0].instruction).toBe('Step 1: Test persistence');
     expect(retrieved.tags).toHaveLength(2);
@@ -236,17 +221,21 @@ describe('Firebase Data Persistence Tests', () => {
     expect(final.cocktail.name).toBe('Final Rapid Update');
   });
 
-  // Cleanup
+  // Comprehensive cleanup with verification
   afterAll(async () => {
     try {
-      if (testCocktailId) {
-        await apiRequest(`/cocktails/${testCocktailId}`, { method: 'DELETE' });
-      }
-      if (testIngredientId) {
-        await apiRequest(`/ingredients/${testIngredientId}`, { method: 'DELETE' });
-      }
+      await testManager.cleanupAllTestData();
+      console.log('✅ Firebase persistence test cleanup completed successfully');
     } catch (error) {
-      console.warn('Persistence test cleanup failed:', error);
+      console.error('❌ Firebase persistence test cleanup failed:', error);
+      // Run emergency cleanup as fallback
+      try {
+        await testManager.emergencyCleanup();
+        console.log('✅ Emergency cleanup completed');
+      } catch (emergencyError) {
+        console.error('💥 Emergency cleanup also failed:', emergencyError);
+        throw new Error('CRITICAL: Test data may remain in Firebase database');
+      }
     }
   });
 });

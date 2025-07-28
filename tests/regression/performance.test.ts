@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-
-const API_BASE = 'http://localhost:5000/api';
+import { TestDataManager } from './data-isolation.js';
 
 // Helper function for API requests with timing
 async function timedApiRequest(endpoint: string, options: RequestInit = {}) {
   const start = Date.now();
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`http://localhost:5000/api${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -23,12 +22,18 @@ async function timedApiRequest(endpoint: string, options: RequestInit = {}) {
 }
 
 describe('Performance and Load Tests', () => {
+  let testManager: TestDataManager;
   let testCocktailIds: number[] = [];
   let testIngredientIds: number[] = [];
 
   beforeAll(async () => {
+    // Initialize test data manager
+    testManager = new TestDataManager();
+    
     // Wait for server to be ready
     await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log('⚡ Starting performance tests with data isolation');
   });
 
   describe('Response Time Tests', () => {
@@ -47,18 +52,17 @@ describe('Performance and Load Tests', () => {
     });
 
     it('should handle cocktail creation within acceptable time', async () => {
-      const { duration, response, data } = await timedApiRequest('/cocktails', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: 'Performance Test Cocktail',
-          description: 'Testing creation performance',
-          ingredients: [{ name: 'Test Ingredient', amount: 1, unit: 'oz' }],
-          instructions: ['Test instruction'],
-          tags: ['performance']
-        }),
+      const start = Date.now();
+      const data = await testManager.createTestCocktail({
+        name: 'Performance_Test_Cocktail',
+        description: 'Testing creation performance',
+        ingredients: [{ name: 'Perf_Test_Ingredient', amount: 1, unit: 'oz' }],
+        instructions: ['Test instruction'],
+        tags: ['performance']
       });
+      const duration = Date.now() - start;
 
-      expect(response.ok).toBe(true);
+      expect(data).toHaveProperty('id');
       expect(duration).toBeLessThan(3000); // 3 seconds max for creation
       testCocktailIds.push(data.id);
     });
@@ -301,22 +305,21 @@ describe('Performance and Load Tests', () => {
     });
   });
 
-  // Cleanup
+  // Comprehensive cleanup with verification
   afterAll(async () => {
     try {
-      // Clean up test cocktails
-      const deletePromises = testCocktailIds.map(id =>
-        timedApiRequest(`/cocktails/${id}`, { method: 'DELETE' })
-      );
-      await Promise.all(deletePromises);
-
-      // Clean up test ingredients
-      const deleteIngredientPromises = testIngredientIds.map(id =>
-        timedApiRequest(`/ingredients/${id}`, { method: 'DELETE' })
-      );
-      await Promise.all(deleteIngredientPromises);
+      await testManager.cleanupAllTestData();
+      console.log('✅ Performance test cleanup completed successfully');
     } catch (error) {
-      console.warn('Performance test cleanup failed:', error);
+      console.error('❌ Performance test cleanup failed:', error);
+      // Run emergency cleanup as fallback
+      try {
+        await testManager.emergencyCleanup();
+        console.log('✅ Emergency cleanup completed');
+      } catch (emergencyError) {
+        console.error('💥 Emergency cleanup also failed:', emergencyError);
+        throw new Error('CRITICAL: Test data may remain in database');
+      }
     }
   });
 });

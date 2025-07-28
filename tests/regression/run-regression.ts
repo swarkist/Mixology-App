@@ -8,6 +8,7 @@ console.log('=' .repeat(60));
 
 // Test configuration
 const testFiles = [
+  'tests/regression/data-isolation-verification.test.ts',
   'tests/regression/api.test.ts',
   'tests/regression/firebase-persistence.test.ts', 
   'tests/regression/edge-cases.test.ts',
@@ -15,6 +16,7 @@ const testFiles = [
 ];
 
 const testDescriptions = {
+  'data-isolation-verification.test.ts': 'Data isolation and production data protection verification',
   'api.test.ts': 'Core API functionality (CRUD operations, search, filtering)',
   'firebase-persistence.test.ts': 'Firebase data persistence and synchronization',
   'edge-cases.test.ts': 'Error handling and edge case scenarios',
@@ -27,6 +29,9 @@ async function runRegressionTests() {
     const fileName = file.split('/').pop()!;
     console.log(`  • ${fileName}: ${testDescriptions[fileName]}`);
   });
+  console.log();
+  console.log('🛡️  Data Isolation: All test data will be automatically cleaned up');
+  console.log('📊 Test data uses unique prefixes to avoid production data conflicts');
   console.log();
 
   // Check if server is running

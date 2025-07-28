@@ -1,10 +1,9 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { TestDataManager } from './data-isolation.js';
 
-const API_BASE = 'http://localhost:5000/api';
-
-// Helper function for API requests
+// Helper function for API requests with response handling
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
+  const response = await fetch(`http://localhost:5000/api${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -16,35 +15,35 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
 }
 
 describe('Edge Cases and Error Handling Tests', () => {
+  let testManager: TestDataManager;
   let testCocktailId: number;
   let testIngredientId: number;
 
   beforeAll(async () => {
+    // Initialize test data manager
+    testManager = new TestDataManager();
+    
     // Wait for server to be ready
     await new Promise(resolve => setTimeout(resolve, 2000));
 
-    // Create test data for edge case testing
-    const { data: cocktail } = await apiRequest('/cocktails', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'Edge Case Test Cocktail',
-        description: 'For testing edge cases',
-        ingredients: [{ name: 'Test Ingredient', amount: 1, unit: 'oz' }],
-        instructions: ['Test instruction'],
-        tags: ['test']
-      }),
+    // Create test data for edge case testing using isolated manager
+    const cocktail = await testManager.createTestCocktail({
+      name: 'Edge_Case_Test_Cocktail',
+      description: 'For testing edge cases',
+      ingredients: [{ name: 'EdgeCase_Test_Ingredient', amount: 1, unit: 'oz' }],
+      instructions: ['Test instruction'],
+      tags: ['edgecase_test']
     });
     testCocktailId = cocktail.id;
 
-    const { data: ingredient } = await apiRequest('/ingredients', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: 'Edge Case Test Ingredient',
-        category: 'spirits',
-        abv: 40
-      }),
+    const ingredient = await testManager.createTestIngredient({
+      name: 'EdgeCase_Test_Ingredient',
+      category: 'spirits',
+      abv: 40
     });
     testIngredientId = ingredient.id;
+    
+    console.log('⚠️  Starting edge case tests with data isolation');
   });
 
   describe('Invalid Input Handling', () => {
@@ -376,17 +375,21 @@ describe('Edge Cases and Error Handling Tests', () => {
     });
   });
 
-  // Cleanup
+  // Comprehensive cleanup with verification
   afterAll(async () => {
     try {
-      if (testCocktailId) {
-        await apiRequest(`/cocktails/${testCocktailId}`, { method: 'DELETE' });
-      }
-      if (testIngredientId) {
-        await apiRequest(`/ingredients/${testIngredientId}`, { method: 'DELETE' });
-      }
+      await testManager.cleanupAllTestData();
+      console.log('✅ Edge case test cleanup completed successfully');
     } catch (error) {
-      console.warn('Edge cases test cleanup failed:', error);
+      console.error('❌ Edge case test cleanup failed:', error);
+      // Run emergency cleanup as fallback
+      try {
+        await testManager.emergencyCleanup();
+        console.log('✅ Emergency cleanup completed');
+      } catch (emergencyError) {
+        console.error('💥 Emergency cleanup also failed:', emergencyError);
+        throw new Error('CRITICAL: Test data may remain in database');
+      }
     }
   });
 });

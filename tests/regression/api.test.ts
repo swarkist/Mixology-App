@@ -1,15 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { TestDataManager } from './data-isolation.js';
 
-// API Base URL
-const API_BASE = 'http://localhost:5000/api';
-
-// Test Data
-const testCocktail = {
-  name: 'Regression Test Cocktail',
+// Test Data Templates (will be prefixed with unique identifiers)
+const testCocktailTemplate = {
+  name: 'API_Test_Cocktail',
   description: 'Test cocktail for automated regression testing',
   ingredients: [
-    { name: 'Test Vodka', amount: 2, unit: 'oz' },
-    { name: 'Test Mixer', amount: 4, unit: 'oz' }
+    { name: 'API_Test_Vodka', amount: 2, unit: 'oz' },
+    { name: 'API_Test_Mixer', amount: 4, unit: 'oz' }
   ],
   instructions: [
     'Add vodka to shaker',
@@ -17,13 +15,13 @@ const testCocktail = {
     'Shake well',
     'Strain into glass'
   ],
-  tags: ['test', 'regression'],
+  tags: ['api_test', 'regression'],
   featured: false,
   popularityCount: 0
 };
 
-const testIngredient = {
-  name: 'Regression Test Vodka',
+const testIngredientTemplate = {
+  name: 'API_Test_Vodka',
   description: 'Test vodka for regression testing',
   category: 'spirits',
   subCategory: 'vodka',
@@ -31,50 +29,36 @@ const testIngredient = {
   abv: 40
 };
 
+let testManager: TestDataManager;
 let createdCocktailId: number;
 let createdIngredientId: number;
 
-// Helper function for API requests
-async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
-    ...options,
-  });
-  
-  if (!response.ok) {
-    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-  }
-  
-  return response.json();
-}
-
 describe('Cocktail Management API Regression Tests', () => {
   beforeAll(async () => {
+    // Initialize test data manager
+    testManager = new TestDataManager();
+    
     // Wait for server to be ready
     await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    console.log('🧪 Starting API regression tests with data isolation');
   });
 
   describe('Cocktail CRUD Operations', () => {
     it('should create a new cocktail', async () => {
-      const result = await apiRequest('/cocktails', {
-        method: 'POST',
-        body: JSON.stringify(testCocktail),
-      });
+      const result = await testManager.createTestCocktail(testCocktailTemplate);
 
       expect(result).toHaveProperty('id');
-      expect(result.name).toBe(testCocktail.name);
-      expect(result.description).toBe(testCocktail.description);
+      expect(result.name).toContain('API_Test_Cocktail');
+      expect(result.description).toContain('Test cocktail for automated regression testing');
       createdCocktailId = result.id;
     });
 
     it('should retrieve cocktail details', async () => {
-      const result = await apiRequest(`/cocktails/${createdCocktailId}`);
+      const result = await testManager.getCocktail(createdCocktailId);
       
       expect(result.cocktail).toHaveProperty('id', createdCocktailId);
-      expect(result.cocktail.name).toBe(testCocktail.name);
+      expect(result.cocktail.name).toContain('API_Test_Cocktail');
       expect(result.ingredients).toBeInstanceOf(Array);
       expect(result.instructions).toBeInstanceOf(Array);
       expect(result.tags).toBeInstanceOf(Array);
@@ -145,15 +129,12 @@ describe('Cocktail Management API Regression Tests', () => {
 
   describe('Ingredient CRUD Operations', () => {
     it('should create a new ingredient', async () => {
-      const result = await apiRequest('/ingredients', {
-        method: 'POST',
-        body: JSON.stringify(testIngredient),
-      });
+      const result = await testManager.createTestIngredient(testIngredientTemplate);
 
       expect(result).toHaveProperty('id');
-      expect(result.name).toBe(testIngredient.name);
-      expect(result.category).toBe(testIngredient.category);
-      expect(result.abv).toBe(testIngredient.abv);
+      expect(result.name).toContain('API_Test_Vodka');
+      expect(result.category).toBe(testIngredientTemplate.category);
+      expect(result.abv).toBe(testIngredientTemplate.abv);
       createdIngredientId = result.id;
     });
 
@@ -253,24 +234,21 @@ describe('Cocktail Management API Regression Tests', () => {
     });
   });
 
-  // Cleanup
+  // Comprehensive cleanup with verification
   afterAll(async () => {
     try {
-      // Delete created cocktail
-      if (createdCocktailId) {
-        await apiRequest(`/cocktails/${createdCocktailId}`, {
-          method: 'DELETE',
-        });
-      }
-      
-      // Delete created ingredient
-      if (createdIngredientId) {
-        await apiRequest(`/ingredients/${createdIngredientId}`, {
-          method: 'DELETE',
-        });
-      }
+      await testManager.cleanupAllTestData();
+      console.log('✅ API test cleanup completed successfully');
     } catch (error) {
-      console.warn('Cleanup failed:', error);
+      console.error('❌ API test cleanup failed:', error);
+      // Run emergency cleanup as fallback
+      try {
+        await testManager.emergencyCleanup();
+        console.log('✅ Emergency cleanup completed');
+      } catch (emergencyError) {
+        console.error('💥 Emergency cleanup also failed:', emergencyError);
+        throw new Error('CRITICAL: Test data may remain in database');
+      }
     }
   });
 });
