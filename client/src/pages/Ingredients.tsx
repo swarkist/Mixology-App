@@ -20,7 +20,17 @@ export const Ingredients = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
-  // Directly calculate showOnlyMyBar from current URL instead of using state
+  
+  // Track URL changes including search parameters to force re-renders
+  const [urlKey, setUrlKey] = useState(() => `${window.location.pathname}${window.location.search}`);
+  
+  // Update urlKey when location changes
+  useEffect(() => {
+    const newUrlKey = `${window.location.pathname}${window.location.search}`;
+    setUrlKey(newUrlKey);
+  }, [location]);
+  
+  // Calculate showOnlyMyBar from current URL
   const currentUrlParams = new URLSearchParams(window.location.search);
   const showOnlyMyBar = currentUrlParams.get("mybar") === "true";
 
@@ -34,9 +44,9 @@ export const Ingredients = (): JSX.Element => {
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Fetch ingredients with filters - include location in queryKey to force refetch on navigation
+  // Fetch ingredients with filters - include urlKey to force refetch on navigation
   const { data: ingredients, isLoading, error } = useQuery<Ingredient[]>({
-    queryKey: [`/api/ingredients${buildQueryString()}`, location],
+    queryKey: [`/api/ingredients${buildQueryString()}`, urlKey],
   });
 
   // Toggle "My Bar" status mutation
