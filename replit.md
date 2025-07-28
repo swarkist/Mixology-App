@@ -136,6 +136,8 @@ Preferred communication style: Simple, everyday language.
   - My Bar filtering controlled by checkbox toggle on ingredients page (state-based, not URL-based)
   - Removed complex URL parameter detection that was causing navigation issues
   - My Bar toggle now works reliably using local component state
+  - User commented out "My Bar" navigation link to avoid confusion
+  - **Test Coverage Maintained**: All regression tests remain valid - API endpoints, My Bar functionality, and filtering all work correctly
 - **Popular Recipes Filter Fix (July 27, 2025)**: Fixed PopularRecipesSection to only display cocktails with popularityCount > 0
   - Updated filtering logic to exclude recipes that haven't been made by anyone
   - Added regression test to ensure popular recipes filtering works correctly
