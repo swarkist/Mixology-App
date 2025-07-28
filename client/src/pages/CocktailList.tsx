@@ -335,12 +335,12 @@ export const CocktailList = (): JSX.Element => {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-[#544f3b] text-[#bab59b] hover:text-white"
+                          className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
                         >
                           View Recipe
                         </Button>
                       </Link>
-                      <Button
+                      {/* <Button
                         variant="outline"
                         size="sm"
                         onClick={() => handleStartMaking(cocktail)}
@@ -348,7 +348,7 @@ export const CocktailList = (): JSX.Element => {
                         disabled={incrementPopularityMutation.isPending}
                       >
                         Start Making
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>

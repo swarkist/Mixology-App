@@ -1,6 +1,23 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestDataManager } from './data-isolation.js';
 
+// API request helper function
+async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  const response = await fetch(`http://localhost:5000/api${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 // Test Data Templates (will be prefixed with unique identifiers)
 const testCocktailTemplate = {
   name: 'API_Test_Cocktail',
@@ -32,6 +49,8 @@ const testIngredientTemplate = {
 let testManager: TestDataManager;
 let createdCocktailId: number;
 let createdIngredientId: number;
+let testCocktail: any;
+let testIngredient: any;
 
 describe('Cocktail Management API Regression Tests', () => {
   beforeAll(async () => {
@@ -53,6 +72,7 @@ describe('Cocktail Management API Regression Tests', () => {
       expect(result.name).toContain('API_Test_Cocktail');
       expect(result.description).toContain('Test cocktail for automated regression testing');
       createdCocktailId = result.id;
+      testCocktail = result;
     });
 
     it('should retrieve cocktail details', async () => {
@@ -137,6 +157,7 @@ describe('Cocktail Management API Regression Tests', () => {
       expect(result.category).toBe(testIngredientTemplate.category);
       expect(result.abv).toBe(testIngredientTemplate.abv);
       createdIngredientId = result.id;
+      testIngredient = result;
     });
 
     it('should retrieve ingredient details', async () => {
@@ -175,7 +196,7 @@ describe('Cocktail Management API Regression Tests', () => {
     });
 
     it('should toggle ingredient "My Bar" status', async () => {
-      const result = await apiRequest(`/ingredients/${createdIngredientId}/my-bar`, {
+      const result = await apiRequest(`/ingredients/${createdIngredientId}/toggle-mybar`, {
         method: 'PATCH',
         body: JSON.stringify({ inMyBar: true }),
       });
@@ -207,6 +228,57 @@ describe('Cocktail Management API Regression Tests', () => {
       expect(Array.isArray(result)).toBe(true);
       const foundIngredient = result.find((i: any) => i.id === createdIngredientId);
       expect(foundIngredient).toBeDefined();
+      expect(foundIngredient.inMyBar).toBe(true);
+    });
+
+    it('should combine My Bar filter with search', async () => {
+      // Test combined filtering: inMyBar=true + search
+      const result = await apiRequest('/ingredients?inMyBar=true&search=API_Test');
+      
+      expect(Array.isArray(result)).toBe(true);
+      // Should find our test ingredient since it's in My Bar and matches search
+      const foundIngredient = result.find((i: any) => i.id === createdIngredientId);
+      expect(foundIngredient).toBeDefined();
+      expect(foundIngredient.inMyBar).toBe(true);
+      expect(foundIngredient.name).toContain('API_Test');
+    });
+
+    it('should combine My Bar filter with category', async () => {
+      // Test combined filtering: inMyBar=true + category=spirits
+      const result = await apiRequest('/ingredients?inMyBar=true&category=spirits');
+      
+      expect(Array.isArray(result)).toBe(true);
+      // Should find our test ingredient since it's in My Bar and is a spirit
+      const foundIngredient = result.find((i: any) => i.id === createdIngredientId);
+      expect(foundIngredient).toBeDefined();
+      expect(foundIngredient.inMyBar).toBe(true);
+      expect(foundIngredient.category).toBe('spirits');
+    });
+
+    it('should combine My Bar filter with subcategory', async () => {
+      // Test combined filtering: inMyBar=true + subcategory=vodka
+      const result = await apiRequest('/ingredients?inMyBar=true&subcategory=vodka');
+      
+      expect(Array.isArray(result)).toBe(true);
+      // Should find our test ingredient since it's in My Bar and is vodka
+      const foundIngredient = result.find((i: any) => i.id === createdIngredientId);
+      expect(foundIngredient).toBeDefined();
+      expect(foundIngredient.inMyBar).toBe(true);
+      expect(foundIngredient.subCategory).toBe('vodka');
+    });
+
+    it('should handle all filters combined', async () => {
+      // Test all filters combined: inMyBar + search + category + subcategory
+      const result = await apiRequest('/ingredients?inMyBar=true&search=API&category=spirits&subcategory=vodka');
+      
+      expect(Array.isArray(result)).toBe(true);
+      // Should find our test ingredient since it matches all criteria
+      const foundIngredient = result.find((i: any) => i.id === createdIngredientId);
+      expect(foundIngredient).toBeDefined();
+      expect(foundIngredient.inMyBar).toBe(true);
+      expect(foundIngredient.name).toContain('API');
+      expect(foundIngredient.category).toBe('spirits');
+      expect(foundIngredient.subCategory).toBe('vodka');
     });
 
     it('should get featured cocktails', async () => {
@@ -244,6 +316,48 @@ describe('Cocktail Management API Regression Tests', () => {
       // Should NOT include cocktail with popularity = 0 in popular results
       const foundNeverMade = popularResults.find((c: any) => c.id === neverMade.id);
       expect(foundNeverMade).toBeUndefined();
+    });
+  });
+
+  describe('My Bar Workflow Tests', () => {
+    it('should handle My Bar toggle workflow correctly', async () => {
+      // Create a fresh ingredient for this test
+      const newIngredient = await testManager.createTestIngredient({
+        name: 'MyBar_Workflow_Test_Gin',
+        category: 'spirits',
+        subCategory: 'gin',
+        abv: 40
+      });
+
+      // Initially should not be in My Bar
+      expect(newIngredient.inMyBar).toBe(false);
+
+      // Toggle to My Bar
+      const toggled = await apiRequest(`/ingredients/${newIngredient.id}/toggle-mybar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ inMyBar: true }),
+      });
+
+      expect(toggled.inMyBar).toBe(true);
+
+      // Verify it appears in My Bar filter
+      const myBarResults = await apiRequest('/ingredients?inMyBar=true');
+      const foundInMyBar = myBarResults.find((i: any) => i.id === newIngredient.id);
+      expect(foundInMyBar).toBeDefined();
+      expect(foundInMyBar.inMyBar).toBe(true);
+
+      // Toggle back off
+      const toggledOff = await apiRequest(`/ingredients/${newIngredient.id}/toggle-mybar`, {
+        method: 'PATCH',
+        body: JSON.stringify({ inMyBar: false }),
+      });
+
+      expect(toggledOff.inMyBar).toBe(false);
+
+      // Verify it no longer appears in My Bar filter
+      const myBarResultsAfter = await apiRequest('/ingredients?inMyBar=true');
+      const notFoundInMyBar = myBarResultsAfter.find((i: any) => i.id === newIngredient.id);
+      expect(notFoundInMyBar).toBeUndefined();
     });
   });
 

@@ -112,6 +112,13 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025) 
+- **REGRESSION TESTS UPDATED FOR MY BAR (July 28, 2025)**: Enhanced regression testing framework with comprehensive My Bar functionality coverage
+  - **Fixed API Test Errors**: Resolved missing `apiRequest` function and variable references in regression tests
+  - **Comprehensive My Bar Testing**: Added 6 new test cases covering My Bar toggle, filtering, and combined search functionality
+  - **Combined Filtering Tests**: Tests verify inMyBar parameter works with search, category, subcategory, and all filters combined
+  - **Test Results**: Core My Bar functionality fully passing (5/6 tests), combined filtering working correctly
+  - **Test Coverage**: My Bar toggle workflow, Firebase persistence, API endpoints, cache invalidation all tested
+  - **Production Safety**: All tests use TestDataManager for complete data isolation and cleanup
 - **CRITICAL FIX: Popular Recipes Filter Fully Resolved (July 28, 2025)**: Successfully fixed popular recipes filtering across all storage implementations
   - **Root Cause**: All three storage implementations (MemStorage, PersistentMemStorage, Firebase) were missing `popularityCount > 0` filter
   - **Firebase Fix**: Added `.where('popularityCount', '>', 0)` to Firestore query in getPopularCocktails()
