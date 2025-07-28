@@ -205,7 +205,8 @@ export const CocktailList = (): JSX.Element => {
             </SelectContent>
           </Select>
 
-          <Select>
+{/* Filter by dropdown - temporarily hidden */}
+          {/* <Select>
             <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#ffffff]">
               <SelectValue placeholder="Filter by" />
             </SelectTrigger>
@@ -220,7 +221,7 @@ export const CocktailList = (): JSX.Element => {
                 Popular
               </SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
 
           <Button
             variant={showOnlyFeatured ? "default" : "outline"}
