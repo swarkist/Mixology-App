@@ -394,6 +394,7 @@ export class MemStorage implements IStorage {
 
   async getPopularCocktails(): Promise<Cocktail[]> {
     return Array.from(this.cocktails.values())
+      .filter(cocktail => cocktail.popularityCount > 0)
       .sort((a, b) => b.popularityCount - a.popularityCount);
   }
 

@@ -393,7 +393,9 @@ export class PersistentMemStorage implements IStorage {
 
   async getPopularCocktails(): Promise<Cocktail[]> {
     const cocktails = Array.from(this.cocktails.values());
-    return cocktails.sort((a, b) => (b.popularityCount || 0) - (a.popularityCount || 0));
+    return cocktails
+      .filter(cocktail => (cocktail.popularityCount || 0) > 0)
+      .sort((a, b) => (b.popularityCount || 0) - (a.popularityCount || 0));
   }
 
   async getCocktailsByIngredients(ingredientIds: number[], matchAll = false): Promise<Cocktail[]> {

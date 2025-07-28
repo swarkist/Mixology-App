@@ -333,7 +333,11 @@ export class FirebaseStorage implements IStorage {
   }
 
   async getPopularCocktails(): Promise<Cocktail[]> {
-    const snapshot = await this.cocktailsCollection.orderBy('popularityCount', 'desc').limit(10).get();
+    const snapshot = await this.cocktailsCollection
+      .where('popularityCount', '>', 0)
+      .orderBy('popularityCount', 'desc')
+      .limit(10)
+      .get();
     return snapshot.docs.map((doc: any) => {
       const data = doc.data();
       let id = parseInt(doc.id);
