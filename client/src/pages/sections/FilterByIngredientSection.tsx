@@ -6,70 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Navigation, DesktopNavigation } from "@/components/Navigation";
+import { useQuery } from "@tanstack/react-query";
+import type { Cocktail } from "@shared/schema";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const FilterByIngredientSection = (): JSX.Element => {
-  // Featured cocktails data
-  const featuredCocktails = [
-    {
-      name: "Citrus Bliss",
-      description: "A refreshing blend of citrus flavors.",
-      image: "..//figmaAssets/depth-7--frame-0.png",
-    },
-    {
-      name: "Minty Fresh",
-      description: "Cool and invigorating with a hint of mint.",
-      image: "..//figmaAssets/depth-7--frame-0-1.png",
-    },
-    {
-      name: "Cherry Delight",
-      description: "Sweet and tangy with a cherry finish.",
-      image: "..//figmaAssets/depth-7--frame-0-2.png",
-    },
-  ];
+  // Fetch featured cocktails from API
+  const { data: featuredCocktails } = useQuery<Cocktail[]>({
+    queryKey: ["/api/cocktails?featured=true"],
+  });
 
-  // Filter ingredients data
-  const filterIngredients = [
-    "Vodka",
-    "Gin",
-    "Rum",
-    "Tequila",
-    "Whiskey",
-    "Brandy",
-  ];
-
-  // Popular recipes data
-  const popularRecipes = [
-    {
-      name: "Classic Martini",
-      description: "A timeless cocktail with a sophisticated taste.",
-      image: "..//figmaAssets/depth-7--frame-0-3.png",
-    },
-    {
-      name: "Mojito",
-      description: "A Cuban classic with refreshing mint and lime.",
-      image: "..//figmaAssets/depth-7--frame-0-4.png",
-    },
-    {
-      name: "Old Fashioned",
-      description: "A rich and complex whiskey-based cocktail.",
-      image: "..//figmaAssets/depth-7--frame-0-5.png",
-    },
-    {
-      name: "Margarita",
-      description: "A zesty and tangy tequila cocktail.",
-      image: "..//figmaAssets/depth-7--frame-0-6.png",
-    },
-    {
-      name: "Cosmopolitan",
-      description: "A vibrant and fruity vodka cocktail.",
-      image: "/figmaAssets/depth-7--frame-0-7.png",
-    },
-    {
-      name: "Daiquiri",
-      description: "A simple and refreshing rum cocktail.",
-      image: "..//figmaAssets/depth-7--frame-0-8.png",
-    },
-  ];
+  // Fetch popular cocktails from API (cocktails with popularityCount > 0)
+  const { data: popularRecipes } = useQuery<Cocktail[]>({
+    queryKey: ["/api/cocktails?popular=true"],
+  });
 
   return (
     <>
@@ -111,8 +61,10 @@ export const FilterByIngredientSection = (): JSX.Element => {
           </div>
         </div>
 
+
+
         {/* Featured Cocktails Section */}
-        <div className="mb-4">
+        <div>
           <div className="flex items-center justify-between px-4 pt-5 pb-3">
             <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
               Featured Cocktails
@@ -123,27 +75,37 @@ export const FilterByIngredientSection = (): JSX.Element => {
               </Button>
             </Link>
           </div>
-          <div className="flex flex-wrap gap-3 p-4">
-            {featuredCocktails.map((cocktail, index) => (
-              <Link key={`featured-${index}`} href="/recipe/featured">
-                <Card className="flex-1 min-w-60 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
-                  <CardContent className="p-0 space-y-4">
-                    <div
-                      className="w-full h-[330px] rounded-lg bg-cover bg-center"
-                      style={{ backgroundImage: `url(${cocktail.image})` }}
-                    />
-                    <div className="space-y-1">
-                      <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {cocktail.name}
-                      </h3>
-                      <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {cocktail.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          <div className="p-4 space-y-3">
+            <div className="flex flex-wrap gap-3">
+              {featuredCocktails && featuredCocktails.length > 0 ? (
+                featuredCocktails.slice(0, 5).map((cocktail, index) => (
+                  <Link key={`featured-${index}`} href={`/recipe/${cocktail.id}`}>
+                    <Card className="flex-1 min-w-60 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                      <CardContent className="p-0 space-y-4">
+                        <div
+                          className="w-full h-[330px] rounded-lg bg-cover bg-center"
+                          style={{ backgroundImage: `url(${cocktail.imageUrl || noPhotoImage})` }}
+                        />
+                        <div className="space-y-1">
+                          <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {cocktail.name}
+                          </h3>
+                          <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {cocktail.description}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <div className="w-full text-center py-8">
+                  <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    No featured cocktails available
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -161,13 +123,47 @@ export const FilterByIngredientSection = (): JSX.Element => {
           </div>
           <div className="p-4 space-y-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-              {popularRecipes.slice(0, 5).map((recipe, index) => (
-                <Link key={`recipe-${index}`} href="/recipe/popular">
-                  <Card className="w-full bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+              {popularRecipes && popularRecipes.length > 0 ? (
+                popularRecipes.slice(0, 5).map((recipe, index) => (
+                  <Link key={`recipe-${index}`} href={`/recipe/${recipe.id}`}>
+                    <Card className="w-full bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                      <CardContent className="p-0 space-y-3">
+                        <div
+                          className="w-full h-[235px] rounded-lg bg-cover bg-center"
+                          style={{ backgroundImage: `url(${recipe.imageUrl || noPhotoImage})` }}
+                        />
+                        <div className="space-y-1 pb-3">
+                          <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {recipe.name}
+                          </h3>
+                          <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {recipe.description}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    No popular recipes available
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {popularRecipes && popularRecipes.length > 5 && (
+              <div className="flex gap-3">
+                {popularRecipes.slice(5).map((recipe, index) => (
+                  <Card
+                    key={`recipe-extra-${index}`}
+                    className="w-44 bg-transparent border-0"
+                  >
                     <CardContent className="p-0 space-y-3">
                       <div
                         className="w-full h-[235px] rounded-lg bg-cover bg-center"
-                        style={{ backgroundImage: `url(${recipe.image})` }}
+                        style={{ backgroundImage: `url(${recipe.imageUrl || noPhotoImage})` }}
                       />
                       <div className="space-y-1 pb-3">
                         <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -179,33 +175,9 @@ export const FilterByIngredientSection = (): JSX.Element => {
                       </div>
                     </CardContent>
                   </Card>
-                </Link>
-              ))}
-            </div>
-
-            <div className="flex gap-3">
-              {popularRecipes.slice(5).map((recipe, index) => (
-                <Card
-                  key={`recipe-extra-${index}`}
-                  className="w-44 bg-transparent border-0"
-                >
-                  <CardContent className="p-0 space-y-3">
-                    <div
-                      className="w-full h-[235px] rounded-lg bg-cover bg-center"
-                      style={{ backgroundImage: `url(${recipe.image})` }}
-                    />
-                    <div className="space-y-1 pb-3">
-                      <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {recipe.name}
-                      </h3>
-                      <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {recipe.description}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
