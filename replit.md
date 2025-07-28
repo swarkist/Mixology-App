@@ -122,6 +122,14 @@ Preferred communication style: Simple, everyday language.
   - Automated test runner with detailed reporting and guaranteed cleanup verification
   - TestDataManager class ensures production data never touched, all test data automatically removed
   - Usage: Prompt with "Perform Regression Testing" or run `tsx tests/regression/run-regression.ts`
+- **Comprehensive Test Maintenance Framework (July 27, 2025)**: Established complete testing ecosystem with automated maintenance protocols
+  - **Test Update Protocol**: Mandatory test updates for all functionality changes, additions, or modifications
+  - **Unit Tests**: Component testing, storage layer validation, form behavior, search/filter functionality
+  - **Integration Tests**: Full workflow testing, cross-component interactions, data persistence verification
+  - **Test Architecture**: Structured testing with fixtures, utilities, and reusable test data management
+  - **Coverage Requirements**: 100% API endpoint coverage, comprehensive error handling, performance benchmarks
+  - **Maintenance Guide**: Detailed protocols for keeping tests current with codebase evolution
+  - **Test Data Isolation**: All tests use TestDataManager for complete production data protection
 - **CRITICAL FIX: Instruction Updates Now Working (July 27, 2025)**: Successfully resolved instruction editing functionality - CONFIRMED WORKING
   - Added proper instruction handling to PATCH route in server/routes.ts 
   - Instructions are now correctly processed and passed to Firebase storage
