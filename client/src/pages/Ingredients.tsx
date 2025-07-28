@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
@@ -16,18 +15,9 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
-  const [location, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
-  
-  const [showOnlyMyBar, setShowOnlyMyBar] = useState(false);
-  
-  // Initialize showOnlyMyBar from URL on mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    setShowOnlyMyBar(urlParams.get("mybar") === "true");
-  }, []);
 
   // Build query string
   const buildQueryString = () => {
@@ -35,7 +25,6 @@ export const Ingredients = (): JSX.Element => {
     if (searchQuery.trim()) params.set("search", searchQuery.trim());
     if (selectedCategory !== "all") params.set("category", selectedCategory);
     if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
-    if (showOnlyMyBar) params.set("mybar", "true");
     return params.toString() ? `?${params.toString()}` : "";
   };
 
@@ -146,21 +135,6 @@ export const Ingredients = (): JSX.Element => {
 
         {/* Filters and Controls */}
         <div className="flex gap-3 pl-3 pr-4 py-3">
-          {/* My Bar Toggle */}
-          <div className="flex items-center space-x-2 mr-4">
-            <Checkbox
-              id="mybar"
-              checked={showOnlyMyBar}
-              onCheckedChange={(checked) => setShowOnlyMyBar(checked === true)}
-              className="border-[#544f3b] data-[state=checked]:bg-[#f2c40c] data-[state=checked]:border-[#f2c40c]"
-            />
-            <label 
-              htmlFor="mybar" 
-              className="text-sm text-[#bab59c] [font-family:'Plus_Jakarta_Sans',Helvetica] cursor-pointer"
-            >
-              My Bar Only
-            </label>
-          </div>
 
           {/* Category Filter */}
           <Select value={selectedCategory} onValueChange={(value) => {

@@ -13,6 +13,7 @@ import { AddCocktail } from "@/pages/AddCocktail";
 import { AddIngredient } from "@/pages/AddIngredient";
 import { EditIngredient } from "@/pages/EditIngredient";
 import { BulkUpload } from "@/pages/BulkUpload";
+import { MyBar } from "@/pages/MyBar";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/add-cocktail" component={AddCocktail} />
       <Route path="/edit-cocktail/:id?" component={AddCocktail} />
       <Route path="/ingredients" component={Ingredients} />
+      <Route path="/my-bar" component={MyBar} />
       <Route path="/add-ingredient" component={AddIngredient} />
       <Route path="/edit-ingredient/:id" component={EditIngredient} />
       <Route path="/bulk-upload" component={BulkUpload} />
