@@ -24,7 +24,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
-import { DesktopNavigation, Navigation } from "@/components/Navigation";
+import { TopNavigation } from "@/components/TopNavigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailList = (): JSX.Element => {
@@ -154,7 +154,7 @@ export const CocktailList = (): JSX.Element => {
 
   return (
     <div className="min-h-screen bg-[#171712]">
-      <DesktopNavigation />
+      <TopNavigation />
 
       <div className="px-40 py-5">
         {/* Header */}

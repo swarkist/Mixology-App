@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { apiRequest } from "@/lib/queryClient";
 import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
-import { DesktopNavigation } from "@/components/Navigation";
+import { TopNavigation } from "@/components/TopNavigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
@@ -112,7 +112,7 @@ export const Ingredients = (): JSX.Element => {
 
   return (
     <div className="min-h-screen bg-[#171712]">
-      <DesktopNavigation />
+      <TopNavigation />
       
       <div className="px-40 py-5">
         {/* Header */}
