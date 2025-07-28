@@ -254,7 +254,7 @@ export const Ingredients = (): JSX.Element => {
                       </div>
                       {ingredient.abv && ingredient.abv > 0 && (
                         <div className="flex items-center gap-1 text-[#f2c40c] text-xs font-semibold">
-                          <span>{ingredient.abv}% ABV</span>
+                          <span>{ingredient.abv} Proof</span>
                         </div>
                       )}
                     </div>

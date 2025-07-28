@@ -130,7 +130,7 @@ describe('Component Unit Tests', () => {
 
       expect(screen.getByText('Test Vodka')).toBeInTheDocument();
       expect(screen.getByText('Premium test vodka')).toBeInTheDocument();
-      expect(screen.getByText('40% ABV')).toBeInTheDocument();
+      expect(screen.getByText('40 Proof')).toBeInTheDocument();
     });
 
     it('should handle My Bar toggle functionality', async () => {
