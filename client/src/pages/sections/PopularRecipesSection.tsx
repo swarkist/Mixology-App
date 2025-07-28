@@ -17,9 +17,9 @@ export const PopularRecipesSection = (): JSX.Element => {
     queryKey: ["/api/cocktails?popular=true"],
   });
 
-  // Filter cocktails by spirit if a filter is selected
+  // Filter cocktails by spirit if a filter is selected and only show cocktails with popularityCount > 0
   // Note: This is a simple implementation. In a real app, you'd filter by ingredients on the backend
-  const filteredCocktails = popularCocktails?.slice(0, 6) || [];
+  const filteredCocktails = popularCocktails?.filter(cocktail => cocktail.popularityCount > 0).slice(0, 6) || [];
 
   return (
     <div className="px-10 py-8 bg-[#161611]">

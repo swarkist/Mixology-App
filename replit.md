@@ -130,6 +130,10 @@ Preferred communication style: Simple, everyday language.
   - **Coverage Requirements**: 100% API endpoint coverage, comprehensive error handling, performance benchmarks
   - **Maintenance Guide**: Detailed protocols for keeping tests current with codebase evolution
   - **Test Data Isolation**: All tests use TestDataManager for complete production data protection
+- **Popular Recipes Filter Fix (July 27, 2025)**: Fixed PopularRecipesSection to only display cocktails with popularityCount > 0
+  - Updated filtering logic to exclude recipes that haven't been made by anyone
+  - Added regression test to ensure popular recipes filtering works correctly
+  - Maintains test coverage following established test maintenance protocols
 - **CRITICAL FIX: Instruction Updates Now Working (July 27, 2025)**: Successfully resolved instruction editing functionality - CONFIRMED WORKING
   - Added proper instruction handling to PATCH route in server/routes.ts 
   - Instructions are now correctly processed and passed to Firebase storage

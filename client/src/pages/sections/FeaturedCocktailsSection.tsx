@@ -93,18 +93,6 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
         </div>
       </nav>
 
-      {/* Welcome Section */}
-      <div className="px-10 py-8">
-        <div className="text-center max-w-4xl mx-auto">
-          <h2 className="text-4xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Welcome to Mixology
-          </h2>
-          <p className="text-lg text-[#bab59b] mb-8 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Discover, create, and master cocktail recipes. Build your personal bar and explore endless mixing possibilities.
-          </p>
-        </div>
-      </div>
-
       {/* Featured Cocktails Section */}
       <div className="px-10 pb-8">
         <div className="flex items-center gap-3 mb-6">

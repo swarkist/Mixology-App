@@ -209,11 +209,40 @@ describe('Cocktail Management API Regression Tests', () => {
     });
 
     it('should get featured cocktails', async () => {
-      const result = await apiRequest('/cocktails?featured=true');
+      const result = await testManager.apiRequest('/cocktails?featured=true');
       
       expect(Array.isArray(result)).toBe(true);
       const foundCocktail = result.find((c: any) => c.id === createdCocktailId);
       expect(foundCocktail).toBeDefined();
+    });
+
+    it('should filter popular recipes correctly (popularityCount > 0)', async () => {
+      // Create cocktail with 0 popularity
+      const neverMade = await testManager.createTestCocktail({
+        name: 'Never_Made_Cocktail',
+        popularityCount: 0,
+        instructions: ['Test'],
+        tags: []
+      });
+
+      // Create cocktail with popularity > 0
+      const popular = await testManager.createTestCocktail({
+        name: 'Popular_Cocktail',
+        popularityCount: 5,
+        instructions: ['Test'],
+        tags: []
+      });
+
+      // Get popular cocktails
+      const popularResults = await testManager.apiRequest('/cocktails?popular=true');
+      
+      // Should include cocktail with popularity > 0
+      const foundPopular = popularResults.find((c: any) => c.id === popular.id);
+      expect(foundPopular).toBeDefined();
+      
+      // Should NOT include cocktail with popularity = 0 in popular results
+      const foundNeverMade = popularResults.find((c: any) => c.id === neverMade.id);
+      expect(foundNeverMade).toBeUndefined();
     });
   });
 

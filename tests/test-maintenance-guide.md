@@ -218,6 +218,31 @@ describe('Search Functionality', () => {
 });
 ```
 
+### Example: PopularRecipesSection Filter Fix
+
+1. **Frontend Change**: Updated filter logic to exclude cocktails with popularityCount = 0
+2. **Test Addition**: Added regression test for popular recipe filtering
+```typescript
+it('should filter popular recipes correctly (popularityCount > 0)', async () => {
+  const neverMade = await testManager.createTestCocktail({
+    name: 'Never_Made_Cocktail',
+    popularityCount: 0
+  });
+  
+  const popular = await testManager.createTestCocktail({
+    name: 'Popular_Cocktail', 
+    popularityCount: 5
+  });
+  
+  const popularResults = await testManager.apiRequest('/cocktails?popular=true');
+  
+  // Should include popular cocktail
+  expect(popularResults.find(c => c.id === popular.id)).toBeDefined();
+  // Should exclude never-made cocktail
+  expect(popularResults.find(c => c.id === neverMade.id)).toBeUndefined();
+});
+```
+
 2. **Add Performance Test**:
 ```typescript
 // Add to performance.test.ts
