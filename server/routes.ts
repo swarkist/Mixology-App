@@ -607,6 +607,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get count of unique cocktails that use My Bar ingredients
+  app.get('/api/my-bar-cocktail-count', async (req, res) => {
+    try {
+      console.log('Calculating My Bar cocktail count...');
+      
+      // Get My Bar ingredients using same approach as the ingredients endpoint
+      const myBarIngredients = await storage.getIngredientsInMyBar();
+      const myBarIngredientIds = myBarIngredients.map((ingredient: any) => ingredient.id);
+      
+      console.log('My Bar ingredients:', myBarIngredients.map((i: any) => `${i.name} (${i.id})`));
+      
+      if (myBarIngredientIds.length === 0) {
+        res.json({ count: 0, cocktailIds: [] });
+        return;
+      }
+
+      // Get all cocktails and check which ones use My Bar ingredients
+      const cocktails = await storage.getAllCocktails();
+      const uniqueCocktailIds = new Set<number>();
+      
+      for (const cocktail of cocktails) {
+        const cocktailDetails = await storage.getCocktailWithDetails(cocktail.id);
+        if (cocktailDetails && cocktailDetails.ingredients.length > 0) {
+          // Check if this cocktail uses any My Bar ingredients
+          const usesMyBarIngredient = cocktailDetails.ingredients.some((ingredient: any) => 
+            myBarIngredientIds.includes(ingredient.ingredientId)
+          );
+          
+          if (usesMyBarIngredient) {
+            uniqueCocktailIds.add(cocktail.id);
+            console.log(`Cocktail ${cocktail.name} (${cocktail.id}) uses My Bar ingredients`);
+          }
+        }
+      }
+      
+      const count = uniqueCocktailIds.size;
+      const cocktailIds = Array.from(uniqueCocktailIds);
+      
+      console.log(`My Bar cocktail count: ${count} unique cocktails`);
+      console.log(`Cocktail IDs: ${cocktailIds.join(', ')}`);
+      
+      res.json({ count, cocktailIds });
+    } catch (error) {
+      console.error('Error calculating My Bar cocktail count:', error);
+      res.status(500).json({ error: 'Failed to calculate My Bar cocktail count' });
+    }
+  });
+
   // Add Firebase test routes
   app.use("/api", firebaseTestRoutes);
 
