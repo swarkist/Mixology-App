@@ -537,16 +537,26 @@ export class FirebaseStorage implements IStorage {
     // Get all cocktail-ingredient relationships
     const cocktailIngredientsSnapshot = await this.cocktailIngredientsCollection.get();
     
+    console.log(`Found ${cocktailIngredientsSnapshot.docs.length} cocktail-ingredient relationships:`);
+    
     // Count usage for each ingredient
     const usageCounts = new Map<number, number>();
     
     cocktailIngredientsSnapshot.docs.forEach(doc => {
       const data = doc.data();
       const ingredientId = data.ingredientId;
+      const cocktailId = data.cocktailId;
+      console.log(`  Cocktail ${cocktailId} uses ingredient ${ingredientId}`);
       if (ingredientId) {
         usageCounts.set(ingredientId, (usageCounts.get(ingredientId) || 0) + 1);
       }
     });
+    
+    console.log('Usage count summary:');
+    for (const [ingredientId, count] of usageCounts.entries()) {
+      const ingredient = ingredients.find(i => i.id === ingredientId);
+      console.log(`  Ingredient ${ingredient?.name} (${ingredientId}): ${count} uses`);
+    }
     
     // Update each ingredient with correct usage count
     for (const ingredient of ingredients) {
