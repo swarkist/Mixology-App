@@ -83,7 +83,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
                     <Card className="flex-1 min-w-60 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
                       <CardContent className="p-0 space-y-4">
                         <div
-                          className="w-full h-[330px] rounded-lg bg-cover bg-center"
+                          className="w-full h-[235px] rounded-lg bg-cover bg-center"
                           style={{ backgroundImage: `url(${cocktail.imageUrl || noPhotoImage})` }}
                         />
                         <div className="space-y-1">
