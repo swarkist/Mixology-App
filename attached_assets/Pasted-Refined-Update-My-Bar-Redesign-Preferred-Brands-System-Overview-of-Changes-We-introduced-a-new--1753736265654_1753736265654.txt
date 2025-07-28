@@ -1,0 +1,65 @@
+Refined Update: My Bar Redesign & Preferred Brands System
+Overview of Changes
+We introduced a new entity called Preferred Brands and restructured how Ingredients, Preferred Brands, and the My Bar feature interact:
+•	Preferred Brand and Proof fields are now part of the new Preferred Brands object, no longer under Ingredients.
+•	Dedicated detail pages have been created for both Ingredients and Preferred Brands.
+•	My Bar now tracks Preferred Brands instead of Ingredients.
+
+Preferred Brands
+Preferred Brands represent real-world branded products (e.g., Tanqueray Gin, Tito’s Vodka) and can be linked to multiple ingredients.
+Fields
+Basic Information:
+•	Preferred Name (Text field) — Required
+•	Proof (Numeric only) — Optional
+(Replaces ABV and uses integers only)
+Image Upload Section:
+•	Single image upload with preview, remove/reset options
+•	Functions like the image section in Add Cocktails/Ingredients
+Ingredient Association Section:
+•	Searchable field to associate this brand with one or more ingredients
+•	Each association appears on its own line, similar to ingredients in cocktail recipes
+Usage & Tags Section:
+•	Uses the same pill-tag interface as Ingredients and Cocktails
+•	Shares tag pool with Ingredient tags (no new tag category created)
+Preferred Brand Detail Page
+Each Preferred Brand has a standalone detail view showing:
+•	Preferred Name
+•	Proof
+•	Image (or default FPO if none)
+•	List of Associated Ingredients
+•	Tags
+
+Ingredient Detail Page
+A new public-style detail view has been added for Ingredients.
+Features:
+•	Shows: Name, Category, Sub-Category, Description, and Tags
+•	Displays associated Preferred Brands
+•	Allows associating and removing Preferred Brands
+•	Clicking a Preferred Brand opens its detail page
+
+My Bar – Updated Behavior
+Changes:
+•	My Bar now stores Preferred Brands, not Ingredients
+•	The toggle now appears on Preferred Brand cards
+(default: "Not In My Bar" → toggled: "In My Bar")
+•	Proof is shown on Preferred Brand cards (ABV is no longer used)
+My Bar Page:
+•	Accessible via top navigation link “My Bar”
+•	Displays all Preferred Brands the user marked as “In My Bar”
+•	Preferred Brands are grouped by their associated Ingredient
+•	Each Preferred Brand card links to its detail view
+•	Includes ability to unmark items from “In My Bar” directly from this view
+
+Final Refinement: Cocktail Add/Edit Ingredient Search Behavior
+When associating ingredients to a cocktail (during Add or Edit):
+•	✅ The search field will match across:
+o	Ingredient Name
+o	Category
+o	Sub-Category
+o	Preferred Brand Name
+Behavior for Preferred Brand Matches:
+•	If the user selects a Preferred Brand from the search results:
+o	The associated Ingredient will be automatically linked to the cocktail.
+o	This allows users who recognize ingredients by brand name to still associate the correct ingredient.
+o	The system resolves the brand-to-ingredient relationship internally — no extra step for the user.
+•	No change in how Category or Sub-Category matching behaves.
