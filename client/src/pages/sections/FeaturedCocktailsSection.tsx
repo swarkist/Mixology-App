@@ -3,7 +3,7 @@ import React from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 import { useQuery } from "@tanstack/react-query";
 import { TopNavigation } from "@/components/TopNavigation";
 import type { Cocktail } from "@shared/schema";
@@ -20,49 +20,51 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
       <TopNavigation />
 
       {/* Featured Cocktails Section */}
-      <div className="px-10 pb-8">
-        <div className="flex items-center gap-3 mb-6">
-          <Star className="h-6 w-6 text-[#f2c40c]" />
-          <h3 className="text-2xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+      <div className="mb-4">
+        <div className="flex items-center justify-between px-4 pt-5 pb-3">
+          <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
             Featured Cocktails
-          </h3>
+          </h2>
+          <Link href="/cocktails">
+            <Button variant="outline" size="sm" className="border-[#544f3a] text-white hover:bg-[#2a2920] hover:text-[#f2c40c]">
+              View All
+            </Button>
+          </Link>
         </div>
+        <div className="p-4">
 
         {featuredLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap gap-3">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
-                <CardContent className="p-6">
-                  <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
-                  <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
+              <Card key={i} className="flex-1 min-w-60 bg-transparent border-0 animate-pulse">
+                <CardContent className="p-0 space-y-4">
+                  <div className="w-full h-[330px] rounded-lg bg-[#544f3b]" />
+                  <div className="space-y-1">
+                    <div className="h-4 bg-[#544f3b] rounded w-3/4"></div>
+                    <div className="h-3 bg-[#544f3b] rounded w-full"></div>
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         ) : featuredCocktails && featuredCocktails.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="flex flex-wrap gap-3">
             {featuredCocktails.map((cocktail: Cocktail) => (
               <Link key={cocktail.id} href={`/recipe/${cocktail.id}`}>
-                <Card className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-colors cursor-pointer">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
-                        Featured
-                      </Badge>
-                      <div className="flex items-center gap-1 text-[#bab59b] text-sm">
-                        <TrendingUp className="h-4 w-4" />
-                        <span>{cocktail.popularityCount} crafted</span>
-                      </div>
-                    </div>
-                    <h4 className="text-xl font-bold text-white mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {cocktail.name}
-                    </h4>
-                    {cocktail.description && (
-                      <p className="text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                <Card className="flex-1 min-w-60 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                  <CardContent className="p-0 space-y-4">
+                    <div
+                      className="w-full h-[330px] rounded-lg bg-cover bg-center"
+                      style={{ backgroundImage: `url(${cocktail.imageUrl || noPhotoImage})` }}
+                    />
+                    <div className="space-y-1">
+                      <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {cocktail.name}
+                      </h3>
+                      <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
                         {cocktail.description}
                       </p>
-                    )}
+                    </div>
                   </CardContent>
                 </Card>
               </Link>
@@ -83,6 +85,7 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
     </div>
   );

@@ -147,24 +147,6 @@ export const FilterByIngredientSection = (): JSX.Element => {
           </div>
         </div>
 
-        {/* Filter by Ingredient Section */}
-        <div className="mb-4">
-          <h2 className="px-4 pt-5 pb-3 font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Filter by Ingredient
-          </h2>
-          <div className="flex flex-wrap gap-3 px-4 py-3">
-            {filterIngredients.map((ingredient, index) => (
-              <Badge
-                key={`ingredient-${index}`}
-                className="h-8 pl-4 pr-2 py-0 bg-[#383528] hover:bg-[#4a4735] text-white font-medium text-sm cursor-pointer flex items-center gap-2"
-              >
-                {ingredient}
-                <ChevronDown className="w-4 h-4 text-white" />
-              </Badge>
-            ))}
-          </div>
-        </div>
-
         {/* Popular Recipes Section */}
         <div>
           <div className="flex items-center justify-between px-4 pt-5 pb-3">
