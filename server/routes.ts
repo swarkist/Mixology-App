@@ -77,19 +77,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // =================== INGREDIENTS ===================
   app.get("/api/ingredients", async (req, res) => {
-    const { search, category, mybar } = req.query;
+    const { search, category, subcategory, mybar, inMyBar } = req.query;
     
     try {
       let ingredients;
       
-      if (search) {
-        ingredients = await storage.searchIngredients(search as string);
-      } else if (category) {
-        ingredients = await storage.getIngredientsByCategory(category as string);
-      } else if (mybar === 'true') {
+      // Start with all ingredients or My Bar ingredients
+      if (mybar === 'true' || inMyBar === 'true') {
         ingredients = await storage.getIngredientsInMyBar();
       } else {
         ingredients = await storage.getAllIngredients();
+      }
+      
+      // Apply search filter if provided
+      if (search && search.toString().trim()) {
+        const searchTerm = search.toString().toLowerCase();
+        ingredients = ingredients.filter(ingredient => 
+          ingredient.name.toLowerCase().includes(searchTerm) ||
+          ingredient.description?.toLowerCase().includes(searchTerm) ||
+          ingredient.preferredBrand?.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      // Apply category filter if provided
+      if (category && category !== 'all') {
+        ingredients = ingredients.filter(ingredient => ingredient.category === category);
+      }
+      
+      // Apply subcategory filter if provided
+      if (subcategory && subcategory !== 'all') {
+        ingredients = ingredients.filter(ingredient => ingredient.subCategory === subcategory);
       }
       
       res.json(ingredients);
