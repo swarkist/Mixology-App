@@ -16,20 +16,19 @@ export default function PreferredBrands() {
 
   const { data: brands = [], isLoading } = useQuery({
     queryKey: ["/api/preferred-brands", searchTerm],
-    queryFn: () => {
+    queryFn: async () => {
       const params = new URLSearchParams();
       if (searchTerm.trim()) {
         params.append("search", searchTerm);
       }
-      return apiRequest(`/api/preferred-brands?${params}`);
+      const response = await apiRequest("GET", `/api/preferred-brands?${params}`);
+      return response.json();
     },
   });
 
   const toggleMyBarMutation = useMutation({
     mutationFn: (brandId: number) => 
-      apiRequest(`/api/preferred-brands/${brandId}/toggle-mybar`, { 
-        method: "PATCH" 
-      }),
+      apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
     },
@@ -120,11 +119,6 @@ export default function PreferredBrands() {
                 </CardHeader>
 
                 <CardContent className="space-y-4">
-                  {brand.description && (
-                    <CardDescription className="line-clamp-3">
-                      {brand.description}
-                    </CardDescription>
-                  )}
 
                   {/* Brand Image */}
                   {brand.imageUrl && (

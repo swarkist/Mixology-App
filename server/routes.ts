@@ -660,19 +660,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const { search, inMyBar } = req.query;
     
     try {
+      console.log('🔥 Preferred brands API called with params:', { search, inMyBar });
       let brands;
       
       if (inMyBar === 'true') {
+        console.log('🔥 Calling getPreferredBrandsInMyBar...');
         brands = await storage.getPreferredBrandsInMyBar();
       } else if (search) {
+        console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);
       } else {
+        console.log('🔥 Calling getAllPreferredBrands...');
         brands = await storage.getAllPreferredBrands();
       }
       
+      console.log('🔥 Brands result:', brands.length, 'items');
       res.json(brands);
     } catch (error) {
-      res.status(500).json({ message: "Error fetching preferred brands", error });
+      console.error('🔥 Preferred brands API error:', error);
+      res.status(500).json({ message: "Error fetching preferred brands", error: error.message });
     }
   });
 

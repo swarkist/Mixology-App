@@ -2,7 +2,8 @@ import { FirebaseStorage } from './firebase';
 import type { IStorage } from '../storage';
 import type { 
   User, InsertUser, Cocktail, InsertCocktail, Ingredient, InsertIngredient, 
-  Tag, InsertTag, CocktailIngredient, CocktailInstruction, CocktailForm, IngredientForm 
+  Tag, InsertTag, CocktailIngredient, CocktailInstruction, CocktailForm, IngredientForm,
+  PreferredBrand, InsertPreferredBrand, PreferredBrandForm
 } from '@shared/schema';
 
 // Adapter class that implements the existing IStorage interface using Firebase
@@ -289,5 +290,68 @@ export class FirebaseStorageAdapter implements IStorage {
       instructions,
       tags,
     };
+  }
+
+  // =================== PREFERRED BRANDS ===================
+  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
+    return this.firebase.getAllPreferredBrands();
+  }
+
+  async getPreferredBrand(id: number): Promise<PreferredBrand | undefined> {
+    return this.firebase.getPreferredBrand(id);
+  }
+
+  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
+    return this.firebase.searchPreferredBrands(query);
+  }
+
+  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
+    return this.firebase.getPreferredBrandsInMyBar();
+  }
+
+  async createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand> {
+    return this.firebase.createPreferredBrand(brand);
+  }
+
+  async updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand> {
+    const updated = await this.firebase.updatePreferredBrand(id, brand);
+    if (!updated) throw new Error('Preferred brand not found');
+    return updated;
+  }
+
+  async deletePreferredBrand(id: number): Promise<boolean> {
+    return this.firebase.deletePreferredBrand(id);
+  }
+
+  async toggleMyBarBrand(brandId: number): Promise<PreferredBrand> {
+    return this.firebase.toggleMyBarBrand(brandId);
+  }
+
+  async incrementPreferredBrandUsage(brandId: number): Promise<void> {
+    await this.firebase.incrementPreferredBrandUsage(brandId);
+  }
+
+  async recalculatePreferredBrandUsageCounts(): Promise<void> {
+    await this.firebase.recalculatePreferredBrandUsageCounts();
+  }
+
+  async findPreferredBrandByName(name: string): Promise<PreferredBrand | null> {
+    return this.firebase.findPreferredBrandByName(name);
+  }
+
+  async getPreferredBrandWithDetails(id: number): Promise<{
+    brand: PreferredBrand;
+    ingredients: Ingredient[];
+    tags: Tag[];
+  } | undefined> {
+    return this.firebase.getPreferredBrandWithDetails(id);
+  }
+
+  async getIngredientWithDetails(id: number): Promise<{
+    ingredient: Ingredient;
+    preferredBrands: PreferredBrand[];
+    tags: Tag[];
+  } | undefined> {
+    return this.firebase.getIngredientWithDetails(id);
   }
 }

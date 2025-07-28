@@ -876,7 +876,10 @@ export class FirebaseStorage implements IStorage {
   // Preferred Brands methods
   async getAllPreferredBrands(): Promise<PreferredBrand[]> {
     try {
+      console.log('🔥 Fetching all preferred brands from Firebase...');
       const snapshot = await this.preferredBrandsCollection.get();
+      console.log(`🔥 Found ${snapshot.docs.length} preferred brands`);
+      
       return snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
@@ -891,8 +894,8 @@ export class FirebaseStorage implements IStorage {
         } as PreferredBrand;
       });
     } catch (error) {
-      console.error('Error fetching preferred brands from Firebase:', error);
-      return [];
+      console.error('🔥 Error fetching preferred brands from Firebase:', error);
+      throw error; // Re-throw the error instead of swallowing it
     }
   }
 
@@ -977,7 +980,11 @@ export class FirebaseStorage implements IStorage {
   async updatePreferredBrand(id: number, updates: Partial<InsertPreferredBrand>): Promise<PreferredBrand> {
     try {
       const docRef = this.preferredBrandsCollection.doc(id.toString());
-      await docRef.update({ ...updates, updatedAt: new Date() });
+      // Remove the problematic field from update data
+      const updateData = { ...updates };
+      delete (updateData as any).usedInRecipesCount;
+      
+      await docRef.update({ ...updateData, updatedAt: new Date() });
       
       const updated = await this.getPreferredBrand(id);
       if (!updated) throw new Error('Preferred brand not found after update');
@@ -1019,8 +1026,10 @@ export class FirebaseStorage implements IStorage {
     try {
       const brand = await this.getPreferredBrand(brandId);
       if (brand) {
-        await this.updatePreferredBrand(brandId, {
-          usedInRecipesCount: brand.usedInRecipesCount + 1
+        // Update usage count directly on Firestore to avoid schema validation issues
+        await this.preferredBrandsCollection.doc(brandId.toString()).update({
+          usedInRecipesCount: brand.usedInRecipesCount + 1,
+          updatedAt: new Date()
         });
       }
     } catch (error) {
@@ -1149,90 +1158,5 @@ export class FirebaseStorage implements IStorage {
     }
   }
 
-  // =================== PREFERRED BRANDS ===================
-  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
-    const snapshot = await this.preferredBrandsCollection.get();
-    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand));
-  }
 
-  async getPreferredBrand(id: number): Promise<PreferredBrand | null> {
-    const doc = await this.preferredBrandsCollection.doc(id.toString()).get();
-    if (!doc.exists) return null;
-    return { id, ...doc.data() } as PreferredBrand;
-  }
-
-  async getPreferredBrandWithDetails(id: number): Promise<{ brand: PreferredBrand; ingredients: any[]; tags: any[] } | null> {
-    const brand = await this.getPreferredBrand(id);
-    if (!brand) return null;
-
-    // Get associated ingredients and tags (if we implement these relationships later)
-    const ingredients: any[] = [];
-    const tags: any[] = [];
-
-    return { brand, ingredients, tags };
-  }
-
-  async createPreferredBrand(data: InsertPreferredBrand): Promise<PreferredBrand> {
-    const id = Date.now(); // Simple ID generation
-    const now = new Date();
-    
-    const brandData = {
-      ...data,
-      usedInRecipesCount: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    await this.preferredBrandsCollection.doc(id.toString()).set(brandData);
-    return { id, ...brandData } as PreferredBrand;
-  }
-
-  async updatePreferredBrand(id: number, data: Partial<Omit<PreferredBrand, 'id' | 'createdAt'>>): Promise<PreferredBrand | null> {
-    const existing = await this.getPreferredBrand(id);
-    if (!existing) return null;
-
-    const updateData = {
-      ...data,
-      updatedAt: new Date(),
-    };
-
-    await this.preferredBrandsCollection.doc(id.toString()).update(updateData);
-    return { ...existing, ...updateData } as PreferredBrand;
-  }
-
-  async deletePreferredBrand(id: number): Promise<boolean> {
-    const doc = await this.preferredBrandsCollection.doc(id.toString()).get();
-    if (!doc.exists) return false;
-
-    await this.preferredBrandsCollection.doc(id.toString()).delete();
-    return true;
-  }
-
-  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
-    const snapshot = await this.preferredBrandsCollection
-      .where('inMyBar', '==', true)
-      .get();
-    
-    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand));
-  }
-
-  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
-    // Simple search implementation - Firebase doesn't have built-in full-text search
-    const snapshot = await this.preferredBrandsCollection.get();
-    const lowerQuery = query.toLowerCase();
-    
-    return snapshot.docs
-      .map(doc => ({ id: parseInt(doc.id), ...doc.data() } as PreferredBrand))
-      .filter(brand => 
-        brand.name.toLowerCase().includes(lowerQuery)
-      );
-  }
-
-  async toggleMyBarBrand(id: number): Promise<PreferredBrand | null> {
-    const brand = await this.getPreferredBrand(id);
-    if (!brand) return null;
-
-    const updatedBrand = await this.updatePreferredBrand(id, { inMyBar: !brand.inMyBar });
-    return updatedBrand;
-  }
 }
