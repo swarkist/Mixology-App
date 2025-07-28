@@ -112,6 +112,16 @@ Preferred communication style: Simple, everyday language.
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025) 
+- **CRITICAL FIX: Popular Recipes Filter Fully Resolved (July 28, 2025)**: Successfully fixed popular recipes filtering across all storage implementations
+  - **Root Cause**: All three storage implementations (MemStorage, PersistentMemStorage, Firebase) were missing `popularityCount > 0` filter
+  - **Firebase Fix**: Added `.where('popularityCount', '>', 0)` to Firestore query in getPopularCocktails()
+  - **Memory Storage Fix**: Added `.filter(cocktail => cocktail.popularityCount > 0)` to MemStorage and PersistentMemStorage
+  - **Server Restart Required**: Changes took effect after workflow restart due to Firebase query compilation
+  - **User Confirmed**: Popular recipes section now correctly shows only cocktails that have been made (popularityCount > 0)
+  - **API Verification**: `/api/cocktails?popular=true` endpoint now returns only cocktails with popularity > 0
+- **Home Page Navigation Restored (July 28, 2025)**: Fixed missing top navigation on home page
+  - Added TopNavigation component import and rendering to Frame.tsx
+  - Consistent navigation now appears across all main pages (home, cocktails, ingredients)
 - **ENHANCED REGRESSION TESTING FRAMEWORK (July 28, 2025)**: Upgraded testing framework with bulletproof production data protection
   - **CRITICAL FIX**: Resolved data contamination issue where regression tests polluted production database
   - **Enhanced TestDataManager**: Production data snapshot + real-time integrity verification + emergency cleanup protocols
