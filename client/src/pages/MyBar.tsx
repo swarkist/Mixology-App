@@ -40,16 +40,23 @@ export const MyBar = (): JSX.Element => {
           try {
             const response = await fetch(`/api/preferred-brands/${brand.id}`);
             const data = await response.json();
-            return data.brand;
+            
+            // Merge the brand data with ingredients
+            return {
+              ...data.brand,
+              ingredients: data.ingredients || []
+            };
           } catch (error) {
             console.error(`Error fetching brand details for ${brand.id}:`, error);
-            return brand; // fallback to basic brand data
+            return { ...brand, ingredients: [] }; // fallback to basic brand data
           }
         })
       );
       return brandDetails;
     },
     enabled: !!myBarBrands && myBarBrands.length > 0,
+    staleTime: 0, // Force fresh data every time
+    refetchOnMount: true,
   });
 
   // Group brands by their associated ingredients
