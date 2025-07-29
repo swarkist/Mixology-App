@@ -7,6 +7,7 @@ This is a full-stack web application for cocktail recipes and mixology. The appl
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## System Architecture
 
