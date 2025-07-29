@@ -38,9 +38,7 @@ export default function IngredientAssociation({
   // Create association mutation
   const associateMutation = useMutation({
     mutationFn: (ingredientId: number) =>
-      apiRequest(`/api/preferred-brands/${preferredBrandId}/ingredients/${ingredientId}`, {
-        method: "POST",
-      }),
+      apiRequest("POST", `/api/preferred-brands/${preferredBrandId}/ingredients/${ingredientId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands", preferredBrandId] });
       onAssociationChange();
@@ -50,9 +48,7 @@ export default function IngredientAssociation({
   // Remove association mutation
   const removeMutation = useMutation({
     mutationFn: (ingredientId: number) =>
-      apiRequest(`/api/preferred-brands/${preferredBrandId}/ingredients/${ingredientId}`, {
-        method: "DELETE",
-      }),
+      apiRequest("DELETE", `/api/preferred-brands/${preferredBrandId}/ingredients/${ingredientId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands", preferredBrandId] });
       onAssociationChange();

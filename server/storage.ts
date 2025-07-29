@@ -30,6 +30,7 @@ export interface IStorage {
   // Ingredients
   getAllIngredients(): Promise<Ingredient[]>;
   getIngredient(id: number): Promise<Ingredient | undefined>;
+
   searchIngredients(query: string): Promise<Ingredient[]>;
   getIngredientsByCategory(category: string): Promise<Ingredient[]>;
   createIngredient(ingredient: IngredientForm): Promise<Ingredient>;

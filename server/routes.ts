@@ -118,13 +118,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ingredients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-    const ingredient = await storage.getIngredient(id);
+    
+    try {
+      const ingredientDetails = await storage.getIngredientWithDetails(id);
+      
+      if (!ingredientDetails) {
+        return res.status(404).json({ message: "Ingredient not found" });
+      }
 
-    if (!ingredient) {
-      return res.status(404).json({ message: "Ingredient not found" });
+      res.json(ingredientDetails);
+    } catch (error) {
+      console.error('Error fetching ingredient details:', error);
+      res.status(500).json({ message: "Error fetching ingredient details", error });
     }
-
-    res.json(ingredient);
   });
 
   app.post("/api/ingredients", async (req, res) => {
