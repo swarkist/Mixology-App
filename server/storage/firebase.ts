@@ -1176,6 +1176,8 @@ export class FirebaseStorage implements IStorage {
   // Association management methods
   async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
     try {
+      console.log(`🔗 Creating association: ingredient ${ingredientId} <-> preferred brand ${preferredBrandId}`);
+      
       // Check if association already exists
       const existingSnapshot = await this.preferredBrandIngredientsCollection
         .where('ingredientId', '==', ingredientId)
@@ -1183,20 +1185,24 @@ export class FirebaseStorage implements IStorage {
         .get();
       
       if (!existingSnapshot.empty) {
-        console.log('Association already exists');
+        console.log('🔗 Association already exists');
         return;
       }
 
       // Create new association
       const id = Date.now();
-      await this.preferredBrandIngredientsCollection.doc(id.toString()).set({
+      const associationData = {
         ingredientId,
-        preferredBrandId
-      });
+        preferredBrandId,
+        createdAt: new Date()
+      };
       
-      console.log(`Associated ingredient ${ingredientId} with preferred brand ${preferredBrandId}`);
+      console.log(`🔗 Writing to collection 'preferredBrandIngredients' with ID ${id}:`, associationData);
+      await this.preferredBrandIngredientsCollection.doc(id.toString()).set(associationData);
+      
+      console.log(`🔗 ✅ Successfully associated ingredient ${ingredientId} with preferred brand ${preferredBrandId}`);
     } catch (error) {
-      console.error('Error associating ingredient with preferred brand:', error);
+      console.error('🔗 ❌ Error associating ingredient with preferred brand:', error);
       throw error;
     }
   }
