@@ -135,78 +135,87 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Filters and Controls */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          {/* Category Filter */}
-          <Select value={selectedCategory} onValueChange={(value) => {
-            setSelectedCategory(value);
-            setSelectedSubcategory("all"); // Reset subcategory when category changes
-          }}>
-            <SelectTrigger className="min-w-[120px] h-8 bg-[#383629] border-0 text-xs text-white">
-              <SelectValue placeholder="Categories" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white">
-                All Categories
-              </SelectItem>
-              {INGREDIENT_CATEGORIES.map((category) => (
-                <SelectItem 
-                  key={category} 
-                  value={category}
-                  className="text-white capitalize"
-                >
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Subcategory Filter */}
-          {subcategories.length > 0 && (
-            <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-              <SelectTrigger className="min-w-[120px] h-8 bg-[#383629] border-0 text-xs text-white">
-                <SelectValue placeholder="Subcategories" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#383629] border-[#544f3b]">
-                <SelectItem value="all" className="text-white">
-                  All Subcategories
-                </SelectItem>
-                {subcategories.map((subcategory: string) => (
-                  <SelectItem 
-                    key={subcategory} 
-                    value={subcategory}
-                    className="text-white capitalize"
-                  >
-                    {subcategory}
+        <div className="space-y-3 py-3">
+          {/* Filter Row */}
+          <div className="flex gap-2 overflow-x-auto">
+            {/* Category Filter */}
+            <div className="flex-shrink-0">
+              <Select value={selectedCategory} onValueChange={(value) => {
+                setSelectedCategory(value);
+                setSelectedSubcategory("all"); // Reset subcategory when category changes
+              }}>
+                <SelectTrigger className="w-auto min-w-[100px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
+                  <SelectValue placeholder="Categories" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#383629] border-[#544f3b]">
+                  <SelectItem value="all" className="text-white">
+                    All Categories
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+                  {INGREDIENT_CATEGORIES.map((category) => (
+                    <SelectItem 
+                      key={category} 
+                      value={category}
+                      className="text-white capitalize"
+                    >
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Add Ingredient Button */}
-          <Link href="/add-ingredient" className="ml-auto">
-            <Button
-              size="sm"
-              className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold whitespace-nowrap"
-            >
-              Add Ingredient
-            </Button>
-          </Link>
+            {/* Subcategory Filter */}
+            {subcategories.length > 0 && (
+              <div className="flex-shrink-0">
+                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                  <SelectTrigger className="w-auto min-w-[120px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
+                    <SelectValue placeholder="Subcategories" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#383629] border-[#544f3b]">
+                    <SelectItem value="all" className="text-white">
+                      All Subcategories
+                    </SelectItem>
+                    {subcategories.map((subcategory: string) => (
+                      <SelectItem 
+                        key={subcategory} 
+                        value={subcategory}
+                        className="text-white capitalize"
+                      >
+                        {subcategory}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          {/* Action Button Row */}
+          <div className="flex justify-center">
+            <Link href="/add-ingredient" className="w-full max-w-xs">
+              <Button
+                size="sm"
+                className="w-full h-10 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold"
+              >
+                Add Ingredient
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Bar */}
         {ingredients && (
           <div className="py-3 border-b border-[#544f3b] mb-3">
-            <div className="flex items-center gap-6 text-sm text-[#bab59c] overflow-x-auto">
-              <div className="flex items-center gap-2 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
+              <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span>Total: {ingredients.length}</span>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-[#f2c40c]" />
                 <span>In My Bar: 0</span>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
+              <div className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
                 <span>Used In: 3 recipes</span>
               </div>
@@ -217,7 +226,7 @@ export const Ingredients = (): JSX.Element => {
         {/* Content */}
         <div className="py-6">
           {ingredients && ingredients.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
               {ingredients.map((ingredient: Ingredient) => (
                 <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
                   {/* Image Section */}
@@ -251,7 +260,7 @@ export const Ingredients = (): JSX.Element => {
                       </div>
                       {/* ABV/Proof display removed - now managed in preferred brands */}
                     </div>
-                    <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    <CardTitle className="text-lg text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]">
                       {ingredient.name}
                     </CardTitle>
                   </CardHeader>
@@ -268,11 +277,11 @@ export const Ingredients = (): JSX.Element => {
                           {ingredient.description}
                         </p>
                       )}
-                      <div className="flex items-center justify-between pt-2 gap-2">
+                      <div className="flex flex-wrap items-center justify-between pt-2 gap-2 overflow-hidden w-full">
                         <Button
                           size="sm"
                           onClick={() => handleToggleMyBar(ingredient)}
-                          className="bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] flex-1"
+                          className="bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] min-w-0 flex-1"
                           disabled
                         >
                           <>
