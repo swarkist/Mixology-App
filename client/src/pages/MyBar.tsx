@@ -11,6 +11,7 @@ import { apiRequest } from "@/lib/queryClient";
 import type { Ingredient, PreferredBrand } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
+import { Navigation } from "@/components/Navigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const MyBar = (): JSX.Element => {
@@ -180,10 +181,10 @@ export const MyBar = (): JSX.Element => {
 
 
   return (
-    <div className="min-h-screen bg-[#171712]">
+    <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
       <TopNavigation />
       
-      <div className="px-40 py-5">
+      <div className="px-4 md:px-40 py-5">
         {/* Header */}
         <div className="p-4 mb-3">
           <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -394,6 +395,7 @@ export const MyBar = (): JSX.Element => {
           )}
         </div>
       </div>
+      <Navigation />
     </div>
   );
 };
