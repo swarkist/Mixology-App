@@ -135,64 +135,67 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Filters and Controls */}
-        <div className="flex gap-3 py-3 overflow-x-auto">
-
-          {/* Category Filter */}
-          <div className="flex-shrink-0">
-            <Select value={selectedCategory} onValueChange={(value) => {
-              setSelectedCategory(value);
-              setSelectedSubcategory("all"); // Reset subcategory when category changes
-            }}>
-              <SelectTrigger className="w-auto min-w-[120px] h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
-                <SelectValue placeholder="All Categories" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#383629] border-[#544f3b]">
-                <SelectItem value="all" className="text-white">
-                  All Categories
-                </SelectItem>
-                {INGREDIENT_CATEGORIES.map((category) => (
-                  <SelectItem 
-                    key={category} 
-                    value={category}
-                    className="text-white capitalize"
-                  >
-                    {category}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Subcategory Filter */}
-          {subcategories.length > 0 && (
+        <div className="space-y-3 py-3">
+          {/* Filter Row */}
+          <div className="flex gap-2 overflow-x-auto">
+            {/* Category Filter */}
             <div className="flex-shrink-0">
-              <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                <SelectTrigger className="w-auto min-w-[140px] h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
-                  <SelectValue placeholder="All Subcategories" />
+              <Select value={selectedCategory} onValueChange={(value) => {
+                setSelectedCategory(value);
+                setSelectedSubcategory("all"); // Reset subcategory when category changes
+              }}>
+                <SelectTrigger className="w-auto min-w-[100px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
+                  <SelectValue placeholder="Categories" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#383629] border-[#544f3b]">
                   <SelectItem value="all" className="text-white">
-                    All Subcategories
+                    All Categories
                   </SelectItem>
-                  {subcategories.map((subcategory: string) => (
+                  {INGREDIENT_CATEGORIES.map((category) => (
                     <SelectItem 
-                      key={subcategory} 
-                      value={subcategory}
+                      key={category} 
+                      value={category}
                       className="text-white capitalize"
                     >
-                      {subcategory}
+                      {category}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          )}
 
-          <div className="flex ml-auto gap-2 flex-shrink-0">
-            <Link href="/add-ingredient">
+            {/* Subcategory Filter */}
+            {subcategories.length > 0 && (
+              <div className="flex-shrink-0">
+                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
+                  <SelectTrigger className="w-auto min-w-[120px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
+                    <SelectValue placeholder="Subcategories" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#383629] border-[#544f3b]">
+                    <SelectItem value="all" className="text-white">
+                      All Subcategories
+                    </SelectItem>
+                    {subcategories.map((subcategory: string) => (
+                      <SelectItem 
+                        key={subcategory} 
+                        value={subcategory}
+                        className="text-white capitalize"
+                      >
+                        {subcategory}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          
+          {/* Action Button Row */}
+          <div className="flex justify-center">
+            <Link href="/add-ingredient" className="w-full max-w-xs">
               <Button
                 size="sm"
-                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold whitespace-nowrap"
+                className="w-full h-10 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold"
               >
                 Add Ingredient
               </Button>
