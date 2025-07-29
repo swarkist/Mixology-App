@@ -274,40 +274,14 @@ export const EditIngredient = (): JSX.Element => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="subCategory" className="text-white">Sub-Category</Label>
-                  <Input
-                    id="subCategory"
-                    {...register("subCategory")}
-                    placeholder="e.g., vodka, bourbon"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="preferredBrand" className="text-white">Preferred Brand</Label>
-                  <Input
-                    id="preferredBrand"
-                    {...register("preferredBrand")}
-                    placeholder="e.g., Grey Goose, Jack Daniel's"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="abv" className="text-white">Proof</Label>
-                  <Input
-                    id="abv"
-                    type="number"
-                    step="1"
-                    min="0"
-                    {...register("abv", { valueAsNumber: true })}
-                    placeholder="e.g., 80"
-                    className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
-                  />
-                </div>
+              <div>
+                <Label htmlFor="subCategory" className="text-white">Sub-Category</Label>
+                <Input
+                  id="subCategory"
+                  {...register("subCategory")}
+                  placeholder="e.g., vodka, bourbon"
+                  className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
+                />
               </div>
 
               <div>
