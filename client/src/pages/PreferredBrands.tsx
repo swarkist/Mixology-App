@@ -88,7 +88,7 @@ export default function PreferredBrands() {
                 placeholder="Search preferred brands..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="flex-1 bg-transparent border-none text-white placeholder-[#bab59c] focus:ring-0 focus:outline-none px-3"
+                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
               />
             </div>
           </div>
