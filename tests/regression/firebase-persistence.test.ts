@@ -1,6 +1,23 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestDataManager } from './data-isolation.js';
 
+// API request helper function
+async function apiRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
+  const response = await fetch(`http://localhost:5000/api${endpoint}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+    ...options,
+  });
+
+  if (!response.ok) {
+    throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 describe('Firebase Data Persistence Tests', () => {
   let testManager: TestDataManager;
   let testCocktailId: number;
@@ -63,20 +80,20 @@ describe('Firebase Data Persistence Tests', () => {
     // Create ingredient
     const ingredient = await apiRequest('/ingredients', {
       method: 'POST',
-      body: JSON.stringify(persistenceTestIngredient),
+      body: JSON.stringify(persistenceTestIngredientTemplate),
     });
 
     testIngredientId = ingredient.id;
-    expect(ingredient.name).toBe(persistenceTestIngredient.name);
+    expect(ingredient.name).toBe(persistenceTestIngredientTemplate.name);
 
     // Wait for Firebase write
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Verify data is immediately retrievable
     const retrieved = await apiRequest(`/ingredients/${testIngredientId}`);
-    expect(retrieved.name).toBe(persistenceTestIngredient.name);
-    expect(retrieved.category).toBe(persistenceTestIngredient.category);
-    expect(retrieved.abv).toBe(persistenceTestIngredient.abv);
+    expect(retrieved.ingredient.name).toBe(persistenceTestIngredientTemplate.name);
+    expect(retrieved.ingredient.category).toBe(persistenceTestIngredientTemplate.category);
+    expect(retrieved.ingredient.abv).toBe(persistenceTestIngredientTemplate.abv);
   });
 
   it('should persist cocktail updates in Firebase', async () => {
