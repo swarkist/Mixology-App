@@ -188,87 +188,59 @@ export const CocktailList = (): JSX.Element => {
         </div>
 
         {/* Filter and Action Buttons */}
-        <div className="flex gap-3 pl-3 pr-4 py-3">
-          {/* Sort by and Filter by dropdowns - temporarily hidden */}
-          {/* <Select>
-            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#ffffff]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="name" className="text-white">
-                Name
-              </SelectItem>
-              <SelectItem value="date" className="text-white">
-                Date
-              </SelectItem>
-              <SelectItem value="popularity" className="text-white">
-                Popularity
-              </SelectItem>
-            </SelectContent>
-          </Select> */}
+        <div className="px-3 py-3 space-y-3">
+          {/* First Row: Filter Buttons */}
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant={showOnlyFeatured ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
+              className={`h-8 px-3 rounded-lg text-xs ${showOnlyFeatured ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+            >
+              <Star className="h-3 w-3 mr-1" />
+              Featured
+            </Button>
 
-          {/* <Select>
-            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-[#ffffff]">
-              <SelectValue placeholder="Filter by" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white">
-                All
-              </SelectItem>
-              <SelectItem value="featured" className="text-white">
-                Featured
-              </SelectItem>
-              <SelectItem value="popular" className="text-white">
-                Popular
-              </SelectItem>
-            </SelectContent>
-          </Select> */}
+            <Button
+              variant={showOnlyPopular ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowOnlyPopular(!showOnlyPopular)}
+              className={`h-8 px-3 rounded-lg text-xs ${showOnlyPopular ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+            >
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Popular
+            </Button>
+          </div>
 
-          <Button
-            variant={showOnlyFeatured ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
-            className={`h-8 px-4 rounded-lg ${showOnlyFeatured ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
-          >
-            <Star className="h-4 w-4 mr-2" />
-            Featured
-          </Button>
-
-          <Button
-            variant={showOnlyPopular ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowOnlyPopular(!showOnlyPopular)}
-            className={`h-8 px-4 rounded-lg ${showOnlyPopular ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
-          >
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Popular
-          </Button>
-
-          <div className="flex ml-auto gap-2">
+          {/* Second Row: Action Buttons */}
+          <div className="flex justify-between items-center gap-2">
             <Link href="/add-cocktail">
               <Button
                 size="sm"
-                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold"
+                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs"
               >
                 Add Cocktail
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode("grid")}
-              className={`h-8 px-3 ${viewMode === "grid" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setViewMode("list")}
-              className={`h-8 px-3 ${viewMode === "list" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
-            >
-              <List className="h-4 w-4" />
-            </Button>
+            
+            <div className="flex gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className={`h-8 px-2 ${viewMode === "grid" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
+              >
+                <Grid className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className={`h-8 px-2 ${viewMode === "list" ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] text-white hover:bg-[#444133]"}`}
+              >
+                <List className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
         </div>
 
