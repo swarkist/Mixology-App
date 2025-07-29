@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Upload, X, Trash2 } from "lucide-react";
 import { Link } from "wouter";
+import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -132,53 +133,39 @@ export default function EditPreferredBrand() {
   }
 
   return (
-    <div className="min-h-screen bg-[#161611] text-white">
+    <div className="min-h-screen bg-[#161611] text-white pb-20 md:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
-        <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between px-4 md:px-40 py-4 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
             <Link href="/preferred-brands">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
+              <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920] h-10 px-3">
+                <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Back</span>
               </Button>
             </Link>
-            <h1 className="text-xl font-bold [font-family:'Plus_Jakarta_Sans',Helvetica]">
+            <h1 className="text-lg md:text-xl font-bold [font-family:'Plus_Jakarta_Sans',Helvetica] truncate">
               Edit Preferred Brand
             </h1>
           </div>
-          <div className="flex gap-2">
-            <Button 
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              variant="outline"
-              className="bg-transparent border-red-600 text-red-400 hover:border-red-500 hover:text-red-300 hover:bg-red-950/20 h-10"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </Button>
-            <Link href="/preferred-brands">
-              <Button 
-                variant="outline"
-                className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629] h-10"
-              >
-                Cancel
-              </Button>
-            </Link>
-            <Button 
-              form="preferred-brand-form"
-              type="submit"
-              disabled={updateMutation.isPending}
-              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10"
-            >
+          <Button 
+            form="preferred-brand-form"
+            type="submit"
+            disabled={updateMutation.isPending}
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
+          >
+            <span className="hidden sm:inline">
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
+            </span>
+            <span className="sm:hidden">
+              {updateMutation.isPending ? "Saving..." : "Save"}
+            </span>
+          </Button>
         </div>
       </div>
 
       {/* Form */}
-      <div className="max-w-4xl mx-auto p-4 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
         <Form {...form}>
           <form id="preferred-brand-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
@@ -293,7 +280,40 @@ export default function EditPreferredBrand() {
                 )}
               </CardContent>
             </Card>
-          </form>
+          {/* Mobile Action Buttons */}
+          <div className="space-y-3 pb-6">
+            {/* Primary Action Button */}
+            <Button 
+              form="preferred-brand-form"
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12"
+            >
+              {updateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+            
+            {/* Secondary Action Buttons */}
+            <div className="flex gap-3">
+              <Link href="/preferred-brands" className="flex-1">
+                <Button 
+                  variant="outline"
+                  className="w-full border-[#544f3b] text-[#bab59b] hover:bg-[#2a2920] h-10 text-sm"
+                >
+                  Cancel
+                </Button>
+              </Link>
+              <Button 
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                variant="outline"
+                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </form>
         </Form>
 
         {/* Ingredient Associations */}
@@ -307,6 +327,7 @@ export default function EditPreferredBrand() {
           />
         )}
       </div>
+      <Navigation />
     </div>
   );
 }

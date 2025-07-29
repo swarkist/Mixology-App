@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Upload, X } from "lucide-react";
 import { Link } from "wouter";
+import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -65,9 +66,9 @@ export default function AddPreferredBrand() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <TopNavigation />
-      <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="container mx-auto px-4 md:px-40 py-8 max-w-2xl">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <Link href="/preferred-brands">
@@ -199,6 +200,7 @@ export default function AddPreferredBrand() {
           </CardContent>
         </Card>
       </div>
+      <Navigation />
     </div>
   );
 }
