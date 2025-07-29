@@ -25,6 +25,9 @@ export const ingredients = pgTable("ingredients", {
   subCategory: text("sub_category"), // for spirits: tequila, whiskey, rum, vodka, gin, scotch, moonshine, brandy
   description: text("description"),
   imageUrl: text("image_url"),
+  preferredBrand: text("preferred_brand"), // preferred brand for this ingredient
+  abv: real("abv"), // alcohol by volume percentage
+  inMyBar: boolean("in_my_bar").default(false).notNull(), // for "My Bar" feature
   usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -113,6 +116,7 @@ export const insertTagSchema = createInsertSchema(tags).pick({
 
 export const insertIngredientSchema = createInsertSchema(ingredients).omit({
   id: true,
+  inMyBar: true,
   usedInRecipesCount: true,
   createdAt: true,
   updatedAt: true,

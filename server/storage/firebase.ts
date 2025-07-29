@@ -2,11 +2,11 @@ import { db } from '../firebase';
 import type { IStorage } from '../storage';
 import type { 
   Cocktail, Ingredient, CocktailIngredient, CocktailInstruction, Tag, 
-  PreferredBrand, InsertCocktail, InsertIngredient, InsertPreferredBrand,
+  PreferredBrand, InsertCocktail, InsertIngredient, InsertPreferredBrand, InsertTag,
   CocktailForm, IngredientForm, PreferredBrandForm 
 } from '@shared/schema';
 
-export class FirebaseStorage implements IStorage {
+export class FirebaseStorage {
   private cocktailsCollection = db.collection('cocktails');
   private ingredientsCollection = db.collection('ingredients');
   private preferredBrandsCollection = db.collection('preferred_brands');
@@ -299,14 +299,7 @@ export class FirebaseStorage implements IStorage {
     } as Cocktail;
   }
 
-  async deleteCocktail(id: number): Promise<boolean> {
-    try {
-      await this.cocktailsCollection.doc(id.toString()).delete();
-      return true;
-    } catch {
-      return false;
-    }
-  }
+
 
   async searchCocktails(query: string): Promise<Cocktail[]> {
     // Firestore doesn't support full-text search natively
@@ -386,13 +379,23 @@ export class FirebaseStorage implements IStorage {
     const cocktail = await this.getCocktailById(id);
     if (!cocktail) return null;
     
-    return this.updateCocktail(id, { 
-      popularityCount: cocktail.popularityCount + 1 
+    // Direct update to avoid type issues
+    await this.cocktailsCollection.doc(id.toString()).update({
+      popularityCount: cocktail.popularityCount + 1,
+      updatedAt: new Date()
     });
+    
+    return this.getCocktailById(id);
   }
 
   async resetCocktailPopularity(id: number): Promise<Cocktail | null> {
-    return this.updateCocktail(id, { popularityCount: 0 });
+    // Direct update to avoid type issues
+    await this.cocktailsCollection.doc(id.toString()).update({
+      popularityCount: 0,
+      updatedAt: new Date()
+    });
+    
+    return this.getCocktailById(id);
   }
 
   // Ingredient operations
@@ -450,6 +453,32 @@ export class FirebaseStorage implements IStorage {
     } catch (error) {
       console.error('Error fetching ingredient:', error);
       return undefined;
+    }
+  }
+
+  async getIngredientById(id: number): Promise<Ingredient | null> {
+    try {
+      const doc = await this.ingredientsCollection.doc(id.toString()).get();
+      if (!doc.exists) return null;
+      
+      const data = doc.data() || {};
+      return {
+        id: parseInt(doc.id),
+        name: data.name || 'Untitled Ingredient',
+        description: data.description || null,
+        imageUrl: data.imageUrl || null,
+        category: data.category || 'other',
+        subCategory: data.subCategory || null,
+        preferredBrand: data.preferredBrand || null,
+        abv: data.abv || null,
+        inMyBar: data.inMyBar || false,
+        usedInRecipesCount: data.usedInRecipesCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      } as Ingredient;
+    } catch (error) {
+      console.error('Error fetching ingredient by ID:', error);
+      return null;
     }
   }
 
@@ -538,7 +567,13 @@ export class FirebaseStorage implements IStorage {
   }
 
   async toggleIngredientInMyBar(id: number, inMyBar: boolean): Promise<Ingredient | null> {
-    return this.updateIngredient(id, { inMyBar });
+    // Direct update to avoid type issues
+    await this.ingredientsCollection.doc(id.toString()).update({
+      inMyBar: inMyBar,
+      updatedAt: new Date()
+    });
+    
+    return this.getIngredientById(id);
   }
 
   async incrementIngredientUsage(ingredientId: number): Promise<void> {
@@ -576,10 +611,10 @@ export class FirebaseStorage implements IStorage {
     });
     
     console.log('Usage count summary:');
-    for (const [ingredientId, count] of usageCounts.entries()) {
+    Array.from(usageCounts.entries()).forEach(([ingredientId, count]) => {
       const ingredient = ingredients.find(i => i.id === ingredientId);
       console.log(`  Ingredient ${ingredient?.name} (${ingredientId}): ${count} uses`);
-    }
+    });
     
     // Update each ingredient with correct usage count
     for (const ingredient of ingredients) {

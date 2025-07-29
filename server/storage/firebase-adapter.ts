@@ -110,14 +110,8 @@ export class FirebaseStorageAdapter implements IStorage {
       
       if (matchesBasic) return true;
       
-      // Search by ingredient tags - Since Firebase stores ingredientTagIds directly on ingredients
-      // we can check the associated tag names
-      if (ingredient.tagIds && ingredient.tagIds.length > 0) {
-        return ingredient.tagIds.some(tagId => {
-          const tagName = tagMap.get(tagId);
-          return tagName && tagName.includes(lowerQuery);
-        });
-      }
+      // Search by ingredient tags - TODO: implement tag relationship lookup
+      // For now, we skip tag-based searching as it requires junction table queries
       
       return false;
     });
