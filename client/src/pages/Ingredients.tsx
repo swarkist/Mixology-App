@@ -75,7 +75,7 @@ export const Ingredients = (): JSX.Element => {
       <div className="px-4 py-5 max-w-7xl mx-auto">
         <h1 className="text-[32px] font-bold text-white mb-3">Ingredients</h1>
         <p className="text-sm text-[#bab59c] mb-4">
-          Manage your bar and explore {ingredients?.length || 0} ingredients.
+          Manage your bar and explore {Array.isArray(ingredients) ? ingredients.length : 0} ingredients.
         </p>
 
         {/* Search */}
@@ -153,7 +153,7 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Stats Bar */}
-        {ingredients && (
+        {ingredients && Array.isArray(ingredients) && (
           <div className="py-3 border-b border-[#544f3b] mb-3">
             <div className="flex items-center gap-6 text-sm text-[#bab59c] overflow-x-auto">
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -174,7 +174,7 @@ export const Ingredients = (): JSX.Element => {
 
         {/* Content */}
         <div className="py-6">
-          {ingredients && ingredients.length > 0 ? (
+          {ingredients && Array.isArray(ingredients) && ingredients.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {ingredients.map((ingredient: Ingredient) => (
                 <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
