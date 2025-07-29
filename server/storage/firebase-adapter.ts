@@ -352,7 +352,10 @@ export class FirebaseStorageAdapter implements IStorage {
     preferredBrands: PreferredBrand[];
     tags: Tag[];
   } | undefined> {
-    return this.firebase.getIngredientWithDetails(id);
+    console.log(`🔥 FirebaseAdapter.getIngredientWithDetails called with ID: ${id}`);
+    const result = await this.firebase.getIngredientWithDetails(id);
+    console.log(`🔥 FirebaseAdapter.getIngredientWithDetails result:`, result ? 'Found' : 'Not found');
+    return result;
   }
 
   // Association management methods

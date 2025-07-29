@@ -427,15 +427,30 @@ export class FirebaseStorage implements IStorage {
     });
   }
 
-  async getIngredientById(id: number): Promise<Ingredient | null> {
-    const doc = await this.ingredientsCollection.doc(id.toString()).get();
-    if (!doc.exists) return null;
-    const data = doc.data();
-    let parsedId = parseInt(doc.id);
-    if (isNaN(parsedId)) {
-      parsedId = id; // Use the requested ID if document ID is not numeric
+  async getIngredient(id: number): Promise<Ingredient | undefined> {
+    try {
+      const doc = await this.ingredientsCollection.doc(id.toString()).get();
+      if (!doc.exists) return undefined;
+      
+      const data = doc.data() || {};
+      return {
+        id: parseInt(doc.id),
+        name: data.name || 'Untitled Ingredient',
+        description: data.description || null,
+        imageUrl: data.imageUrl || null,
+        category: data.category || 'other',
+        subCategory: data.subCategory || null,
+        preferredBrand: data.preferredBrand || null,
+        abv: data.abv || null,
+        inMyBar: data.inMyBar || false,
+        usedInRecipesCount: data.usedInRecipesCount || 0,
+        createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
+        updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      } as Ingredient;
+    } catch (error) {
+      console.error('Error fetching ingredient:', error);
+      return undefined;
     }
-    return { id: parsedId, ...data } as Ingredient;
   }
 
   async createIngredient(ingredient: InsertIngredient): Promise<Ingredient> {
@@ -1108,7 +1123,9 @@ export class FirebaseStorage implements IStorage {
     tags: Tag[];
   } | undefined> {
     try {
+      console.log(`🔥 Firebase.getIngredientWithDetails called with ID: ${id}`);
       const ingredient = await this.getIngredient(id);
+      console.log(`🔥 Firebase.getIngredient result:`, ingredient ? `Found: ${ingredient.name}` : 'Not found');
       if (!ingredient) return undefined;
 
       // Get associated preferred brands
