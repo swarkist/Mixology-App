@@ -113,6 +113,12 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Database Development**: Local or cloud PostgreSQL instance
 
 ### Recent Updates (July 2025)
+- **HORIZONTAL SCROLLING FIX COMPLETED (July 29, 2025)**: Successfully resolved mobile horizontal scrolling issues on ingredients page
+  - **Root Cause**: Filter controls using `overflow-x-auto` were causing horizontal scrolling on mobile devices (iPhone 14/15)
+  - **Technical Fix**: Replaced `flex gap-2 overflow-x-auto` with `flex flex-wrap gap-3 mb-4` approach allowing natural element wrapping
+  - **Mobile Optimization**: Applied proper min-width settings to Select components and responsive button positioning
+  - **User Refinements**: Fixed Stats Bar display issues and added text truncation to ingredient names for better mobile layout
+  - **Result**: Ingredients page now works perfectly on all screen sizes without horizontal scrolling
 - **UI CONSISTENCY IMPROVEMENTS (July 29, 2025)**: Enhanced form styling and search bar consistency across pages
   - **Edit Ingredient Form Simplified**: Removed "Preferred Brand" and "Proof" fields from Edit Ingredient page per user request for cleaner interface
   - **Search Bar Styling Fixed**: Updated Preferred Brands search bar to match exact styling from Ingredients page (font family, colors, spacing, focus states)
