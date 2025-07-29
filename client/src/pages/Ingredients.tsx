@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { Link } from "wouter";
-import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
+import { SearchIcon, Plus, Edit2, BarChart3, Check, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,13 @@ export const Ingredients = (): JSX.Element => {
     },
   });
 
+  const handleToggleMyBar = (ingredient: Ingredient) => {
+    toggleMyBarMutation.mutate({
+      id: ingredient.id.toString(),
+      inMyBar: !ingredient.inMyBar
+    });
+  };
+
   const getSubcategoriesForCategory = (category: string) => {
     if (category === "all") return [];
     return [];
@@ -81,101 +88,179 @@ export const Ingredients = (): JSX.Element => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search ingredients..."
-              className="bg-transparent border-0 text-white placeholder:text-[#bab59c] focus:ring-0 pl-2"
+              className="bg-transparent border-0 text-white placeholder:text-[#bab59c] focus:ring-0 pl-2 [font-family:'Plus_Jakarta_Sans',Helvetica]"
             />
           </div>
         </form>
 
-        {/* Filters + Button */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <Select value={selectedCategory} onValueChange={(v) => { setSelectedCategory(v); setSelectedSubcategory("all"); }}>
-            <SelectTrigger className="min-w-[120px] h-8 bg-[#383629] border-0 text-xs text-white">
-              <SelectValue placeholder="Categories" />
+        {/* Filters and Controls - HORIZONTAL SCROLLING FIX APPLIED */}
+        <div className="flex flex-wrap gap-3 py-3">
+          {/* Category Filter */}
+          <Select value={selectedCategory} onValueChange={(value) => {
+            setSelectedCategory(value);
+            setSelectedSubcategory("all"); // Reset subcategory when category changes
+          }}>
+            <SelectTrigger className="w-auto min-w-[120px] h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+              <SelectValue placeholder="All Categories" />
             </SelectTrigger>
             <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white">All Categories</SelectItem>
-              {INGREDIENT_CATEGORIES.map((cat) => (
-                <SelectItem key={cat} value={cat} className="text-white capitalize">{cat}</SelectItem>
+              <SelectItem value="all" className="text-white">
+                All Categories
+              </SelectItem>
+              {INGREDIENT_CATEGORIES.map((category) => (
+                <SelectItem 
+                  key={category} 
+                  value={category}
+                  className="text-white capitalize"
+                >
+                  {category}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
 
+          {/* Subcategory Filter */}
           {subcategories.length > 0 && (
             <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-              <SelectTrigger className="min-w-[120px] h-8 bg-[#383629] border-0 text-xs text-white">
-                <SelectValue placeholder="Subcategories" />
+              <SelectTrigger className="w-auto min-w-[140px] h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
+                <SelectValue placeholder="All Subcategories" />
               </SelectTrigger>
               <SelectContent className="bg-[#383629] border-[#544f3b]">
-                <SelectItem value="all" className="text-white">All Subcategories</SelectItem>
-                {subcategories.map((sub) => (
-                  <SelectItem key={sub} value={sub} className="text-white capitalize">{sub}</SelectItem>
+                <SelectItem value="all" className="text-white">
+                  All Subcategories
+                </SelectItem>
+                {subcategories.map((subcategory: string) => (
+                  <SelectItem 
+                    key={subcategory} 
+                    value={subcategory}
+                    className="text-white capitalize"
+                  >
+                    {subcategory}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
 
           <Link href="/add-ingredient" className="ml-auto">
-            <Button size="sm" className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+            <Button
+              size="sm"
+              className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold whitespace-nowrap"
+            >
               Add Ingredient
             </Button>
           </Link>
         </div>
 
-        {/* Ingredient Cards */}
-        {ingredients && ingredients.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ingredients.map((ingredient) => (
-              <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b]">
-                <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                  <img
-                    src={ingredient.imageUrl || noPhotoImage}
-                    alt={ingredient.name}
-                    className="h-full w-full object-cover"
-                    onError={(e) => ((e.target as HTMLImageElement).src = noPhotoImage)}
-                  />
-                </div>
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-center">
-                    <Badge className="border-[#bab59b] text-[#bab59b] text-xs">{ingredient.category}</Badge>
-                    {ingredient.usedInRecipesCount > 0 && (
-                      <div className="flex items-center text-xs text-[#bab59b]">
-                        <BarChart3 className="h-3 w-3 mr-1" />
-                        {ingredient.usedInRecipesCount}
-                      </div>
-                    )}
-                  </div>
-                  <CardTitle className="text-white text-lg">{ingredient.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {ingredient.subCategory && <p className="capitalize text-sm text-[#bab59b]">{ingredient.subCategory}</p>}
-                  {ingredient.description && <p className="text-xs text-[#bab59b] line-clamp-2">{ingredient.description}</p>}
-                  <div className="flex justify-between items-center pt-2">
-                    <Button size="sm" disabled className="flex-1 border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]">
-                      <Plus className="h-3 w-3 mr-1" /> My Bar (Preferred Brands)
-                    </Button>
-                    <Link href={`/edit-ingredient/${ingredient.id}`}>
-                      <Button size="sm" variant="ghost" className="px-2 text-[#bab59b] hover:text-[#f2c40c]">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        {/* Stats Bar */}
+        {ingredients && (
+          <div className="py-3 border-b border-[#544f3b] mb-3">
+            <div className="flex items-center gap-6 text-sm text-[#bab59c] overflow-x-auto">
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <BarChart3 className="h-4 w-4" />
+                <span>Total: {ingredients.length}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Check className="h-4 w-4 text-[#f2c40c]" />
+                <span>In My Bar: {ingredients.filter(i => i.inMyBar).length}</span>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Star className="h-4 w-4" />
+                <span>Used In: {ingredients.reduce((sum, i) => sum + i.usedInRecipesCount, 0)} recipes</span>
+              </div>
+            </div>
           </div>
-        ) : (
-          <Card className="bg-[#383629] border-[#544f3b]">
-            <CardContent className="p-8 text-center">
-              <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-              <p className="text-[#bab59b]">No ingredients found. Try adjusting your search or filters.</p>
-              <Link href="/add-ingredient">
-                <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                  Add Your First Ingredient
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
         )}
+
+        {/* Content */}
+        <div className="py-6">
+          {ingredients && ingredients.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {ingredients.map((ingredient: Ingredient) => (
+                <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                  {/* Image Section */}
+                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                    <img
+                      src={ingredient.imageUrl || noPhotoImage}
+                      alt={ingredient.name}
+                      className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                      onError={(e) => ((e.target as HTMLImageElement).src = noPhotoImage)}
+                    />
+                  </div>
+
+                  {/* Content Section */}
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <Badge className="bg-[#544f3b] text-[#bab59b] border-0 text-xs [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {ingredient.category}
+                      </Badge>
+                      {ingredient.usedInRecipesCount > 0 && (
+                        <div className="flex items-center text-xs text-[#bab59b]">
+                          <BarChart3 className="h-3 w-3 mr-1" />
+                          <span>{ingredient.usedInRecipesCount}</span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <CardTitle className="text-white text-lg [font-family:'Plus_Jakarta_Sans',Helvetica] leading-tight">
+                      {ingredient.name}
+                    </CardTitle>
+                    
+                    {ingredient.subCategory && (
+                      <p className="text-sm text-[#bab59b] capitalize [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {ingredient.subCategory}
+                      </p>
+                    )}
+                  </CardHeader>
+
+                  <CardContent className="space-y-3">
+                    {ingredient.description && (
+                      <p className="text-sm text-[#bab59b] line-clamp-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        {ingredient.description}
+                      </p>
+                    )}
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2">
+                      <Button 
+                        onClick={() => handleToggleMyBar(ingredient)}
+                        size="sm"
+                        variant="outline"
+                        className={`flex-1 h-8 text-xs [font-family:'Plus_Jakarta_Sans',Helvetica] ${
+                          ingredient.inMyBar 
+                            ? "bg-[#f2c40c] text-[#161611] border-[#f2c40c] hover:bg-[#e0b40a]" 
+                            : "bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629]"
+                        }`}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        {ingredient.inMyBar ? "In My Bar" : "Add to Bar"}
+                      </Button>
+                      
+                      <Link href={`/edit-ingredient/${ingredient.id}`}>
+                        <Button 
+                          size="sm"
+                          variant="outline"
+                          className="bg-transparent border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] hover:bg-[#383629] h-8 px-3 text-xs [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center text-[#bab59b] py-12">
+              <p className="text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                No ingredients found
+              </p>
+              <p className="text-sm mt-2">
+                Try adjusting your search or add some ingredients to get started
+              </p>
+            </div>
+          )}
+        </div>
       </div>
       <Navigation />
     </div>
