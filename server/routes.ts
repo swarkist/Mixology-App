@@ -118,22 +118,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/ingredients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-    console.log(`🔥 GET /api/ingredients/${id} called`);
     
     try {
-      console.log(`🔥 Calling storage.getIngredientWithDetails(${id})`);
       const ingredientDetails = await storage.getIngredientWithDetails(id);
-      console.log(`🔥 getIngredientWithDetails result:`, ingredientDetails ? 'Found ingredient details' : 'Not found');
       
       if (!ingredientDetails) {
-        console.log(`🔥 Returning 404 for ingredient ${id}`);
         return res.status(404).json({ message: "Ingredient not found" });
       }
 
-      console.log(`🔥 Returning ingredient details for ${id}`);
       res.json(ingredientDetails);
     } catch (error) {
-      console.error('🔥 Error fetching ingredient details:', error);
+      console.error('Error fetching ingredient details:', error);
       res.status(500).json({ message: "Error fetching ingredient details", error });
     }
   });

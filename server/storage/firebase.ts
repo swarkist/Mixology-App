@@ -1123,9 +1123,7 @@ export class FirebaseStorage implements IStorage {
     tags: Tag[];
   } | undefined> {
     try {
-      console.log(`🔥 Firebase.getIngredientWithDetails called with ID: ${id}`);
       const ingredient = await this.getIngredient(id);
-      console.log(`🔥 Firebase.getIngredient result:`, ingredient ? `Found: ${ingredient.name}` : 'Not found');
       if (!ingredient) return undefined;
 
       // Get associated preferred brands
