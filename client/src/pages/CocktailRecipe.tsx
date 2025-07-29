@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
@@ -127,7 +128,7 @@ export const CocktailRecipe = (): JSX.Element => {
   const { cocktail, ingredients, instructions } = cocktailDetails;
 
   return (
-    <div className="min-h-screen bg-[#161611] text-white">
+    <div className="min-h-screen bg-[#161611] text-white pb-20 md:pb-0">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto">
@@ -258,31 +259,37 @@ export const CocktailRecipe = (): JSX.Element => {
         </Card>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pb-6">
+        <div className="space-y-3 pb-6">
+          {/* Primary Action Button */}
           <Button 
             onClick={handleStartMaking}
             disabled={incrementPopularityMutation.isPending}
-            className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold"
+            className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12"
           >
             {incrementPopularityMutation.isPending ? 'Starting...' : 'Start Making This Cocktail'}
           </Button>
-          <Link href={`/edit-cocktail/${cocktail.id}`}>
-            <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold px-4">
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Recipe
+          
+          {/* Secondary Action Buttons */}
+          <div className="flex gap-3">
+            <Link href={`/edit-cocktail/${cocktail.id}`} className="flex-1">
+              <Button className="w-full bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold h-10 text-sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit Recipe
+              </Button>
+            </Link>
+            <Button 
+              variant="outline" 
+              onClick={handleDelete}
+              disabled={deleteMutation.isPending}
+              className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
             </Button>
-          </Link>
-          <Button 
-            variant="outline" 
-            onClick={handleDelete}
-            disabled={deleteMutation.isPending}
-            className="border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 px-4"
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
-          </Button>
+          </div>
         </div>
       </div>
+      <Navigation />
     </div>
   );
 };
