@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
@@ -19,31 +19,70 @@ export const MyBar = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
 
-  // Build query string - always filter by inMyBar=true
-  const buildQueryString = () => {
-    const params = new URLSearchParams();
-    params.set("inMyBar", "true"); // Always filter to My Bar ingredients
-    if (searchQuery.trim()) params.set("search", searchQuery.trim());
-    if (selectedCategory !== "all") params.set("category", selectedCategory);
-    if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
-    return params.toString() ? `?${params.toString()}` : "?inMyBar=true";
-  };
-
-  // Fetch ingredients with filters
-  const { data: ingredients, isLoading, error } = useQuery<Ingredient[]>({
-    queryKey: [`/api/ingredients${buildQueryString()}`],
-  });
-
-  // Fetch all My Bar ingredients to calculate recipe counts
-  const { data: allMyBarIngredients } = useQuery<Ingredient[]>({
-    queryKey: ['/api/ingredients?inMyBar=true'],
-    select: (data) => data || [],
-  });
-
   // Fetch preferred brands in My Bar
   const { data: myBarBrands, isLoading: brandsLoading } = useQuery<PreferredBrand[]>({
     queryKey: ['/api/preferred-brands?inMyBar=true'],
   });
+
+  // Fetch all ingredients to organize brands by ingredient associations
+  const { data: allIngredients } = useQuery<Ingredient[]>({
+    queryKey: ['/api/ingredients'],
+  });
+
+  // Fetch detailed brand data with associations for each brand in My Bar
+  const { data: myBarBrandDetails } = useQuery({
+    queryKey: ['my-bar-brand-details', myBarBrands?.map(b => b.id)],
+    queryFn: async () => {
+      if (!myBarBrands || myBarBrands.length === 0) return [];
+      
+      const brandDetails = await Promise.all(
+        myBarBrands.map(async (brand) => {
+          try {
+            const response = await fetch(`/api/preferred-brands/${brand.id}`);
+            const data = await response.json();
+            return data.brand;
+          } catch (error) {
+            console.error(`Error fetching brand details for ${brand.id}:`, error);
+            return brand; // fallback to basic brand data
+          }
+        })
+      );
+      return brandDetails;
+    },
+    enabled: !!myBarBrands && myBarBrands.length > 0,
+  });
+
+  // Group brands by their associated ingredients
+  const organizedByIngredients = useMemo(() => {
+    if (!myBarBrandDetails) return {};
+    
+    const organized: { [ingredientName: string]: { ingredient: Ingredient; brands: PreferredBrand[] } } = {};
+    
+    myBarBrandDetails.forEach((brand) => {
+      if (brand.ingredients && brand.ingredients.length > 0) {
+        brand.ingredients.forEach((ingredient: Ingredient) => {
+          if (!organized[ingredient.name]) {
+            organized[ingredient.name] = {
+              ingredient,
+              brands: []
+            };
+          }
+          organized[ingredient.name].brands.push(brand);
+        });
+      } else {
+        // If no associations, put in "Unassociated" category
+        if (!organized["Unassociated Brands"]) {
+          organized["Unassociated Brands"] = {
+            ingredient: { name: "Unassociated Brands", category: "other" } as Ingredient,
+            brands: []
+          };
+        }
+        organized["Unassociated Brands"].brands.push(brand);
+      }
+    });
+    
+    return organized;
+  }, [myBarBrandDetails]);
 
   // Calculate unique cocktail count that use My Bar ingredients
   const calculateMyBarCocktailCount = (ingredients: Ingredient[] | undefined): number => {
@@ -113,7 +152,7 @@ export const MyBar = (): JSX.Element => {
 
   const subcategories = getSubcategoriesForCategory(selectedCategory);
 
-  if (isLoading) {
+  if (brandsLoading) {
     return (
       <div className="min-h-screen bg-[#161611] text-white p-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -131,19 +170,7 @@ export const MyBar = (): JSX.Element => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-[#161611] text-white p-10">
-        <Card className="bg-[#383629] border-[#544f3b]">
-          <CardContent className="p-8 text-center">
-            <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Error loading ingredients. Please try again.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+
 
   return (
     <div className="min-h-screen bg-[#171712]">
@@ -156,7 +183,7 @@ export const MyBar = (): JSX.Element => {
             My Bar
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Manage your personal collection. {ingredients?.length || 0} ingredients and {myBarBrands?.length || 0} preferred brands in your bar.
+            Your preferred brands organized by ingredient type. {myBarBrands?.length || 0} brands in your bar.
           </p>
         </div>
 
@@ -232,184 +259,108 @@ export const MyBar = (): JSX.Element => {
         </div>
 
         {/* Stats Bar */}
-        {ingredients && (
-          <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
-            <div className="flex items-center gap-6 text-sm text-[#bab59c]">
-              <div className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" />
-                <span>Total: {ingredients.length}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="h-4 w-4 text-[#f2c40c]" />
-                <span>In My Bar: 0</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Star className="h-4 w-4" />
-                <span>Used In: {calculateMyBarCocktailCount(allMyBarIngredients)} recipes with My Bar ingredients</span>
-              </div>
+        <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
+          <div className="flex items-center gap-6 text-sm text-[#bab59c]">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Total Brands: {myBarBrands?.length || 0}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-[#f2c40c]" />
+              <span>Ingredient Types: {Object.keys(organizedByIngredients).length}</span>
             </div>
           </div>
-        )}
+        </div>
 
-        {/* Preferred Brands Section */}
-        {myBarBrands && myBarBrands.length > 0 && (
-          <div className="px-4 py-6 border-b border-[#544f3b]">
-            <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              My Preferred Brands ({myBarBrands.length})
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {myBarBrands.map((brand: PreferredBrand) => (
-                <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
-                  {/* Image Section */}
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={brand.imageUrl || noPhotoImage}
-                      alt={brand.name}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = noPhotoImage;
-                      }}
-                    />
-                  </div>
-
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className="border-[#f2c40c] text-[#f2c40c] text-xs"
-                        >
-                          Preferred Brand
-                        </Badge>
-                        {brand.proof && (
-                          <Badge 
-                            variant="outline" 
-                            className="border-[#bab59b] text-[#bab59b] text-xs"
-                          >
-                            {brand.proof} proof
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {brand.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between pt-2 gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => toggleBrandMyBarMutation.mutate(brand.id)}
-                          className="bg-[#f2c40c] border border-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 flex-1"
-                          disabled={toggleBrandMyBarMutation.isPending}
-                        >
-                          <>
-                            <Check className="h-3 w-3 mr-1" />
-                            In My Bar
-                          </>
-                        </Button>
-                        <Link href={`/edit-preferred-brand/${brand.id}`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Ingredients Section */}
+        {/* Content - Brands Organized by Ingredient */}
         <div className="px-4 py-6">
-          <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            My Ingredients ({ingredients?.length || 0})
-          </h2>
-          {ingredients && ingredients.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ingredients.map((ingredient: Ingredient) => (
-                <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
-                  {/* Image Section */}
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={ingredient.imageUrl || noPhotoImage}
-                      alt={ingredient.name}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = noPhotoImage;
-                      }}
-                    />
+          {Object.keys(organizedByIngredients).length > 0 ? (
+            <div className="space-y-8">
+              {Object.entries(organizedByIngredients).map(([ingredientName, { ingredient, brands }]) => (
+                <div key={ingredientName} className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                      {ingredientName}
+                    </h2>
+                    {ingredient.category && ingredient.category !== "other" && (
+                      <Badge variant="outline" className="border-[#bab59b] text-[#bab59b] text-xs">
+                        {ingredient.category}
+                      </Badge>
+                    )}
+                    <span className="text-sm text-[#bab59c]">
+                      {brands.length} brand{brands.length !== 1 ? 's' : ''}
+                    </span>
                   </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {brands.map((brand: PreferredBrand) => (
+                      <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                        {/* Image Section */}
+                        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
+                          <img
+                            src={brand.imageUrl || noPhotoImage}
+                            alt={brand.name}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.src = noPhotoImage;
+                            }}
+                          />
+                        </div>
 
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className="border-[#bab59b] text-[#bab59b] text-xs"
-                        >
-                          {ingredient.category}
-                        </Badge>
-                        {ingredient.usedInRecipesCount > 0 && (
-                          <div className="flex items-center gap-1 text-[#bab59b] text-xs">
-                            <BarChart3 className="h-3 w-3" />
-                            <span>{ingredient.usedInRecipesCount}</span>
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge 
+                                variant="outline" 
+                                className="border-[#f2c40c] text-[#f2c40c] text-xs"
+                              >
+                                In My Bar
+                              </Badge>
+                              {brand.proof && (
+                                <Badge 
+                                  variant="outline" 
+                                  className="border-[#bab59b] text-[#bab59b] text-xs"
+                                >
+                                  {brand.proof} proof
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      {/* ABV/Proof display removed - now managed in preferred brands */}
-                    </div>
-                    <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {ingredient.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {ingredient.subCategory && (
-                        <p className="text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica] capitalize">
-                          {ingredient.subCategory}
-                        </p>
-                      )}
-                      {/* Preferred brand display removed - now managed in separate preferred brands system */}
-                      {ingredient.description && (
-                        <p className="text-[#bab59b] text-xs [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-2">
-                          {ingredient.description}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-between pt-2 gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleToggleMyBar(ingredient)}
-                          className="bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] flex-1"
-                          disabled
-                        >
-                          <>
-                            <Plus className="h-3 w-3 mr-1" />
-                            My Bar (Use Preferred Brands)
-                          </>
-                        </Button>
-                        <Link href={`/edit-ingredient/${ingredient.id}`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                          <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {brand.name}
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between pt-2 gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => toggleBrandMyBarMutation.mutate(brand.id)}
+                                className="bg-[#f2c40c] border border-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 flex-1"
+                                disabled={toggleBrandMyBarMutation.isPending}
+                              >
+                                <>
+                                  <Check className="h-3 w-3 mr-1" />
+                                  Remove from Bar
+                                </>
+                              </Button>
+                              <Link href={`/edit-preferred-brand/${brand.id}`}>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                                >
+                                  <Edit2 className="h-3 w-3" />
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -417,36 +368,17 @@ export const MyBar = (): JSX.Element => {
               <CardContent className="p-8 text-center">
                 <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
                 <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
-                  {searchQuery || selectedCategory !== "all" || selectedSubcategory !== "all" 
-                    ? "No ingredients found in your bar matching the current filters."
-                    : "No ingredients in your bar yet."}
-                </p>
-                <Link href="/ingredients">
-                  <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                    Browse All Ingredients
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Empty state when both ingredients and brands are empty */}
-          {(!ingredients || ingredients.length === 0) && (!myBarBrands || myBarBrands.length === 0) && (
-            <Card className="bg-[#383629] border-[#544f3b] mt-6">
-              <CardContent className="p-8 text-center">
-                <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
-                  Your bar is empty. Start building your collection!
+                  Your bar is empty. Start building your preferred brands collection!
                 </p>
                 <div className="flex gap-3 justify-center">
-                  <Link href="/ingredients">
+                  <Link href="/preferred-brands">
                     <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                      Browse Ingredients
+                      Browse Preferred Brands
                     </Button>
                   </Link>
-                  <Link href="/preferred-brands">
+                  <Link href="/ingredients">
                     <Button variant="outline" className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]">
-                      Browse Brands
+                      Browse Ingredients
                     </Button>
                   </Link>
                 </div>
