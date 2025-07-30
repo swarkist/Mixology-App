@@ -105,9 +105,9 @@ export const Ingredients = (): JSX.Element => {
     <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
       <TopNavigation />
 
-      <div className="px-4 py-5 max-w-7xl mx-auto">
+      <div className="px-4 md:px-40 py-5">
         {/* Header */}
-        <div className="mb-3">
+        <div className="p-4 mb-3">
           <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
             Ingredients
           </h1>
@@ -117,7 +117,7 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Search Form */}
-        <div className="py-3">
+        <div className="px-4 py-3">
           <form onSubmit={handleSearch} className="h-12">
             <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
               <div className="pl-4 flex items-center">
