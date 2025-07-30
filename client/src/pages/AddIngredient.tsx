@@ -399,7 +399,7 @@ export const AddIngredient = (): JSX.Element => {
             <Link href="/ingredients">
               <Button
                 variant="outline"
-                className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium"
               >
                 Cancel
               </Button>

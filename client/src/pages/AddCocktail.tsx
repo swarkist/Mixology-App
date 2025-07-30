@@ -509,7 +509,7 @@ export const AddCocktail = (): JSX.Element => {
                     variant="outline"
                     size="sm"
                     onClick={() => removeIngredient(index)}
-                    className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                    className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium disabled:opacity-50 disabled:hover:bg-[#383529] disabled:hover:text-[#f2c40c]"
                     disabled={ingredients.length === 1}
                   >
                     <Minus className="w-4 h-4" />
@@ -557,7 +557,7 @@ export const AddCocktail = (): JSX.Element => {
                     variant="outline"
                     size="sm"
                     onClick={() => removeInstruction(index)}
-                    className="border-[#544f3a] text-white hover:bg-[#2a2920] mt-1"
+                    className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium disabled:opacity-50 disabled:hover:bg-[#383529] disabled:hover:text-[#f2c40c] mt-1"
                     disabled={instructions.length === 1}
                   >
                     <Minus className="w-4 h-4" />

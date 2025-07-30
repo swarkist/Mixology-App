@@ -26,7 +26,7 @@ export const FeaturedCocktailsSection = (): JSX.Element => {
             Featured Cocktails
           </h2>
           <Link href="/cocktails">
-            <Button variant="outline" size="sm" className="border-[#544f3a] text-white hover:bg-[#2a2920] hover:text-[#f2c40c]">
+            <Button variant="outline" size="sm" className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium">
               View All
             </Button>
           </Link>

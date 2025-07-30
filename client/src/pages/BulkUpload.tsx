@@ -157,7 +157,7 @@ export const BulkUpload = (): JSX.Element => {
               <Button 
                 onClick={downloadTemplate}
                 variant="outline" 
-                className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium"
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download Template
@@ -201,7 +201,7 @@ export const BulkUpload = (): JSX.Element => {
               <Button 
                 onClick={() => document.getElementById('file-upload')?.click()}
                 variant="outline"
-                className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium"
               >
                 Choose Files
               </Button>
