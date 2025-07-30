@@ -226,81 +226,71 @@ export const Ingredients = (): JSX.Element => {
         )}
 
         {/* Content */}
-        <div className="py-6">
+        <div className="px-4 py-6">
           {ingredients && ingredients.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {ingredients.map((ingredient: Ingredient) => (
-                <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
                   {/* Image Section */}
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={ingredient.imageUrl || noPhotoImage}
-                      alt={ingredient.name}
-                      className="h-full w-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = noPhotoImage;
-                      }}
-                    />
-                  </div>
+                  <div
+                    className="w-full h-48 bg-cover bg-center"
+                    style={{
+                      backgroundImage: ingredient.imageUrl
+                        ? `url(${ingredient.imageUrl})`
+                        : `url(${noPhotoImage})`,
+                    }}
+                  />
 
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Badge 
-                          variant="outline" 
-                          className="border-[#bab59b] text-[#bab59b] text-xs"
-                        >
+                        <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
                           {ingredient.category}
                         </Badge>
                         {ingredient.usedInRecipesCount > 0 && (
-                          <div className="flex items-center gap-1 text-[#bab59b] text-xs">
-                            <BarChart3 className="h-3 w-3" />
+                          <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                            <BarChart3 className="h-4 w-4" />
                             <span>{ingredient.usedInRecipesCount}</span>
                           </div>
                         )}
                       </div>
-                      {/* ABV/Proof display removed - now managed in preferred brands */}
                     </div>
-                    <CardTitle className="text-lg text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={ingredient.name}>
                       {ingredient.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
+                  <CardContent className="flex flex-col flex-1">
+                    <div className="flex-1">
                       {ingredient.subCategory && (
-                        <p className="text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica] capitalize">
+                        <p className="text-[#bab59b] text-sm mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica] capitalize">
                           {ingredient.subCategory}
                         </p>
                       )}
-                      {/* Preferred brand display removed - now managed in separate preferred brands system */}
                       {ingredient.description && (
-                        <p className="text-[#bab59b] text-xs [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-2">
+                        <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
                           {ingredient.description}
                         </p>
                       )}
-                      <div className="flex flex-wrap items-center justify-between pt-2 gap-2 overflow-hidden w-full">
+                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
+                      <Button
+                        size="sm"
+                        onClick={() => handleToggleMyBar(ingredient)}
+                        className="flex-1 bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
+                        disabled
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        My Bar
+                      </Button>
+                      <Link href={`/edit-ingredient/${ingredient.id}`}>
                         <Button
                           size="sm"
-                          onClick={() => handleToggleMyBar(ingredient)}
-                          className="bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] min-w-0 flex-1"
-                          disabled
+                          variant="ghost"
+                          className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
                         >
-                          <>
-                            <Plus className="h-3 w-3 mr-1" />
-                            My Bar (Use Preferred Brands)
-                          </>
+                          <Edit2 className="h-3 w-3" />
                         </Button>
-                        <Link href={`/edit-ingredient/${ingredient.id}`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      </div>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>

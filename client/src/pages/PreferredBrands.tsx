@@ -130,60 +130,66 @@ export default function PreferredBrands() {
           {brands && brands.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {brands.map((brand: PreferredBrand) => (
-                <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
                   {/* Image Section */}
-                  <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={brand.imageUrl || noPhotoImage}
-                      alt={brand.name}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
+                  <div
+                    className="w-full h-48 bg-cover bg-center"
+                    style={{
+                      backgroundImage: brand.imageUrl
+                        ? `url(${brand.imageUrl})`
+                        : `url(${noPhotoImage})`,
+                    }}
+                  />
 
-                  {/* Content Section */}
-                  <CardContent className="p-4 space-y-3">
-                    {/* Title */}
-                    <h3 className="text-lg font-semibold text-white mb-1 truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
-                      {brand.name}
-                    </h3>
-
-                    {/* Proof Badge */}
-                    {brand.proof && (
-                      <div className="flex flex-wrap gap-1">
-                        <Badge className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] text-xs font-medium">
-                          {brand.proof}° Proof
-                        </Badge>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {brand.proof && (
+                          <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
+                            {brand.proof}° Proof
+                          </Badge>
+                        )}
+                        {brand.usedInRecipesCount > 0 && (
+                          <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                            <BarChart3 className="h-4 w-4" />
+                            <span>{brand.usedInRecipesCount}</span>
+                          </div>
+                        )}
                       </div>
-                    )}
-
-                    {/* Usage Stats */}
-                    {brand.usedInRecipesCount > 0 && (
-                      <p className="text-xs text-[#bab59c] mb-3">
-                        Used in {brand.usedInRecipesCount} recipe{brand.usedInRecipesCount !== 1 ? 's' : ''}
-                      </p>
-                    )}
-
-                    {/* Action Buttons */}
-                    <div className="flex items-center justify-between gap-2 pt-2">
+                    </div>
+                    <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
+                      {brand.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col flex-1">
+                    <div className="flex-1">
+                      {brand.usedInRecipesCount > 0 && (
+                        <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          Used in {brand.usedInRecipesCount} recipe{brand.usedInRecipesCount !== 1 ? 's' : ''}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
                       <Button
                         onClick={() => handleToggleMyBar(brand)}
                         disabled={toggleMyBarMutation.isPending}
-                        className={`flex-1 text-xs font-medium transition-all duration-200 ${
+                        size="sm"
+                        className={`flex-1 ${
                           brand.inMyBar
-                            ? "bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+                            ? "bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
                             : "bg-transparent border border-[#544f3b] text-[#bab59c] hover:border-[#f2c40c] hover:text-[#f2c40c]"
                         }`}
                       >
                         <Heart className={`w-3 h-3 mr-1 ${brand.inMyBar ? 'fill-current' : ''}`} />
                         {brand.inMyBar ? "In My Bar" : "Add to Bar"}
                       </Button>
-
                       <Link href={`/edit-preferred-brand/${brand.id}`}>
                         <Button
                           size="sm"
-                          className="bg-transparent border border-[#544f3b] text-[#bab59c] hover:border-[#f2c40c] hover:text-[#f2c40c] px-3"
+                          variant="ghost"
+                          className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
                         >
-                          <Edit2 className="w-3 h-3" />
+                          <Edit2 className="h-3 w-3" />
                         </Button>
                       </Link>
                     </div>

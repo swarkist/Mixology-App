@@ -302,67 +302,57 @@ export const MyBar = (): JSX.Element => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {brands.map((brand: PreferredBrand) => (
-                      <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300">
+                      <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
                         {/* Image Section */}
-                        <div className="relative h-48 w-full overflow-hidden rounded-t-lg">
-                          <img
-                            src={brand.imageUrl || noPhotoImage}
-                            alt={brand.name}
-                            className="h-full w-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = noPhotoImage;
-                            }}
-                          />
-                        </div>
+                        <div
+                          className="w-full h-48 bg-cover bg-center"
+                          style={{
+                            backgroundImage: brand.imageUrl
+                              ? `url(${brand.imageUrl})`
+                              : `url(${noPhotoImage})`,
+                          }}
+                        />
 
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <Badge 
-                                variant="outline" 
-                                className="border-[#f2c40c] text-[#f2c40c] text-xs"
-                              >
+                              <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
                                 In My Bar
                               </Badge>
                               {brand.proof && (
-                                <Badge 
-                                  variant="outline" 
-                                  className="border-[#bab59b] text-[#bab59b] text-xs"
-                                >
-                                  {brand.proof} proof
-                                </Badge>
+                                <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                                  <span>{brand.proof}° Proof</span>
+                                </div>
                               )}
                             </div>
                           </div>
-                          <CardTitle className="text-lg text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
+                          <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
                             {brand.name}
                           </CardTitle>
                         </CardHeader>
-                        <CardContent>
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between pt-2 gap-2">
+                        <CardContent className="flex flex-col flex-1">
+                          <div className="flex-1">
+                            {/* Description content can go here if needed */}
+                          </div>
+                          <div className="flex items-center gap-2 mt-auto">
+                            <Button
+                              size="sm"
+                              onClick={() => toggleBrandMyBarMutation.mutate(brand.id)}
+                              className="flex-1 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
+                              disabled={toggleBrandMyBarMutation.isPending}
+                            >
+                              <Check className="h-3 w-3 mr-1" />
+                              Remove from Bar
+                            </Button>
+                            <Link href={`/edit-preferred-brand/${brand.id}`}>
                               <Button
                                 size="sm"
-                                onClick={() => toggleBrandMyBarMutation.mutate(brand.id)}
-                                className="bg-[#f2c40c] border border-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 flex-1"
-                                disabled={toggleBrandMyBarMutation.isPending}
+                                variant="ghost"
+                                className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
                               >
-                                <>
-                                  <Check className="h-3 w-3 mr-1" />
-                                  Remove from Bar
-                                </>
+                                <Edit2 className="h-3 w-3" />
                               </Button>
-                              <Link href={`/edit-preferred-brand/${brand.id}`}>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="px-2 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                                >
-                                  <Edit2 className="h-3 w-3" />
-                                </Button>
-                              </Link>
-                            </div>
+                            </Link>
                           </div>
                         </CardContent>
                       </Card>
