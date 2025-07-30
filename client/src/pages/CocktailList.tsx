@@ -221,8 +221,8 @@ export const CocktailList = (): JSX.Element => {
             </Link>
           </div>
 
-          {/* Second Row: View Mode Buttons */}
-          <div className="flex justify-end items-center gap-2">
+          {/* Second Row: View Mode Buttons - Hidden for now */}
+          {/* <div className="flex justify-end items-center gap-2">
             <div className="flex gap-1">
               <Button
                 variant="ghost"
@@ -241,7 +241,7 @@ export const CocktailList = (): JSX.Element => {
                 <List className="h-3 w-3" />
               </Button>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Cocktail Grid */}
