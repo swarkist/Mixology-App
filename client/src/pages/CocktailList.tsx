@@ -294,7 +294,7 @@ export const CocktailList = (): JSX.Element => {
                         />
                       </Button>
                     </div>
-                    <CardTitle className="text-xl text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={cocktail.name}>
                       {cocktail.name}
                     </CardTitle>
                   </CardHeader>

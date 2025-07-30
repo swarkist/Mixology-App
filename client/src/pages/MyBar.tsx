@@ -268,7 +268,7 @@ export const MyBar = (): JSX.Element => {
 
         {/* Stats Bar */}
         <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
-          <div className="flex items-center gap-6 text-sm text-[#bab59c]">
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               <span>Total Brands: {myBarBrands?.length || 0}</span>
@@ -335,7 +335,7 @@ export const MyBar = (): JSX.Element => {
                               )}
                             </div>
                           </div>
-                          <CardTitle className="text-lg text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          <CardTitle className="text-lg text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
                             {brand.name}
                           </CardTitle>
                         </CardHeader>

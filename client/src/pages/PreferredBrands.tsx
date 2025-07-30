@@ -108,7 +108,7 @@ export default function PreferredBrands() {
         {/* Stats Bar */}
         {brands && (
           <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
-            <div className="flex items-center gap-6 text-sm text-[#bab59c]">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
                 <span>Total: {brands.length}</span>
@@ -143,7 +143,7 @@ export default function PreferredBrands() {
                   {/* Content Section */}
                   <CardContent className="p-4 space-y-3">
                     {/* Title */}
-                    <h3 className="text-lg font-semibold text-white mb-1 [font-family:'Plus_Jakarta_Sans',Helvetica] line-clamp-1">
+                    <h3 className="text-lg font-semibold text-white mb-1 truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
                       {brand.name}
                     </h3>
 
