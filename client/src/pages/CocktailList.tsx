@@ -298,13 +298,15 @@ export const CocktailList = (): JSX.Element => {
                       {cocktail.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    {cocktail.description && (
-                      <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                        {cocktail.description}
-                      </p>
-                    )}
-                    <div className="flex items-center gap-2">
+                  <CardContent className="flex flex-col h-full">
+                    <div className="flex-1">
+                      {cocktail.description && (
+                        <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          {cocktail.description}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
                       <Link href={`/recipe/${cocktail.id}`}>
                         <Button
                           variant="outline"
