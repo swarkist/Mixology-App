@@ -477,6 +477,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Shorter alias for the test compatibility
+  app.patch("/api/cocktails/:id/popularity", async (req, res) => {
+    const id = parseInt(req.params.id);
+    
+    try {
+      const updated = await storage.incrementPopularity(id);
+      res.json(updated);
+    } catch (error) {
+      res.status(404).json({ message: "Cocktail not found", error });
+    }
+  });
+
   app.patch("/api/cocktails/:id/reset-popularity", async (req, res) => {
     const id = parseInt(req.params.id);
     
