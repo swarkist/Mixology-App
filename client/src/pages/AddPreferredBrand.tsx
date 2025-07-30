@@ -66,46 +66,60 @@ export default function AddPreferredBrand() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 md:pb-0">
-      <TopNavigation />
-      <div className="container mx-auto px-4 md:px-40 py-8 max-w-2xl">
-        {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
-          <Link href="/preferred-brands">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
+    <div className="min-h-screen bg-[#161611] text-white pb-20 md:pb-0">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[#161611]/90 backdrop-blur-sm border-b border-[#2a2920]">
+        <div className="flex items-center justify-between px-4 md:px-40 py-4 max-w-4xl mx-auto">
+          <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+            <Link href="/preferred-brands">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920] h-10 px-3">
+                <ArrowLeft className="w-4 h-4 mr-1 md:mr-2" />
+                <span className="hidden sm:inline">Back</span>
+              </Button>
+            </Link>
+            <h1 className="text-lg md:text-xl font-bold [font-family:'Plus_Jakarta_Sans',Helvetica] truncate">
               Add Preferred Brand
             </h1>
-            <p className="text-muted-foreground">
-              Add a new preferred brand to your collection
-            </p>
           </div>
+          <Button 
+            form="brand-form"
+            type="submit"
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
+            disabled={createMutation.isPending}
+          >
+            {createMutation.isPending ? (
+              <span className="hidden sm:inline">Saving...</span>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Save Brand</span>
+                <span className="sm:hidden">Save</span>
+              </>
+            )}
+          </Button>
         </div>
+      </div>
 
-        <Card>
+      <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardHeader>
-            <CardTitle>Brand Details</CardTitle>
-            <CardDescription>
-              Enter the details for your preferred brand
-            </CardDescription>
+            <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Brand Details
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <form id="brand-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Brand Name */}
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Brand Name *</FormLabel>
+                      <FormLabel className="text-white">Brand Name *</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g., Grey Goose, Jack Daniel's, Cointreau"
+                          className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                           {...field} 
                         />
                       </FormControl>
@@ -120,12 +134,13 @@ export default function AddPreferredBrand() {
                   name="proof"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Proof</FormLabel>
+                      <FormLabel className="text-white">Proof</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           placeholder="80"
                           step="1"
+                          className="bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-[#f2c40c] focus-visible:border-[#f2c40c]"
                           {...field}
                           value={field.value || ""}
                           onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : undefined)}
@@ -135,72 +150,63 @@ export default function AddPreferredBrand() {
                     </FormItem>
                   )}
                 />
-
-                {/* Image Upload */}
-                <div className="space-y-4">
-                  <FormLabel>Brand Image</FormLabel>
-                  {!imagePreview ? (
-                    <div className="border-2 border-dashed border-muted-foreground rounded-lg p-8 text-center">
-                      <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground mb-4">
-                        Drag and drop an image, or click to browse
-                      </p>
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="image-upload"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => document.getElementById("image-upload")?.click()}
-                      >
-                        Choose Image
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="relative">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full max-w-sm mx-auto rounded-lg shadow-lg"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute top-2 right-2"
-                        onClick={removeImage}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  )}
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-4 pt-4">
-                  <Link href="/preferred-brands" className="flex-1">
-                    <Button type="button" variant="outline" className="w-full">
-                      Cancel
-                    </Button>
-                  </Link>
-                  <Button 
-                    type="submit" 
-                    className="flex-1"
-                    disabled={createMutation.isPending}
-                  >
-                    {createMutation.isPending ? "Creating..." : "Create Brand"}
-                  </Button>
-                </div>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        {/* Image Upload */}
+        <Card className="bg-[#2a2920] border-[#4a4735]">
+          <CardHeader>
+            <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Brand Image
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <div className="mt-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                  >
+                    <Upload className="w-4 h-4 mr-2" />
+                    Choose Image
+                  </Button>
+                </div>
+              </div>
+              <div className="relative">
+                <img
+                  src={imagePreview || "https://via.placeholder.com/96x96?text=No+Image"}
+                  alt={imagePreview ? "Brand preview" : "No photo placeholder"}
+                  className="w-24 h-24 object-cover rounded-lg"
+                />
+                {imagePreview && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="destructive"
+                    className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0"
+                    onClick={removeImage}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
       <Navigation />
     </div>
   );
-}
+};
