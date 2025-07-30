@@ -257,7 +257,7 @@ export const CocktailList = (): JSX.Element => {
               {cocktails.map((cocktail: Cocktail) => (
                 <Card
                   key={cocktail.id}
-                  className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden"
+                  className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col"
                 >
                   {/* Cocktail Image */}
                   <div
@@ -298,7 +298,7 @@ export const CocktailList = (): JSX.Element => {
                       {cocktail.name}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex flex-col h-full">
+                  <CardContent className="flex flex-col flex-1">
                     <div className="flex-1">
                       {cocktail.description && (
                         <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
