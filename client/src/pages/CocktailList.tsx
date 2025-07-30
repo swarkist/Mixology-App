@@ -189,7 +189,7 @@ export const CocktailList = (): JSX.Element => {
 
         {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">
-          {/* First Row: Filter Buttons */}
+          {/* First Row: Filter Buttons and Add Cocktail */}
           <div className="flex gap-2 flex-wrap">
             <Button
               variant={showOnlyFeatured ? "default" : "outline"}
@@ -210,10 +210,7 @@ export const CocktailList = (): JSX.Element => {
               <TrendingUp className="h-3 w-3 mr-1" />
               Popular
             </Button>
-          </div>
 
-          {/* Second Row: Action Buttons */}
-          <div className="flex justify-between items-center gap-2">
             <Link href="/add-cocktail">
               <Button
                 size="sm"
@@ -222,7 +219,10 @@ export const CocktailList = (): JSX.Element => {
                 Add Cocktail
               </Button>
             </Link>
-            
+          </div>
+
+          {/* Second Row: View Mode Buttons */}
+          <div className="flex justify-end items-center gap-2">
             <div className="flex gap-1">
               <Button
                 variant="ghost"
