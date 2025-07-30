@@ -372,7 +372,7 @@ export const AddCocktail = (): JSX.Element => {
                     <Button
                       type="button"
                       variant="outline"
-                      className="border-[#544f3a] text-white hover:bg-[#2a2920]"
+                      className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium"
                       onClick={() => document.getElementById('image')?.click()}
                     >
                       <Upload className="w-4 h-4 mr-2" />

@@ -327,7 +327,7 @@ export const EditIngredient = (): JSX.Element => {
                     <Button 
                       type="button" 
                       variant="outline" 
-                      className="bg-[#26261c] border-[#544f3a] text-white hover:bg-[#383629]"
+                      className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium"
                       onClick={() => {
                         console.log('Choose Image button clicked');
                         document.getElementById('image-upload-edit')?.click();
