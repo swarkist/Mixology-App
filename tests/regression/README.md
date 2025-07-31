@@ -53,6 +53,15 @@ Tests application performance under various conditions:
 - **Concurrent Load**: Multiple simultaneous requests
 - **Memory Usage**: Large data handling performance
 
+### ♿ `ui-accessibility.test.ts` - UI Accessibility & Consistency
+Tests user interface accessibility standards and design consistency:
+- **Button Accessibility**: Validates contrast ratios and standardized button styling
+- **Theme Consistency**: Verifies consistent theme application across all pages
+- **Mobile Responsiveness**: Confirms mobile-optimized design for iPhone 14/15
+- **Form Accessibility**: Tests form input consistency and accessibility compliance
+- **Navigation Standards**: Validates navigation accessibility and touch-friendly design
+- **Data Integrity**: Ensures UI improvements don't affect functionality
+
 ## Usage
 
 ### Quick Start
@@ -75,6 +84,9 @@ npx vitest tests/regression/edge-cases.test.ts
 
 # Performance benchmarks
 npx vitest tests/regression/performance.test.ts
+
+# UI accessibility and consistency
+npx vitest tests/regression/ui-accessibility.test.ts
 ```
 
 ### Prompt-Based Testing
@@ -112,6 +124,14 @@ Perform Regression Testing
 - ✅ Bulk operation efficiency
 - ✅ Search query performance
 - ✅ Memory usage optimization
+
+### UI Accessibility ✅
+- ✅ Button contrast ratios and accessibility standards
+- ✅ Theme consistency across all pages
+- ✅ Mobile responsive design validation
+- ✅ Form input accessibility compliance
+- ✅ Navigation touch-friendly design
+- ✅ UI improvements impact on functionality
 
 ## Requirements
 

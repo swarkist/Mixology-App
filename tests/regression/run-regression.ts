@@ -13,7 +13,8 @@ const testFiles = [
   'tests/regression/api.test.ts',
   'tests/regression/firebase-persistence.test.ts', 
   'tests/regression/edge-cases.test.ts',
-  'tests/regression/performance.test.ts'
+  'tests/regression/performance.test.ts',
+  'tests/regression/ui-accessibility.test.ts'
 ];
 
 const testDescriptions = {
@@ -21,7 +22,8 @@ const testDescriptions = {
   'api.test.ts': 'Core API functionality (CRUD operations, search, filtering)',
   'firebase-persistence.test.ts': 'Firebase data persistence and synchronization',
   'edge-cases.test.ts': 'Error handling and edge case scenarios',
-  'performance.test.ts': 'Performance benchmarks and load testing'
+  'performance.test.ts': 'Performance benchmarks and load testing',
+  'ui-accessibility.test.ts': 'UI accessibility standards and button contrast validation'
 };
 
 async function runRegressionTests() {
