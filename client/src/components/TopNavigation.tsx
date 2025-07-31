@@ -35,7 +35,7 @@ const TopNavigation = (): JSX.Element => {
   return (
     <>
       {/* Desktop Navigation */}
-      <nav className="hidden md:flex items-center justify-between px-10 py-3 border-b border-[#e5e8ea] w-full bg-[#161611]">
+      <nav className="hidden lg:flex items-center justify-between px-10 py-3 border-b border-[#e5e8ea] w-full bg-[#161611]">
         {/* Left side: Logo and navigation */}
         <div className="flex items-center gap-8">
           {/* Logo/Brand */}
@@ -91,7 +91,7 @@ const TopNavigation = (): JSX.Element => {
       </nav>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden flex items-center justify-between px-4 py-3 border-b border-[#e5e8ea] w-full bg-[#161611]">
+      <nav className="lg:hidden flex items-center justify-between px-4 py-3 border-b border-[#e5e8ea] w-full bg-[#161611]">
         {/* Logo */}
         <Link href="/">
           <h1 className="font-bold text-white text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -112,7 +112,7 @@ const TopNavigation = (): JSX.Element => {
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#161611] border-b border-[#e5e8ea] py-4">
+        <div className="lg:hidden bg-[#161611] border-b border-[#e5e8ea] py-4">
           {/* Search bar */}
           <div className="px-4 py-2">
             <form onSubmit={handleSearch}>
