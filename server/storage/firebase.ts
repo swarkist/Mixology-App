@@ -500,14 +500,36 @@ export class FirebaseStorage {
   }
 
   async updateIngredient(id: number, updates: Partial<InsertIngredient>): Promise<Ingredient> {
-    const docRef = this.ingredientsCollection.doc(id.toString());
-    await docRef.update({ ...updates, updatedAt: new Date() });
+    console.log(`🔥 Firebase updateIngredient called with id: ${id}`, updates);
     
-    const doc = await docRef.get();
-    if (!doc.exists) throw new Error('Ingredient not found');
-    const data = doc.data();
-    return { 
-      id: parseInt(doc.id), 
+    const docRef = this.ingredientsCollection.doc(id.toString());
+    
+    // First check if the document exists
+    const docSnapshot = await docRef.get();
+    if (!docSnapshot.exists) {
+      console.error(`🔥 Ingredient document ${id} not found for update`);
+      throw new Error('Ingredient not found');
+    }
+    
+    try {
+      console.log(`🔥 Updating ingredient document ${id}...`);
+      await docRef.update({ ...updates, updatedAt: new Date() });
+      console.log(`🔥 Ingredient ${id} updated successfully`);
+    } catch (error) {
+      console.error(`🔥 Error updating ingredient ${id}:`, error);
+      throw new Error('Failed to update ingredient');
+    }
+    
+    // Get the updated document
+    const updatedDoc = await docRef.get();
+    if (!updatedDoc.exists) {
+      console.error(`🔥 Updated ingredient document ${id} not found`);
+      throw new Error('Ingredient not found after update');
+    }
+    
+    const data = updatedDoc.data();
+    const result = { 
+      id: parseInt(updatedDoc.id), 
       name: data?.name || 'Untitled Ingredient',
       description: data?.description || null,
       imageUrl: data?.imageUrl || null,
@@ -520,6 +542,9 @@ export class FirebaseStorage {
       createdAt: data?.createdAt ? new Date(data.createdAt) : new Date(),
       updatedAt: data?.updatedAt ? new Date(data.updatedAt) : new Date(),
     } as Ingredient;
+    
+    console.log(`🔥 Returning updated ingredient:`, result);
+    return result;
   }
 
   async deleteIngredient(id: number): Promise<boolean> {

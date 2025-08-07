@@ -35,7 +35,7 @@ export const EditIngredient = (): JSX.Element => {
   const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   // Fetch ingredient data with details
-  const { data: ingredientDetails, isLoading } = useQuery({
+  const { data: ingredientDetails, isLoading } = useQuery<{ingredient: Ingredient}>({
     queryKey: [`/api/ingredients/${id}`],
     enabled: !!id,
   });
@@ -452,7 +452,7 @@ export const EditIngredient = (): JSX.Element => {
         {ingredient && (
           <PreferredBrandAssociation
             ingredientId={ingredient.id}
-            associatedBrands={ingredientDetails?.preferredBrands || []}
+            associatedBrands={(ingredientDetails as any)?.preferredBrands || []}
             onAssociationChange={() => {
               queryClient.invalidateQueries({ queryKey: [`/api/ingredients/${id}`] });
             }}

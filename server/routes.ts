@@ -172,20 +172,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/ingredients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
+    
     try {
       const updateData = { ...req.body };
       
       // Handle image upload
       if (req.body.image && typeof req.body.image === 'string') {
+        console.log('🔥 Processing image upload for ingredient update...');
         // Store the base64 data directly as imageUrl
         updateData.imageUrl = req.body.image;
         delete updateData.image;
       }
       
+      console.log(`🔥 Final update data for ingredient ${id}:`, JSON.stringify(updateData, null, 2));
       const updated = await storage.updateIngredient(id, updateData);
+      console.log(`🔥 Successfully updated ingredient ${id}:`, updated);
       res.json(updated);
-    } catch (error) {
-      res.status(404).json({ message: "Ingredient not found", error });
+    } catch (error: any) {
+      console.error(`🔥 Error updating ingredient ${id}:`, error);
+      const errorMessage = error.message || 'Unknown error';
+      if (errorMessage.includes('not found')) {
+        res.status(404).json({ message: "Ingredient not found", error: errorMessage });
+      } else {
+        res.status(500).json({ message: "Error updating ingredient", error: errorMessage });
+      }
     }
   });
 
