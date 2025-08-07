@@ -160,6 +160,46 @@ export const MyBar = (): JSX.Element => {
 
   const subcategories = getSubcategoriesForCategory(selectedCategory);
 
+  // Filter organized ingredients based on search query and category filters
+  const filteredOrganizedIngredients = useMemo(() => {
+    const filtered: { [ingredientName: string]: { ingredient: Ingredient; brands: PreferredBrand[] } } = {};
+    
+    Object.entries(organizedByIngredients).forEach(([ingredientName, { ingredient, brands }]) => {
+      // Filter by search query - search both ingredient names and brand names
+      const matchesSearch = searchQuery === "" || 
+        ingredientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        brands.some(brand => brand.name.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Filter by category
+      const matchesCategory = selectedCategory === "all" || 
+        ingredient.category === selectedCategory;
+      
+      // Filter by subcategory (if applicable)
+      const matchesSubcategory = selectedSubcategory === "all" || 
+        !ingredient.subcategory || 
+        ingredient.subcategory === selectedSubcategory;
+      
+      // Only include if all filters match
+      if (matchesSearch && matchesCategory && matchesSubcategory) {
+        // Additionally filter brands within this ingredient group by search
+        const filteredBrands = brands.filter(brand => 
+          searchQuery === "" || 
+          ingredientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        
+        if (filteredBrands.length > 0) {
+          filtered[ingredientName] = {
+            ingredient,
+            brands: filteredBrands
+          };
+        }
+      }
+    });
+    
+    return filtered;
+  }, [organizedByIngredients, searchQuery, selectedCategory, selectedSubcategory]);
+
   if (brandsLoading) {
     return (
       <div className="min-h-screen bg-[#161611] text-white p-10">
@@ -204,7 +244,7 @@ export const MyBar = (): JSX.Element => {
               </div>
               <Input
                 type="text"
-                placeholder="Search ingredients..."
+                placeholder="Search my bar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
@@ -275,16 +315,16 @@ export const MyBar = (): JSX.Element => {
             </div>
             <div className="flex items-center gap-2">
               <Check className="h-4 w-4 text-[#f2c40c]" />
-              <span>Ingredient Types: {Object.keys(organizedByIngredients).length}</span>
+              <span>Ingredient Types: {Object.keys(filteredOrganizedIngredients).length}</span>
             </div>
           </div>
         </div>
 
         {/* Content - Brands Organized by Ingredient */}
         <div className="px-4 py-6">
-          {Object.keys(organizedByIngredients).length > 0 ? (
+          {Object.keys(filteredOrganizedIngredients).length > 0 ? (
             <div className="space-y-8">
-              {Object.entries(organizedByIngredients).map(([ingredientName, { ingredient, brands }]) => (
+              {Object.entries(filteredOrganizedIngredients).map(([ingredientName, { ingredient, brands }]) => (
                 <div key={ingredientName} className="space-y-4">
                   <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
@@ -365,21 +405,42 @@ export const MyBar = (): JSX.Element => {
             <Card className="bg-[#383629] border-[#544f3b]">
               <CardContent className="p-8 text-center">
                 <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
-                  Your bar is empty. Start building your preferred brands collection!
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <Link href="/preferred-brands">
-                    <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                      Browse Preferred Brands
+                {searchQuery || selectedCategory !== "all" || selectedSubcategory !== "all" ? (
+                  <>
+                    <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
+                      No brands found matching your search criteria.
+                    </p>
+                    <Button 
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedCategory("all");
+                        setSelectedSubcategory("all");
+                      }}
+                      variant="outline" 
+                      className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
+                    >
+                      Clear Filters
                     </Button>
-                  </Link>
-                  <Link href="/ingredients">
-                    <Button variant="outline" className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]">
-                      Browse Ingredients
-                    </Button>
-                  </Link>
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
+                      Your bar is empty. Start building your preferred brands collection!
+                    </p>
+                    <div className="flex gap-3 justify-center">
+                      <Link href="/preferred-brands">
+                        <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                          Browse Preferred Brands
+                        </Button>
+                      </Link>
+                      <Link href="/ingredients">
+                        <Button variant="outline" className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]">
+                          Browse Ingredients
+                        </Button>
+                      </Link>
+                    </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           )}
