@@ -1,0 +1,34 @@
+EditIngredient.tsx:160 EditIngredient onSubmit: {name: 'Jamaican Dark Rum', description: '', category: 'spirits', subCategory: 'rum', preferredBrand: '', …}
+queryClient.ts:15 
+        
+        
+       PATCH https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/ingredients/1754354097589 500 (Internal Server Error)
+apiRequest @ queryClient.ts:15
+mutationFn @ EditIngredient.tsx:97
+fn @ @tanstack_react-query.js?v=87f31280:1189
+run @ @tanstack_react-query.js?v=87f31280:494
+start @ @tanstack_react-query.js?v=87f31280:536
+execute @ @tanstack_react-query.js?v=87f31280:1225
+await in execute (async)
+mutate @ @tanstack_react-query.js?v=87f31280:2630
+(anonymous) @ @tanstack_react-query.js?v=87f31280:3295
+onSubmit @ EditIngredient.tsx:161
+(anonymous) @ chunk-4BFJKWC4.js?v=87f31280:1465
+await in (anonymous) (async)
+callCallback2 @ chunk-RPCDYKBN.js?v=87f31280:3674
+invokeGuardedCallbackDev @ chunk-RPCDYKBN.js?v=87f31280:3699
+invokeGuardedCallback @ chunk-RPCDYKBN.js?v=87f31280:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-RPCDYKBN.js?v=87f31280:3736
+executeDispatch @ chunk-RPCDYKBN.js?v=87f31280:7014
+processDispatchQueueItemsInOrder @ chunk-RPCDYKBN.js?v=87f31280:7034
+processDispatchQueue @ chunk-RPCDYKBN.js?v=87f31280:7043
+dispatchEventsForPlugins @ chunk-RPCDYKBN.js?v=87f31280:7051
+(anonymous) @ chunk-RPCDYKBN.js?v=87f31280:7174
+batchedUpdates$1 @ chunk-RPCDYKBN.js?v=87f31280:18913
+batchedUpdates @ chunk-RPCDYKBN.js?v=87f31280:3579
+dispatchEventForPluginEventSystem @ chunk-RPCDYKBN.js?v=87f31280:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-RPCDYKBN.js?v=87f31280:5478
+dispatchEvent @ chunk-RPCDYKBN.js?v=87f31280:5472
+dispatchDiscreteEvent @ chunk-RPCDYKBN.js?v=87f31280:5449
+Show 22 more frames
+Show less

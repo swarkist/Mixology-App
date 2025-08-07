@@ -114,17 +114,23 @@ export const EditIngredient = (): JSX.Element => {
     },
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      console.log('EditIngredient: File selected:', file.name, file.size);
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        console.log('EditIngredient: Image loaded, preview set');
-        setImagePreview(result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        console.log('EditIngredient: File selected:', file.name, file.size);
+        const { compressImage } = await import('@/lib/imageCompression');
+        const compressedImage = await compressImage(file);
+        setImagePreview(compressedImage);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        // Fallback to original image if compression fails
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          setImagePreview(event.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 

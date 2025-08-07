@@ -500,7 +500,12 @@ export class FirebaseStorage {
   }
 
   async updateIngredient(id: number, updates: Partial<InsertIngredient>): Promise<Ingredient> {
-    console.log(`🔥 Firebase updateIngredient called with id: ${id}`, updates);
+    console.log(`🔥 Firebase updateIngredient called with id: ${id}`);
+    
+    // Check for large imageUrl and warn about size
+    if (updates.imageUrl && updates.imageUrl.length > 900000) {
+      console.warn(`🔥 Large image detected: ${updates.imageUrl.length} bytes. Firebase has ~1MB document limit.`);
+    }
     
     const docRef = this.ingredientsCollection.doc(id.toString());
     
@@ -513,10 +518,21 @@ export class FirebaseStorage {
     
     try {
       console.log(`🔥 Updating ingredient document ${id}...`);
-      await docRef.update({ ...updates, updatedAt: new Date() });
+      const updateData = { ...updates, updatedAt: new Date() };
+      
+      // If imageUrl is too large, truncate or reject
+      if (updateData.imageUrl && updateData.imageUrl.length > 1000000) {
+        console.error(`🔥 Image too large (${updateData.imageUrl.length} bytes). Firebase limit is ~1MB per document.`);
+        throw new Error('Image file is too large. Please use a smaller image or compress it.');
+      }
+      
+      await docRef.update(updateData);
       console.log(`🔥 Ingredient ${id} updated successfully`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`🔥 Error updating ingredient ${id}:`, error);
+      if (error.message.includes('longer than') || error.message.includes('too large')) {
+        throw new Error('Image file is too large. Please use a smaller image.');
+      }
       throw new Error('Failed to update ingredient');
     }
     
@@ -543,7 +559,7 @@ export class FirebaseStorage {
       updatedAt: data?.updatedAt ? new Date(data.updatedAt) : new Date(),
     } as Ingredient;
     
-    console.log(`🔥 Returning updated ingredient:`, result);
+    console.log(`🔥 Returning updated ingredient with image size:`, result.imageUrl?.length || 0, 'bytes');
     return result;
   }
 

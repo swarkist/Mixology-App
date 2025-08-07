@@ -39,16 +39,25 @@ export default function AddPreferredBrand() {
     },
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setImagePreview(result);
-        form.setValue("imageUrl", result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const { compressImage } = await import('@/lib/imageCompression');
+        const compressedImage = await compressImage(file);
+        setImagePreview(compressedImage);
+        form.setValue("imageUrl", compressedImage);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        // Fallback to original image if compression fails
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          setImagePreview(result);
+          form.setValue("imageUrl", result);
+        };
+        reader.readAsDataURL(file);
+      }
     }
   };
 
