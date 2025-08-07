@@ -8,6 +8,11 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## Recent Changes (August 7, 2025)
+- **Fixed Critical inMyBar Field Bug**: Resolved complete data pipeline issue where `inMyBar` field was being lost during ingredient creation and filtering
+- **Enhanced Schema Validation**: Updated `InsertIngredient` schema to properly include `inMyBar` field for TypeScript validation
+- **Fixed Firebase Adapter**: Corrected ingredient creation method to preserve `inMyBar` field when converting from form to database format
+- **Fixed API Filtering**: Updated ingredients endpoint to properly filter by `inMyBar=true` instead of returning empty array
+- **Comprehensive Testing**: Verified end-to-end functionality from creation to retrieval with regression tests
 - **Fixed Critical Firebase Image Issue**: Resolved Firebase document size limit errors (1MB+) by implementing comprehensive image compression across all upload components
 - **Image Compression System**: Created reusable compression utility (client/src/lib/imageCompression.ts) with 800px max dimensions and 70% JPEG quality
 - **Enhanced Database Snapshot System**: Updated regression test framework to capture complete database state before tests and restore afterward
