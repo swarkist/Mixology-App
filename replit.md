@@ -12,6 +12,8 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Image Compression System**: Created reusable compression utility (client/src/lib/imageCompression.ts) with 800px max dimensions and 70% JPEG quality
 - **Enhanced Database Snapshot System**: Updated regression test framework to capture complete database state before tests and restore afterward
 - **Improved Error Handling**: Enhanced Firebase storage layer with size validation, warnings, and detailed logging
+- **Fixed My Bar Search Functionality**: Corrected search placeholder text to "Search my bar..." and implemented comprehensive filtering logic for both ingredient names and brand names
+- **Enhanced Search Filtering**: Added real-time search filtering with category/subcategory support and improved empty state handling
 
 ## System Architecture
 
@@ -37,7 +39,7 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Authentication**: Session-based authentication with PostgreSQL storage.
 - **Accessibility**: Comprehensive button accessibility, horizontal scrolling fixes for mobile.
 - **Data Persistence**: File-based storage (`data/storage.json`) and Firebase Firestore for robust data persistence across sessions.
-- **My Bar Functionality**: Dedicated section and filtering for tracking user's personal ingredient collection, with dynamic cocktail count.
+- **My Bar Functionality**: Dedicated section and filtering for tracking user's personal ingredient collection, with dynamic cocktail count. Search functionality filters both ingredient names and brand names in real-time.
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion.
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
 - **Error Handling**: Global error middleware, custom request logging.

@@ -411,20 +411,6 @@ export class TestDataManager {
     this.createdTags = [];
     this.createdPreferredBrands = [];
   }
-    const ingredientIntegrityCheck = this.productionDataSnapshot.ingredients.length === productionIngredients.length;
-
-    if (cocktailIntegrityCheck && ingredientIntegrityCheck) {
-      console.log('✅ Production data integrity verified - no data contamination detected');
-    } else {
-      console.error('❌ CRITICAL: Production data integrity compromised!');
-      console.error(`Expected: ${this.productionDataSnapshot.cocktails.length} cocktails, ${this.productionDataSnapshot.ingredients.length} ingredients`);
-      console.error(`Current: ${productionCocktails.length} cocktails, ${productionIngredients.length} ingredients`);
-      
-      // Emergency restoration attempt
-      console.log('🚨 Attempting emergency cleanup of any remaining test data...');
-      await this.emergencyCleanup();
-    }
-  }
 
   // Emergency cleanup - finds and removes ANY test data by prefix
   async emergencyCleanup() {
