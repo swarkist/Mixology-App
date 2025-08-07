@@ -7,6 +7,12 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
+## Recent Changes (August 7, 2025)
+- **Fixed Critical Firebase Image Issue**: Resolved Firebase document size limit errors (1MB+) by implementing comprehensive image compression across all upload components
+- **Image Compression System**: Created reusable compression utility (client/src/lib/imageCompression.ts) with 800px max dimensions and 70% JPEG quality
+- **Enhanced Database Snapshot System**: Updated regression test framework to capture complete database state before tests and restore afterward
+- **Improved Error Handling**: Enhanced Firebase storage layer with size validation, warnings, and detailed logging
+
 ## System Architecture
 
 ### Frontend Architecture

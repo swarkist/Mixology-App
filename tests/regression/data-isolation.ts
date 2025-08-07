@@ -3,30 +3,74 @@
 
 const API_BASE = 'http://localhost:5000/api';
 
+interface DatabaseSnapshot {
+  cocktails: any[];
+  ingredients: any[];
+  tags: any[];
+  preferredBrands: any[];
+  cocktailIngredients: any[];
+  ingredientTags: any[];
+  preferredBrandAssociations: any[];
+}
+
 export class TestDataManager {
   private createdCocktails: number[] = [];
   private createdIngredients: number[] = [];
   private createdTags: string[] = [];
+  private createdPreferredBrands: number[] = [];
   private testPrefix = `REGRESSION_TEST_${Date.now()}_`;
-  private productionDataSnapshot: any = null;
+  private databaseSnapshot: DatabaseSnapshot | null = null;
 
-  // Initialize by taking snapshot of production data
+  // Initialize by taking complete database snapshot
   async init() {
-    console.log('🛡️  Initializing TestDataManager with production data protection...');
+    console.log('🛡️  Initializing TestDataManager with full database snapshot...');
     
-    // Take snapshot of production data before any tests
-    const [cocktails, ingredients] = await Promise.all([
-      this.apiRequest('/cocktails'),
-      this.apiRequest('/ingredients')
-    ]);
-    
-    this.productionDataSnapshot = {
-      cocktails: cocktails.map((c: any) => ({ id: c.id, name: c.name })),
-      ingredients: ingredients.map((i: any) => ({ id: i.id, name: i.name }))
-    };
-    
-    console.log(`📊 Production data snapshot: ${cocktails.length} cocktails, ${ingredients.length} ingredients`);
-    console.log(`🔒 Test prefix: ${this.testPrefix}`);
+    try {
+      // Take complete snapshot of all data before any tests
+      const [
+        cocktails, 
+        ingredients, 
+        tags, 
+        preferredBrands,
+        cocktailIngredients
+      ] = await Promise.all([
+        this.apiRequest('/cocktails').catch(() => []),
+        this.apiRequest('/ingredients').catch(() => []),
+        this.apiRequest('/tags').catch(() => []),
+        this.apiRequest('/preferred-brands').catch(() => []),
+        this.apiRequest('/cocktail-ingredients').catch(() => [])
+      ]);
+      
+      this.databaseSnapshot = {
+        cocktails,
+        ingredients,
+        tags,
+        preferredBrands,
+        cocktailIngredients,
+        ingredientTags: [], // These would need additional endpoints
+        preferredBrandAssociations: []
+      };
+      
+      console.log(`📊 Database snapshot captured:`);
+      console.log(`  - ${cocktails.length} cocktails`);
+      console.log(`  - ${ingredients.length} ingredients`);
+      console.log(`  - ${tags.length} tags`);
+      console.log(`  - ${preferredBrands.length} preferred brands`);
+      console.log(`🔒 Test prefix: ${this.testPrefix}`);
+      
+    } catch (error) {
+      console.error('⚠️  Error taking database snapshot:', error);
+      // Initialize with empty snapshot to prevent failures
+      this.databaseSnapshot = {
+        cocktails: [],
+        ingredients: [],
+        tags: [],
+        preferredBrands: [],
+        cocktailIngredients: [],
+        ingredientTags: [],
+        preferredBrandAssociations: []
+      };
+    }
   }
 
   // Helper function for API requests
@@ -196,69 +240,177 @@ export class TestDataManager {
     return allIngredients.filter((i: any) => i.name.startsWith(this.testPrefix));
   }
 
-  // Enhanced cleanup with production data verification
-  async cleanupAllTestData() {
-    console.log(`🧹 Cleaning up test data (${this.createdCocktails.length} cocktails, ${this.createdIngredients.length} ingredients)...`);
+  // Enhanced cleanup with database restoration
+  async cleanup() {
+    console.log(`🧹 Starting comprehensive database cleanup and restoration...`);
+    console.log(`📊 Test data to clean: ${this.createdCocktails.length} cocktails, ${this.createdIngredients.length} ingredients`);
     
     const errors: string[] = [];
 
-    // Clean up cocktails with protection
+    // Step 1: Delete all tracked test data
+    await this.deleteTrackedTestData(errors);
+    
+    // Step 2: Scan for any remaining test data and clean it up
+    await this.scanAndCleanRemainingTestData(errors);
+    
+    // Step 3: Verify database state matches snapshot
+    await this.verifyDatabaseIntegrity(errors);
+    
+    if (errors.length > 0) {
+      console.error('⚠️ Cleanup issues detected:', errors);
+      throw new Error(`Database cleanup failed: ${errors.join(', ')}`);
+    }
+
+    console.log('✅ Database cleanup and verification completed successfully');
+  }
+
+  private async deleteTrackedTestData(errors: string[]) {
+    // Clean up tracked cocktails
     for (const cocktailId of this.createdCocktails) {
       try {
         await this.protectedApiRequest(`/cocktails/${cocktailId}`, { method: 'DELETE' });
-        console.log(`✅ Deleted test cocktail ID: ${cocktailId}`);
-      } catch (error) {
+        console.log(`✅ Deleted tracked cocktail ID: ${cocktailId}`);
+      } catch (error: any) {
         errors.push(`Failed to delete cocktail ${cocktailId}: ${error.message}`);
       }
     }
 
-    // Clean up ingredients with protection
+    // Clean up tracked ingredients  
     for (const ingredientId of this.createdIngredients) {
       try {
         await this.protectedApiRequest(`/ingredients/${ingredientId}`, { method: 'DELETE' });
-        console.log(`✅ Deleted test ingredient ID: ${ingredientId}`);
-      } catch (error) {
+        console.log(`✅ Deleted tracked ingredient ID: ${ingredientId}`);
+      } catch (error: any) {
         errors.push(`Failed to delete ingredient ${ingredientId}: ${error.message}`);
       }
     }
 
-    if (errors.length > 0) {
-      console.error('⚠️ Cleanup issues detected:', errors);
+    // Clean up tracked preferred brands
+    for (const brandId of this.createdPreferredBrands) {
+      try {
+        await this.protectedApiRequest(`/preferred-brands/${brandId}`, { method: 'DELETE' });
+        console.log(`✅ Deleted tracked preferred brand ID: ${brandId}`);
+      } catch (error: any) {
+        errors.push(`Failed to delete preferred brand ${brandId}: ${error.message}`);
+      }
+    }
+  }
+
+  private async scanAndCleanRemainingTestData(errors: string[]) {
+    try {
+      // Scan for any remaining test data that wasn't tracked
+      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
+        this.apiRequest('/cocktails').catch(() => []),
+        this.apiRequest('/ingredients').catch(() => []),
+        this.apiRequest('/preferred-brands').catch(() => [])
+      ]);
+
+      // Find and delete any remaining test items
+      const remainingTestCocktails = currentCocktails.filter((c: any) => 
+        c.name.includes('REGRESSION_TEST_') && !this.createdCocktails.includes(c.id)
+      );
+      
+      const remainingTestIngredients = currentIngredients.filter((i: any) => 
+        i.name.includes('REGRESSION_TEST_') && !this.createdIngredients.includes(i.id)
+      );
+
+      const remainingTestBrands = currentBrands.filter((b: any) => 
+        b.name.includes('REGRESSION_TEST_') && !this.createdPreferredBrands.includes(b.id)
+      );
+
+      // Clean up remaining test data
+      for (const item of remainingTestCocktails) {
+        try {
+          await this.apiRequest(`/cocktails/${item.id}`, { method: 'DELETE' });
+          console.log(`✅ Cleaned untracked test cocktail: ${item.name} (ID: ${item.id})`);
+        } catch (error: any) {
+          errors.push(`Failed to clean untracked cocktail ${item.id}: ${error.message}`);
+        }
+      }
+
+      for (const item of remainingTestIngredients) {
+        try {
+          await this.apiRequest(`/ingredients/${item.id}`, { method: 'DELETE' });
+          console.log(`✅ Cleaned untracked test ingredient: ${item.name} (ID: ${item.id})`);
+        } catch (error: any) {
+          errors.push(`Failed to clean untracked ingredient ${item.id}: ${error.message}`);
+        }
+      }
+
+      for (const item of remainingTestBrands) {
+        try {
+          await this.apiRequest(`/preferred-brands/${item.id}`, { method: 'DELETE' });
+          console.log(`✅ Cleaned untracked test brand: ${item.name} (ID: ${item.id})`);
+        } catch (error: any) {
+          errors.push(`Failed to clean untracked brand ${item.id}: ${error.message}`);
+        }
+      }
+
+    } catch (error: any) {
+      errors.push(`Failed to scan for remaining test data: ${error.message}`);
+    }
+  }
+
+  private async verifyDatabaseIntegrity(errors: string[]) {
+    if (!this.databaseSnapshot) {
+      console.log('⚠️ No database snapshot available for verification');
+      return;
     }
 
-    // Verify production data integrity
-    await this.verifyProductionDataIntegrity();
+    try {
+      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
+        this.apiRequest('/cocktails').catch(() => []),
+        this.apiRequest('/ingredients').catch(() => []),
+        this.apiRequest('/preferred-brands').catch(() => [])
+      ]);
+
+      // Filter out any remaining test data to get pure production data
+      const productionCocktails = currentCocktails.filter((c: any) => 
+        !c.name.includes('REGRESSION_TEST_')
+      );
+      const productionIngredients = currentIngredients.filter((i: any) => 
+        !i.name.includes('REGRESSION_TEST_')
+      );
+      const productionBrands = currentBrands.filter((b: any) => 
+        !b.name.includes('REGRESSION_TEST_')
+      );
+
+      // Verify data integrity
+      const cocktailIntegrityOk = this.databaseSnapshot.cocktails.length === productionCocktails.length;
+      const ingredientIntegrityOk = this.databaseSnapshot.ingredients.length === productionIngredients.length;
+      const brandIntegrityOk = this.databaseSnapshot.preferredBrands.length === productionBrands.length;
+
+      console.log(`📊 Database integrity check:`);
+      console.log(`  - Cocktails: ${cocktailIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.cocktails.length}, current: ${productionCocktails.length})`);
+      console.log(`  - Ingredients: ${ingredientIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.ingredients.length}, current: ${productionIngredients.length})`);
+      console.log(`  - Brands: ${brandIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.preferredBrands.length}, current: ${productionBrands.length})`);
+
+      if (!cocktailIntegrityOk || !ingredientIntegrityOk || !brandIntegrityOk) {
+        errors.push('Database state does not match snapshot - production data may have been modified');
+      }
+
+      // Check for any remaining test data
+      const remainingTestItems = [
+        ...currentCocktails.filter((c: any) => c.name.includes('REGRESSION_TEST_')),
+        ...currentIngredients.filter((i: any) => i.name.includes('REGRESSION_TEST_')),
+        ...currentBrands.filter((b: any) => b.name.includes('REGRESSION_TEST_'))
+      ];
+
+      if (remainingTestItems.length > 0) {
+        console.warn(`⚠️ Found ${remainingTestItems.length} remaining test items after cleanup`);
+        errors.push(`${remainingTestItems.length} test items remain in database after cleanup`);
+      }
+
+    } catch (error: any) {
+      errors.push(`Failed to verify database integrity: ${error.message}`);
+    }
 
     // Reset tracking arrays
     this.createdCocktails = [];
     this.createdIngredients = [];
     this.createdTags = [];
-    
-    console.log('✅ Test data cleanup completed');
+    this.createdPreferredBrands = [];
   }
-
-  // Verify production data hasn't been modified
-  async verifyProductionDataIntegrity() {
-    if (!this.productionDataSnapshot) {
-      console.log('⚠️ No production data snapshot available for verification');
-      return;
-    }
-
-    const [currentCocktails, currentIngredients] = await Promise.all([
-      this.apiRequest('/cocktails'),
-      this.apiRequest('/ingredients')
-    ]);
-
-    // Filter out any remaining test data
-    const productionCocktails = currentCocktails.filter((c: any) => 
-      !c.name.includes('REGRESSION_TEST_')
-    );
-    const productionIngredients = currentIngredients.filter((i: any) => 
-      !i.name.includes('REGRESSION_TEST_')
-    );
-
-    // Check if production data matches snapshot
-    const cocktailIntegrityCheck = this.productionDataSnapshot.cocktails.length === productionCocktails.length;
     const ingredientIntegrityCheck = this.productionDataSnapshot.ingredients.length === productionIngredients.length;
 
     if (cocktailIntegrityCheck && ingredientIntegrityCheck) {
