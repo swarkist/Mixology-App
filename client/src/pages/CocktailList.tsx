@@ -273,7 +273,7 @@ export const CocktailList = (): JSX.Element => {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         {cocktail.isFeatured && (
-                          <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
+                          <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
                             Featured
                           </Badge>
                         )}
