@@ -116,7 +116,6 @@ export const insertTagSchema = createInsertSchema(tags).pick({
 
 export const insertIngredientSchema = createInsertSchema(ingredients).omit({
   id: true,
-  inMyBar: true,
   usedInRecipesCount: true,
   createdAt: true,
   updatedAt: true,

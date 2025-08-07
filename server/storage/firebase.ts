@@ -486,15 +486,25 @@ export class FirebaseStorage {
     // Generate a numeric ID by using timestamp + random
     const numericId = Date.now() + Math.floor(Math.random() * 1000);
     
+    console.log('🔥 Firebase createIngredient input:', JSON.stringify(ingredient, null, 2));
+    
     const ingredientData = {
       ...ingredient,
       createdAt: new Date(),
       updatedAt: new Date(),
-      inMyBar: false,
       usedInRecipesCount: 0,
+      // Ensure inMyBar has a default value if not provided
+      inMyBar: ingredient.inMyBar !== undefined ? ingredient.inMyBar : false,
     };
     
+    console.log('🔥 Firebase ingredientData before save:', JSON.stringify(ingredientData, null, 2));
+    
     await this.ingredientsCollection.doc(numericId.toString()).set(ingredientData);
+    
+    // Read back from Firebase to see what was actually saved
+    const savedDoc = await this.ingredientsCollection.doc(numericId.toString()).get();
+    const savedData = savedDoc.data();
+    console.log('🔥 Firebase saved data:', JSON.stringify(savedData, null, 2));
     
     return { id: numericId, ...ingredientData } as Ingredient;
   }

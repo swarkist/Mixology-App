@@ -135,6 +135,7 @@ export class FirebaseStorageAdapter implements IStorage {
       subCategory: ingredient.subCategory || null,
       preferredBrand: ingredient.preferredBrand || null,
       abv: ingredient.abv || null,
+      inMyBar: ingredient.inMyBar || false, // Include the inMyBar field
     };
     return this.firebase.createIngredient(insertIngredient);
   }

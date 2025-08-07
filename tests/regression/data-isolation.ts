@@ -189,7 +189,7 @@ export class TestDataManager {
     const testData = {
       ...ingredientData,
       name: testName,
-      description: `[REGRESSION TEST] ${ingredientData.description}`
+      description: ingredientData.description ? `[REGRESSION TEST] ${ingredientData.description}` : '[REGRESSION TEST] Test ingredient'
     };
 
     const result = await this.protectedApiRequest('/ingredients', {
@@ -198,7 +198,7 @@ export class TestDataManager {
     });
 
     this.createdIngredients.push(result.id);
-    console.log(`✅ Created test ingredient: ${result.name} (ID: ${result.id})`);
+    console.log(`✅ Created test ingredient: ${result.name} (ID: ${result.id}) - inMyBar: ${result.inMyBar}`);
     return result;
   }
 

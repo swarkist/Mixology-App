@@ -87,8 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter by My Bar if requested
       if (mybar === 'true' || inMyBar === 'true') {
-        // For now, return empty array since ingredients don't have inMyBar field anymore
-        ingredients = [];
+        ingredients = ingredients.filter(ingredient => ingredient.inMyBar === true);
       }
       
       // Apply search filter if provided
@@ -135,6 +134,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/ingredients", async (req, res) => {
     try {
+      console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
+      
       // Transform tags from string array to tag IDs and handle image upload
       const transformedData = { ...req.body };
       
@@ -161,10 +162,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         delete transformedData.image;
       }
       
+      console.log('🔥 transformedData before validation:', JSON.stringify(transformedData, null, 2));
       const ingredientData = ingredientFormSchema.parse(transformedData);
+      console.log('🔥 ingredientData after validation:', JSON.stringify(ingredientData, null, 2));
       const ingredient = await storage.createIngredient(ingredientData);
+      console.log('🔥 ingredient created:', JSON.stringify(ingredient, null, 2));
       res.status(201).json(ingredient);
     } catch (error) {
+      console.log('🔥 Error creating ingredient:', error);
       res.status(400).json({ message: "Invalid ingredient data", error });
     }
   });
