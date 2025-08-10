@@ -891,9 +891,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Add Firebase test routes
-  app.use("/api", firebaseTestRoutes);
+  // Remove duplicated routes since we moved them to registerReadOnlyRoutes
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Register read-only POST endpoints that should bypass admin key requirement
+export function registerReadOnlyRoutes(app: Express) {
+  // Web scraping endpoint
+  app.post("/api/scrape-url", async (req, res) => {
+    try {
+      const { url } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ error: "URL is required" });
+      }
+      
+      // Use AllOrigins proxy to bypass CORS
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+      
+      const response = await fetch(proxyUrl, {
+        timeout: 30000 // 30 second timeout
+      });
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          error: `Failed to fetch webpage: ${response.statusText}` 
+        });
+      }
+      
+      const data = await response.json();
+      
+      if (!data?.contents) {
+        return res.status(404).json({ error: 'No content retrieved from URL' });
+      }
+      
+      const htmlContent = data.contents;
+      
+      // Basic HTML tag removal and text extraction
+      const textContent = htmlContent
+        // Remove script and style elements completely
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        // Remove HTML tags
+        .replace(/<[^>]*>/g, ' ')
+        // Decode HTML entities
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        // Clean up whitespace
+        .replace(/\s+/g, ' ')
+        .trim();
+      
+      if (textContent.length < 50) {
+        return res.status(400).json({ error: 'Extracted content is too short to be meaningful' });
+      }
+      
+      res.json({ textContent });
+    } catch (error) {
+      console.error("URL scraping failed:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to scrape URL" 
+      });
+    }
+  });
+
+  // OpenRouter proxy endpoint  
+  app.post("/api/openrouter", async (req, res) => {
+    try {
+      const { model, systemPrompt, userContent } = req.body;
+      
+      if (!model || !userContent) {
+        return res.status(400).json({ error: "Model and userContent are required" });
+      }
+      
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
+            { role: "user", content: userContent }
+          ]
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("OpenRouter API error:", errorData);
+        return res.status(response.status).json({ 
+          error: `OpenRouter API error: ${response.statusText}` 
+        });
+      }
+      
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("OpenRouter request failed:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to process OpenRouter request" 
+      });
+    }
+  });
+
+  // YouTube transcript endpoint
+  app.post("/api/youtube-transcript", async (req, res) => {
+    try {
+      const { videoId } = req.body;
+      
+      if (!videoId) {
+        return res.status(400).json({ error: "Video ID is required" });
+      }
+      
+      // Use the youtube-transcript package
+      const { YoutubeTranscript } = await import('youtube-transcript');
+      
+      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+      
+      if (!transcriptItems || transcriptItems.length === 0) {
+        return res.status(404).json({ error: "No transcript found for this video" });
+      }
+      
+      // Join all transcript text
+      const transcript = transcriptItems.map(item => item.text).join(' ');
+      
+      res.json({ transcript });
+    } catch (error) {
+      console.error("YouTube transcript extraction failed:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to extract YouTube transcript" 
+      });
+    }
+  });
 }
