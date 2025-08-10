@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1754414434828",
+    "name": "Maraschino Cherry Syrup",
+    "proof": null,
+    "usedInRecipesCount": 0,
+    "createdAt": {
+      "_seconds": 1754414434,
+      "_nanoseconds": 829000000
+    },
+    "imageUrl": "",
+    "inMyBar": true,
+    "updatedAt": {
+      "_seconds": 1754414455,
+      "_nanoseconds": 124000000
+    }
+  },
+  {
+    "id": "1754414544151",
+    "name": "Maraschino Cherry",
+    "proof": null,
+    "usedInRecipesCount": 0,
+    "createdAt": {
+      "_seconds": 1754414544,
+      "_nanoseconds": 151000000
+    },
+    "imageUrl": "",
+    "inMyBar": false,
+    "updatedAt": {
+      "_seconds": 1754863554,
+      "_nanoseconds": 936000000
+    }
+  }
+]

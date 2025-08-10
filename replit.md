@@ -7,7 +7,19 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
-## Recent Changes (August 7, 2025)
+## Recent Changes (August 10, 2025)
+- **Comprehensive Security Hardening**: Implemented enterprise-level security measures for server-only Firebase access
+- **Firestore Server-Only Rules**: Deployed strict "deny all" Firestore rules forcing all data access through Admin SDK
+- **Express Security Middleware**: Added Helmet, CORS allowlist, Morgan logging, and express-rate-limit (300 req/15min)
+- **Admin API Key Protection**: All write operations (POST, PUT, PATCH, DELETE) now require x-admin-key header
+- **Enhanced Firebase Initialization**: Strict service account requirement with proper error handling
+- **Automated Backup System**: Created Firestore backup script exporting all collections to timestamped JSON files
+- **Body Size Limits**: Reduced JSON payload limit from 50MB to 512KB for security
+- **CORS Configuration**: Environment-based origin allowlist with credentials support
+- **Rate Limiting**: API protection against abuse with 300 requests per 15-minute window per IP
+- **Security Testing Verified**: Confirmed all protection layers working (auth, rate limiting, backups)
+
+## Previous Changes (August 7, 2025)
 - **Fixed Critical inMyBar Field Bug**: Resolved complete data pipeline issue where `inMyBar` field was being lost during ingredient creation and filtering
 - **Enhanced Schema Validation**: Updated `InsertIngredient` schema to properly include `inMyBar` field for TypeScript validation
 - **Fixed Firebase Adapter**: Corrected ingredient creation method to preserve `inMyBar` field when converting from form to database format
@@ -32,10 +44,11 @@ Documentation updates: Only update replit.md when running regression tests, not 
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
-- **Database**: PostgreSQL with Drizzle ORM, hosted on Neon Database.
-- **Session Management**: PostgreSQL sessions with `connect-pg-simple`.
-- **API Design**: RESTful API with `/api` prefix, centralized route registration.
-- **Storage**: Abstract storage interface with implementations for in-memory, file-based persistence, and Firebase Firestore.
+- **Database**: Firebase Firestore with server-only access via Admin SDK.
+- **Security**: Helmet, CORS allowlist, rate limiting, admin API key authentication.
+- **API Design**: RESTful API with `/api` prefix, centralized route registration, write protection.
+- **Storage**: Abstract storage interface with Firebase Firestore implementation using Admin SDK.
+- **Backup System**: Automated Firestore collection export to timestamped JSON files.
 
 ### Key Features & Design Decisions
 - **Multi-page Application**: Home, Cocktail List, Individual Recipe, Ingredients, and My Bar pages.

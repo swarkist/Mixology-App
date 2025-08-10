@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1754579356709,
+    "cocktailId": 1754355405720,
+    "ingredientId": 1754354097589,
+    "amount": "1.5",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579357034,
+    "cocktailId": 1754355405720,
+    "ingredientId": 1754354177530,
+    "amount": "0.75",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579357379,
+    "cocktailId": 1754355405720,
+    "ingredientId": 1754354197344,
+    "amount": "1.5",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579357394,
+    "cocktailId": 1754355405720,
+    "ingredientId": 1754354121532,
+    "amount": "0.5",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579357800,
+    "cocktailId": 1754355405720,
+    "ingredientId": 1754354148742,
+    "amount": "0.5",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579480743,
+    "cocktailId": 1754355965630,
+    "ingredientId": 1754354121532,
+    "amount": "0.5",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579480814,
+    "cocktailId": 1754355965630,
+    "ingredientId": 1754354148742,
+    "amount": "1",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579481408,
+    "cocktailId": 1754355965630,
+    "ingredientId": 1754354287316,
+    "amount": "0.75",
+    "unit": "oz"
+  },
+  {
+    "id": 1754579481840,
+    "cocktailId": 1754355965630,
+    "ingredientId": 1754354259164,
+    "amount": "2",
+    "unit": "oz"
+  },
+  {
+    "id": 1754864377541,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354121532,
+    "amount": "0.75",
+    "unit": "oz"
+  },
+  {
+    "id": 1754864377726,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354544625,
+    "amount": "1",
+    "unit": "whole"
+  },
+  {
+    "id": 1754864377743,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354440247,
+    "amount": "2",
+    "unit": "dashes"
+  },
+  {
+    "id": 1754864378080,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354406952,
+    "amount": "2",
+    "unit": "oz"
+  },
+  {
+    "id": 1754864378125,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354517708,
+    "amount": "1",
+    "unit": "tsp"
+  },
+  {
+    "id": 1754864378242,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354568280,
+    "amount": "1",
+    "unit": "whole"
+  },
+  {
+    "id": 1754864378403,
+    "cocktailId": 1754355116391,
+    "ingredientId": 1754354379839,
+    "amount": "3",
+    "unit": "dashes"
+  }
+]

@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { return isSignedIn() && request.auth.token.admin == true; }
+    function isOwner(uid) { return isSignedIn() && request.auth.uid == uid; }
+
+    // Public content: anyone can read when published/active; only admins can write
+    match /cocktails/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    match /ingredients/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    match /preferredBrands/{id} {
+      allow read: if resource.data.published == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+    match /displays/{id} {
+      allow read: if resource.data.active == true || isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // User-owned data
+    match /users/{uid} {
+      allow read, create, update: if isOwner(uid);
+      match /favorites/{favId} {
+        allow read, create, update, delete: if isOwner(uid);
+      }
+    }
+
+    // Default deny
+    match /{document=**} { allow read, write: if false; }
+  }
+}

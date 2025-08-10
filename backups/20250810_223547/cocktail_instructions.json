@@ -1,0 +1,68 @@
+[
+  {
+    "id": 1754579355865,
+    "cocktailId": 1754355405720,
+    "stepNumber": 1,
+    "instruction": "Combined in a shaker"
+  },
+  {
+    "id": 1754579356004,
+    "cocktailId": 1754355405720,
+    "stepNumber": 3,
+    "instruction": "Open pour into glass, do not strain"
+  },
+  {
+    "id": 1754579356272,
+    "cocktailId": 1754355405720,
+    "stepNumber": 2,
+    "instruction": "Shake until diluted or cold about 30 seconds"
+  },
+  {
+    "id": 1754579480141,
+    "cocktailId": 1754355965630,
+    "stepNumber": 1,
+    "instruction": "Combined in a shaker"
+  },
+  {
+    "id": 1754579480566,
+    "cocktailId": 1754355965630,
+    "stepNumber": 3,
+    "instruction": "Strain into glass"
+  },
+  {
+    "id": 1754579480758,
+    "cocktailId": 1754355965630,
+    "stepNumber": 2,
+    "instruction": "Add salt to glass or rim"
+  },
+  {
+    "id": 1754864376352,
+    "cocktailId": 1754355116391,
+    "stepNumber": 1,
+    "instruction": "Mix in chilled rocks glass"
+  },
+  {
+    "id": 1754864376569,
+    "cocktailId": 1754355116391,
+    "stepNumber": 2,
+    "instruction": "Add one large ice cube"
+  },
+  {
+    "id": 1754864376881,
+    "cocktailId": 1754355116391,
+    "stepNumber": 4,
+    "instruction": "Twist orange peel over glass and rub around inside of rim"
+  },
+  {
+    "id": 1754864377074,
+    "cocktailId": 1754355116391,
+    "stepNumber": 3,
+    "instruction": "Stir until chilled and properly diluted, about 30 seconds"
+  },
+  {
+    "id": 1754864377105,
+    "cocktailId": 1754355116391,
+    "stepNumber": 5,
+    "instruction": "Drop in cherry"
+  }
+]

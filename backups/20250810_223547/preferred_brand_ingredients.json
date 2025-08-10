@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1754414445462",
+    "ingredientId": 1754354517708,
+    "preferredBrandId": 1754414434828,
+    "createdAt": {
+      "_seconds": 1754414445,
+      "_nanoseconds": 462000000
+    }
+  },
+  {
+    "id": "1754414558320",
+    "ingredientId": 1754354568280,
+    "preferredBrandId": 1754414544151,
+    "createdAt": {
+      "_seconds": 1754414558,
+      "_nanoseconds": 320000000
+    }
+  }
+]

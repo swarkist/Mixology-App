@@ -1,10 +1,94 @@
 import express, { type Request, Response, NextFunction } from "express";
+import helmet from "helmet";
+import cors from "cors";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: false }));
+
+// --- Security & hardening ---
+app.set("trust proxy", 1);
+
+// Configure Helmet with CSP that allows Vite development server
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'", // Allow inline scripts for Vite HMR
+        "'unsafe-eval'",   // Allow eval for Vite development
+        "https://localhost:*",
+        "http://localhost:*"
+      ],
+      styleSrc: [
+        "'self'",
+        "'unsafe-inline'", // Allow inline styles for Vite
+        "https://fonts.googleapis.com"
+      ],
+      fontSrc: [
+        "'self'",
+        "https://fonts.gstatic.com"
+      ],
+      connectSrc: [
+        "'self'",
+        "ws://localhost:*",
+        "wss://localhost:*",
+        "http://localhost:*",
+        "https://localhost:*"
+      ],
+      imgSrc: ["'self'", "data:", "blob:", "https:"]
+    }
+  }
+}));
+app.use(morgan("combined"));
+
+// Body limits
+app.use(express.json({ limit: "512kb" }));
+app.use(express.urlencoded({ extended: true, limit: "512kb" }));
+
+// CORS allowlist via env secret CORS_ORIGINS (comma-separated)
+const origins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+const corsOptions: cors.CorsOptions = origins.length
+  ? {
+      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin) return cb(null, true); // allow same-origin/non-browser tools
+        cb(null, origins.includes(origin));
+      },
+      credentials: true,
+    }
+  : {}; // no origins set -> default allow same-origin only
+app.use(cors(corsOptions));
+
+// Basic rate limiting (tune as needed)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 300,                 // 300 requests per window per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api", apiLimiter);
+
+// Admin API key gate for write methods on /api/*
+const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {
+  const method = req.method.toUpperCase();
+  const isWrite = method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
+  if (!isWrite) return next();
+
+  const provided = req.header("x-admin-key") || "";
+  const expected = process.env.ADMIN_API_KEY || "";
+  if (!expected) {
+    console.error("ADMIN_API_KEY not set in secrets.");
+    return res.status(500).json({ error: "Server misconfiguration" });
+  }
+  if (provided !== expected) {
+    return res.status(403).json({ error: "Forbidden: invalid admin key" });
+  }
+  return next();
+};
+app.use("/api", requireAdminForWrites);
 
 app.use((req, res, next) => {
   const start = Date.now();

@@ -1,0 +1,252 @@
+REPLIT AGENT PROMPT — START
+
+Title: Harden Firestore & Express for Server‑Only Access (Security + Backups)
+
+Goals:
+
+Make Firestore server‑only: clients cannot read or write directly.
+
+Harden Express server with Helmet, CORS (allowlist), and rate limiting.
+
+Require an ADMIN_API_KEY header for all write routes.
+
+Confirm Firebase Admin SDK uses FIREBASE_SERVICE_ACCOUNT_JSON from Replit Secrets.
+
+Add a backup script to export all collections to JSON.
+
+Step 1 — Firestore rules: server‑only (deny all)
+Create a backup of existing rules as firestore.rules.backup (only if firestore.rules exists).
+
+Replace firestore.rules with the following “deny all” rules and do not auto-deploy (manual deploy is fine later):
+
+rules
+Copy
+Edit
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Server-only model: Admin SDK bypasses rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+Ensure .firebaserc and firebase.json still exist; do not change project IDs.
+
+NOTE: Don’t publish automatically unless asked. We might publish after server changes are done.
+
+Step 2 — Install security middleware
+Install these dependencies (skip if already present, but ensure versions are current):
+
+bash
+Copy
+Edit
+npm i helmet cors express-rate-limit morgan
+Step 3 — Express hardening (server/index.ts)
+Open server/index.ts. Make the following changes:
+
+Import and use Helmet, CORS (with an allowlist), Morgan (logging), and express-rate-limit.
+
+Read CORS_ORIGINS (comma‑separated) and ADMIN_API_KEY from Replit Secrets.
+
+Enforce ADMIN_API_KEY on all write methods (POST, PUT, PATCH, DELETE) across /api/*.
+
+Set JSON/body size limits.
+
+Keep existing routes intact.
+
+If server/index.ts already sets up an Express app with middleware, integrate these without duplicating.
+
+Add (or modify) this near the top of server/index.ts:
+
+ts
+Copy
+Edit
+import helmet from "helmet";
+import cors from "cors";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+Just after const app = express(); (or equivalent), insert:
+
+ts
+Copy
+Edit
+// --- Security & hardening ---
+app.set("trust proxy", 1);
+
+app.use(helmet());
+app.use(morgan("combined"));
+
+// Body limits
+app.use(express.json({ limit: "512kb" }));
+app.use(express.urlencoded({ extended: true, limit: "512kb" }));
+
+// CORS allowlist via env secret CORS_ORIGINS (comma-separated)
+const origins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+const corsOptions: cors.CorsOptions = origins.length
+  ? {
+      origin: (origin, cb) => {
+        if (!origin) return cb(null, true); // allow same-origin/non-browser tools
+        cb(null, origins.includes(origin));
+      },
+      credentials: true,
+    }
+  : {}; // no origins set -> default allow same-origin only
+app.use(cors(corsOptions));
+
+// Basic rate limiting (tune as needed)
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 min
+  max: 300,                 // 300 requests per window per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use("/api", apiLimiter);
+
+// Admin API key gate for write methods on /api/*
+const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {
+  const method = req.method.toUpperCase();
+  const isWrite = method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
+  if (!isWrite) return next();
+
+  const provided = req.header("x-admin-key") || "";
+  const expected = process.env.ADMIN_API_KEY || "";
+  if (!expected) {
+    console.error("ADMIN_API_KEY not set in secrets.");
+    return res.status(500).json({ error: "Server misconfiguration" });
+  }
+  if (provided !== expected) {
+    return res.status(403).json({ error: "Forbidden: invalid admin key" });
+  }
+  return next();
+};
+app.use("/api", requireAdminForWrites);
+Ensure this runs before route handlers are registered so it protects them.
+
+Step 4 — Protect write routes (server/routes.ts)
+Open server/routes.ts and confirm routes are under /api/*. If some write routes are not under /api, either:
+
+Move them under /api, or
+
+Apply the requireAdminForWrites middleware to those specific routers/paths.
+
+If routes.ts mounts a router like app.use("/api", router), you’re already covered by the middleware attached to /api in Step 3. No duplicate middleware needed.
+
+Step 5 — Firebase Admin SDK via Replit Secrets
+Open server/firebase.ts (or wherever Admin SDK is initialized). Ensure it does not read a JSON file from disk in the repo. It should initialize from the FIREBASE_SERVICE_ACCOUNT_JSON secret:
+
+If not already implemented, update it to:
+
+ts
+Copy
+Edit
+import admin from "firebase-admin";
+
+const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+if (!raw) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON secret not set");
+}
+const serviceAccount = JSON.parse(raw);
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+
+export { admin };
+Step 6 — Add a Firestore backup script
+Create server/scripts/backup-firestore.cjs (CommonJS to allow node execution easily). This script exports all top-level collections and writes them to backups/YYYYMMDD_HHMMSS/*.json.
+
+js
+Copy
+Edit
+// server/scripts/backup-firestore.cjs
+const fs = require("fs");
+const path = require("path");
+const admin = require("firebase-admin");
+
+const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+if (!raw) {
+  console.error("Missing FIREBASE_SERVICE_ACCOUNT_JSON secret."); process.exit(1);
+}
+const svc = JSON.parse(raw);
+
+if (!admin.apps.length) {
+  admin.initializeApp({ credential: admin.credential.cert(svc) });
+}
+
+async function exportAll() {
+  const db = admin.firestore();
+  const snapshot = await db.listCollections();
+  const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\..+/, "").replace("T", "_");
+  const outDir = path.join(process.cwd(), "backups", stamp);
+  fs.mkdirSync(outDir, { recursive: true });
+
+  for (const col of snapshot) {
+    const colName = col.id;
+    const docsSnap = await col.get();
+    const items = [];
+    for (const doc of docsSnap.docs) {
+      items.push({ id: doc.id, ...doc.data() });
+    }
+    const file = path.join(outDir, `${colName}.json`);
+    fs.writeFileSync(file, JSON.stringify(items, null, 2));
+    console.log(`✔ Exported ${items.length} docs from ${colName} -> ${file}`);
+  }
+  console.log(`✅ Backup completed: ${outDir}`);
+}
+
+exportAll().catch((e) => { console.error(e); process.exit(1); });
+Add an npm script in package.json:
+
+json
+Copy
+Edit
+{
+  "scripts": {
+    "backup:firestore": "node server/scripts/backup-firestore.cjs"
+  }
+}
+Step 7 — Secrets & environment
+Prompt me (the user) to add these Replit Secrets (do not proceed until provided):
+
+FIREBASE_SERVICE_ACCOUNT_JSON → paste full JSON (already likely set)
+
+ADMIN_API_KEY → generate a long random string (you can propose one)
+
+CORS_ORIGINS → comma-separated origins allowed to call the API (e.g. https://yourdomain.com,https://replit.app)
+
+After I confirm secrets are in, restart the server.
+
+Step 8 — Quick verification
+CORS: A browser request from an origin not in CORS_ORIGINS should be blocked.
+
+Write protection: Try a POST to /api/cocktails without x-admin-key → expect 403. With correct header → proceed (server validation still applies).
+
+Rate limiting: Hammer /api with >300 req in 15 min from one IP → expect 429.
+
+Backups: Run npm run backup:firestore → confirm backups/<timestamp>/*.json created.
+
+Step 9 — (Optional) Publish server‑only rules
+If all the above is working, publish the server‑only Firestore rules from the Console (or via CLI) so that all client access is blocked and only the Admin SDK can read/write.
+
+Done criteria
+Firestore rules deny all (server-only).
+
+Express has Helmet, CORS allowlist, rate limiting, body size limits.
+
+All write routes require x-admin-key and succeed only with correct key.
+
+Firebase Admin uses service account from Secrets (no JSON in repo).
+
+Backup script exports collections to JSON.
+
+Rollback
+Restore rules from firestore.rules.backup if needed.
+
+Remove requireAdminForWrites middleware to temporarily allow writes (not recommended).
+
+Disable CORS/limits by commenting out app.use(cors(...)) and app.use("/api", apiLimiter).
+
+REPLIT AGENT PROMPT — END

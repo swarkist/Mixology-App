@@ -1,36 +1,17 @@
 import admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK with strict service account requirement
+const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+if (!raw) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT_JSON secret not set");
+}
+
 if (!admin.apps.length) {
-  // Check if we have service account credentials
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    try {
-      // Use service account key (recommended for production)
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id,
-      });
-    } catch (error) {
-      console.error('Failed to parse Firebase service account JSON:', error);
-      // Fall back to using just project ID if available
-      if (process.env.FIREBASE_PROJECT_ID) {
-        admin.initializeApp({
-          projectId: process.env.FIREBASE_PROJECT_ID,
-        });
-      } else {
-        throw new Error('Firebase configuration failed: No valid credentials provided');
-      }
-    }
-  } else if (process.env.FIREBASE_PROJECT_ID) {
-    // Use project ID only (works in some environments with default credentials)
-    admin.initializeApp({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-    });
-  } else {
-    throw new Error('Firebase configuration missing. Please provide FIREBASE_PROJECT_ID and optionally FIREBASE_SERVICE_ACCOUNT_KEY');
-  }
+  const serviceAccount = JSON.parse(raw);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 }
 
 export const db = getFirestore();
