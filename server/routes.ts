@@ -650,6 +650,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ count: 0, cocktailIds: [] });
       return;
       
+      // This code is disabled for now since My Bar functionality has been replaced
+      // The code below is commented out and will be replaced with preferred brands functionality
+      /*
       console.log('My Bar ingredients:', myBarIngredients.map((i: any) => `${i.name} (${i.id})`));
       
       if (myBarIngredientIds.length === 0) {
@@ -663,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const cocktail of cocktails) {
         const cocktailDetails = await storage.getCocktailWithDetails(cocktail.id);
-        if (cocktailDetails && cocktailDetails.ingredients.length > 0) {
+        if (cocktailDetails?.ingredients && cocktailDetails.ingredients.length > 0) {
           // Check if this cocktail uses any My Bar ingredients
           const usesMyBarIngredient = cocktailDetails.ingredients.some((ingredient: any) => 
             myBarIngredientIds.includes(ingredient.ingredientId)
@@ -683,6 +686,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Cocktail IDs: ${cocktailIds.join(', ')}`);
       
       res.json({ count, cocktailIds });
+      */
+
+
     } catch (error) {
       console.error('Error calculating My Bar cocktail count:', error);
       res.status(500).json({ error: 'Failed to calculate My Bar cocktail count' });
@@ -712,7 +718,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(brands);
     } catch (error) {
       console.error('🔥 Preferred brands API error:', error);
-      res.status(500).json({ message: "Error fetching preferred brands", error: error.message });
+      res.status(500).json({ message: "Error fetching preferred brands", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
@@ -813,6 +819,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error removing association:', error);
       res.status(500).json({ message: "Error removing association", error });
+    }
+  });
+
+  // =================== AI IMPORT ROUTES ===================
+  app.post("/api/openrouter", async (req, res) => {
+    try {
+      const { model, systemPrompt, userContent } = req.body;
+      
+      if (!process.env.OPENROUTER_API_KEY) {
+        return res.status(500).json({ error: "OpenRouter API key not configured" });
+      }
+      
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userContent }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
+        return res.status(response.status).json({ 
+          error: `OpenRouter API error: ${response.statusText}` 
+        });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error("OpenRouter request failed:", error);
+      res.status(500).json({ error: "Failed to process OpenRouter request" });
+    }
+  });
+
+  app.post("/api/youtube-transcript", async (req, res) => {
+    try {
+      const { videoId } = req.body;
+      
+      if (!videoId) {
+        return res.status(400).json({ error: "Video ID is required" });
+      }
+      
+      // Use the youtube-transcript package
+      const { YoutubeTranscript } = await import('youtube-transcript');
+      
+      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+      
+      if (!transcriptItems || transcriptItems.length === 0) {
+        return res.status(404).json({ error: "No transcript found for this video" });
+      }
+      
+      // Join all transcript text
+      const transcript = transcriptItems.map(item => item.text).join(' ');
+      
+      res.json({ transcript });
+    } catch (error) {
+      console.error("YouTube transcript extraction failed:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to extract YouTube transcript" 
+      });
     }
   });
 

@@ -1,0 +1,184 @@
+Title:
+Implement AI-Powered Recipe Importer Using OpenRouter.ai (Replaces Bulk Upload Workflow)
+
+Overview:
+Create a new /import feature that replaces the idea of CSV-based bulk upload with an AI-powered recipe importer using OpenRouter.ai.
+
+This page should allow users to enter a YouTube link or standard webpage URL, and the system will extract raw text, pass it to a model via OpenRouter, and convert it into a structured cocktail recipe.
+
+This is intended to replace the unused bulk upload flow. The design of client/src/pages/BulkUpload.tsx can be referenced for layout only — it was never fully implemented.
+
+🔌 Use OpenRouter.ai (Not OpenAI)
+Implement AI functionality via OpenRouter.ai using the following:
+
+API URL: https://openrouter.ai/api/v1/chat/completions
+
+Authorization: Header must be Bearer ${process.env.OPENROUTER_API_KEY}
+
+Store the OPENROUTER_API_KEY in Replit Secrets
+
+Set Content-Type: application/json
+
+🧠 Phase 5: Model Routing Logic
+Create a utility file: src/lib/modelRouter.ts to handle model selection per task:
+
+ts
+Copy
+Edit
+export function getModelForTask(task: "generate" | "parse" | "normalize" | "summarize") {
+  switch (task) {
+    case "generate": return "mistralai/mixtral-8x7b";
+    case "parse": return "meta-llama/llama-3-70b-instruct";
+    case "normalize": return "nousresearch/nous-capybara-7b";
+    case "summarize": return "meta-llama/llama-3-70b-instruct";
+    default: return "mistralai/mixtral-8x7b";
+  }
+}
+📂 File Requirements
+Build the following files/modules:
+
+1. src/pages/ImportCocktail.tsx
+UI component for /import route. Must:
+
+Look like BulkUpload.tsx for layout
+
+Have input field for a YouTube or Web URL
+
+Button to trigger import
+
+Left panel: scraped/transcribed raw text
+
+Right panel: editable parsed data (name, description, ingredients, steps, tags)
+
+2. src/lib/aiRequest.ts
+Handles sending prompt to OpenRouter using appropriate model (via getModelForTask()).
+
+ts
+Copy
+Edit
+import { getModelForTask } from "./modelRouter";
+
+export async function callOpenRouter(task: string, userContent: string, systemPrompt: string) {
+  const model = getModelForTask(task);
+  
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userContent }
+      ]
+    })
+  });
+
+  if (!response.ok) throw new Error(`OpenRouter error: ${response.statusText}`);
+  const data = await response.json();
+  return data.choices?.[0]?.message?.content;
+}
+3. src/lib/scrapeURL.ts
+Use axios + api.allorigins.win to fetch website HTML, strip tags, and return plain text.
+
+4. src/lib/extractYouTubeTranscript.ts
+Use youtube-transcript package to pull transcript from YouTube links and return joined text.
+
+🔄 Measurement Normalization Rules
+Normalize in post-processing:
+
+oz/ml pairs: use only the oz value.
+
+ranges (e.g., 3–4 dashes): use lower bound (e.g., 3).
+
+🌐 API Endpoint Integration
+Use the following backend endpoints from server/routes.ts:
+
+POST /api/ingredients — to upsert new ingredients
+
+GET /api/ingredients — for existing ingredients
+
+POST /api/cocktails — to save the final recipe
+
+POST /api/tags — to upsert new tags
+
+GET /api/tags — for tag deduplication
+
+These endpoints already handle creation and lookup of ingredients, cocktails, and tags.
+
+💡 Frontend UI Flow
+User pastes a link
+
+App:
+
+Detects if it’s YouTube or webpage
+
+Fetches raw transcript or scraped text
+
+Calls OpenRouter with proper model (summarize/parse)
+
+Gets structured JSON (name, ingredients, instructions, tags)
+
+Normalizes data using Measurement Rules
+
+Displays everything for user editing
+
+On Save:
+
+New ingredients → /api/ingredients
+
+New tags → /api/tags
+
+Final cocktail → /api/cocktails
+
+🔧 Refactor Notes
+Where applicable, remove or archive old CSV upload components.
+
+The reference design is client/src/pages/BulkUpload.tsx — align layout and styling with that.
+
+There is no need to retain the /bulk-upload route.
+
+✅ Acceptance Criteria
+/import is styled like BulkUpload.tsx
+
+OpenRouter API is correctly integrated
+
+Model selection is task-based via modelRouter.ts
+
+Ingredient units are normalized
+
+Only AI-detected ingredients are shown; new ones flagged
+
+Tags are deduplicated
+
+Data submitted through proper API endpoints
+
+Stock images used by default
+
+No remaining references to CSV bulk upload logic
+
+📘 Reference: OpenRouter.ai API (Chat Completion)
+Endpoint:
+POST https://openrouter.ai/api/v1/chat/completions
+
+Headers:
+
+http
+Copy
+Edit
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+Request Body:
+
+json
+Copy
+Edit
+{
+  "model": "mistralai/mixtral-8x7b",
+  "messages": [
+    { "role": "system", "content": "You are a helpful assistant." },
+    { "role": "user", "content": "Extract a cocktail recipe from this text..." }
+  ]
+}

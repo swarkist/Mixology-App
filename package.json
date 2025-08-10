@@ -85,6 +85,7 @@
     "vitest": "^3.2.4",
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
+    "youtube-transcript": "^1.2.1",
     "youtube-transcript-api": "^3.0.6",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"

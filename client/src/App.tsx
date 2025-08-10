@@ -15,7 +15,7 @@ import { EditIngredient } from "@/pages/EditIngredient";
 import PreferredBrands from "@/pages/PreferredBrands";
 import AddPreferredBrand from "@/pages/AddPreferredBrand";
 import EditPreferredBrand from "@/pages/EditPreferredBrand";
-import { BulkUpload } from "@/pages/BulkUpload";
+import { ImportCocktail } from "@/pages/ImportCocktail";
 import { MyBar } from "@/pages/MyBar";
 
 function Router() {
@@ -33,7 +33,7 @@ function Router() {
       <Route path="/preferred-brands" component={PreferredBrands} />
       <Route path="/add-preferred-brand" component={AddPreferredBrand} />
       <Route path="/edit-preferred-brand/:id" component={EditPreferredBrand} />
-      <Route path="/bulk-upload" component={BulkUpload} />
+      <Route path="/import" component={ImportCocktail} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
