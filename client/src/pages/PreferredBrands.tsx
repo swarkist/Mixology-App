@@ -19,16 +19,26 @@ export default function PreferredBrands() {
   const [draftBrand, setDraftBrand] = useState<{ name?: string; proof?: number | null } | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: brands = [], isLoading } = useQuery({
+  const { data: brands = [], isLoading, error } = useQuery({
     queryKey: ["/api/preferred-brands", searchTerm],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm.trim()) {
-        params.append("search", searchTerm);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm.trim()) {
+          params.append("search", searchTerm);
+        }
+        const response = await apiRequest("GET", `/api/preferred-brands?${params}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch brands: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        console.error("Error fetching preferred brands:", error);
+        throw error;
       }
-      const response = await apiRequest("GET", `/api/preferred-brands?${params}`);
-      return response.json();
     },
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const toggleMyBarMutation = useMutation({
@@ -49,18 +59,50 @@ export default function PreferredBrands() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#161611] text-white p-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
-                <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Preferred Brands
+            </h1>
+            <p className="text-sm text-[#bab59c]">Loading your preferred brands...</p>
+          </div>
+          <div className="px-4 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
+                  <div className="h-48 bg-[#544f3b] rounded-t-lg"></div>
+                  <CardContent className="p-4">
+                    <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
+                    <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
+        <Navigation />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Preferred Brands
+            </h1>
+            <div className="bg-red-600/20 border border-red-600 rounded-lg p-4">
+              <p className="text-red-200">Failed to load preferred brands. Please try refreshing the page.</p>
+            </div>
+          </div>
+        </div>
+        <Navigation />
       </div>
     );
   }
@@ -99,21 +141,23 @@ export default function PreferredBrands() {
         </div>
 
         {/* Action Buttons */}
-        <div className="px-4 py-3 flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={() => setOcrOpen(true)}
-            className="border-[#544f3b] text-[#bab59c] hover:bg-[#383629] hover:text-[#f2c40c] hover:border-[#f2c40c]"
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Add via Photo
-          </Button>
-          <Link href="/add-preferred-brand">
-            <Button className="bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Preferred Brand
+        <div className="px-4 py-3">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <Button 
+              variant="outline" 
+              onClick={() => setOcrOpen(true)}
+              className="w-full sm:w-auto border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors font-medium border-2"
+            >
+              <Camera className="w-4 h-4 mr-2 flex-shrink-0" />
+              Add via Photo
             </Button>
-          </Link>
+            <Link href="/add-preferred-brand" className="w-full sm:w-auto">
+              <Button className="w-full bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
+                <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
+                Add Preferred Brand
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Stats Bar */}
