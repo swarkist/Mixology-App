@@ -53,20 +53,33 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
     setLoading(true);
     setError(null);
     try {
+      console.log("🔥 Client: Starting OCR extraction for file:", file.name, file.size);
       const base64 = preview || (await toDataUrl(file));
+      console.log("🔥 Client: Base64 prepared, length:", base64.length);
+      
       const res = await fetch("/api/ai/brands/from-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ base64, autoCreate: false }),
       });
+      
+      console.log("🔥 Client: Response status:", res.status);
       const json = await res.json();
-      if (!res.ok) throw new Error(json?.error || "OCR request failed");
+      console.log("🔥 Client: Response JSON:", json);
+      
+      if (!res.ok) {
+        const errorMsg = json?.error || "OCR request failed";
+        const details = json?.details ? `\n\nDetails: ${json.details}` : "";
+        throw new Error(errorMsg + details);
+      }
+      
       setResult(json);
       
       // Set editable fields with extracted data
       setEditedName(json?.name || "");
       setEditedProof(json?.proof ? String(json.proof) : "");
     } catch (e: any) {
+      console.error("🔥 Client: OCR failed:", e);
       setError(e?.message ?? "Failed to process image");
     } finally {
       setLoading(false);

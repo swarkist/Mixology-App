@@ -866,19 +866,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Photo → Preferred Brand OCR endpoint
   app.post("/api/ai/brands/from-image", async (req, res) => {
     try {
+      console.log("🔥 OCR request received");
+      
       // Expect JSON: { base64: "data:image/...;base64,xxx", autoCreate?: boolean }
       const { base64, autoCreate } = req.body ?? {};
+      console.log("🔥 Base64 received:", base64 ? `${base64.substring(0, 50)}...` : "null");
+      console.log("🔥 AutoCreate:", autoCreate);
+      
       if (!base64 || !String(base64).startsWith("data:image")) {
+        console.log("🔥 Invalid base64 format");
         return res.status(400).json({ error: "Send { base64: 'data:image/...;base64,XXX' }" });
       }
 
+      // Check if OpenRouter API key is available
+      if (!process.env.OPENROUTER_API_KEY) {
+        console.log("🔥 Missing OpenRouter API key");
+        return res.status(500).json({ error: "OpenRouter API key not configured" });
+      }
+
+      console.log("🔥 Calling extractBrandFromImage...");
       const { result, model } = await extractBrandFromImage(base64);
+      console.log("🔥 OCR result:", { model, result });
 
       // No roles yet — any user can auto-create for now.
       // TODO (roles): Once roles are implemented, require admin for autoCreate.
       let created: any = null;
 
       if (autoCreate && result?.name && result?.confidence && result.confidence >= 0.7) {
+        console.log("🔥 Auto-creating brand with confidence:", result.confidence);
         const payload = {
           name: result.name.trim(),
           proof: result.proof ?? null,
@@ -890,16 +905,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const createdBrand = await storage.createPreferredBrand(payload);
           created = createdBrand;
+          console.log("🔥 Brand auto-created:", created.id);
         } catch (createError) {
-          console.error("Failed to auto-create brand:", createError);
+          console.error("🔥 Failed to auto-create brand:", createError);
           // Don't fail the OCR response if creation fails
         }
       }
 
+      console.log("🔥 OCR request completed successfully");
       return res.json({ model, ...result, created });
     } catch (e: any) {
-      console.error("OCR extraction failed:", e);
-      return res.status(500).json({ error: e?.message ?? "OCR failed" });
+      console.error("🔥 OCR extraction failed:", e);
+      console.error("🔥 Error stack:", e?.stack);
+      return res.status(500).json({ 
+        error: e?.message ?? "OCR failed",
+        details: e?.stack ? e.stack.split('\n').slice(0, 3).join('\n') : undefined
+      });
     }
   });
 
