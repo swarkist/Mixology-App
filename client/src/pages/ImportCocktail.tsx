@@ -19,7 +19,7 @@ import { isYouTubeURL, extractYouTubeTranscript } from "@/lib/extractYouTubeTran
 import { scrapeWebContent } from "@/lib/scrapeURL";
 import { callOpenRouter } from "@/lib/aiRequest";
 import { getModelForTask } from "@/lib/modelRouter";
-import { cocktailFormSchema } from "@shared/schema";
+import { cocktailFormSchema, insertCocktailSchema } from "@shared/schema";
 import type { Ingredient, Tag } from "@shared/schema";
 
 interface ParsedRecipe {
@@ -61,15 +61,25 @@ export const ImportCocktail = (): JSX.Element => {
     }
   });
 
+  // Create a custom form schema for AI import that handles raw ingredient data
+  const aiImportFormSchema = insertCocktailSchema.extend({
+    ingredients: z.array(z.object({
+      name: z.string().min(1),
+      amount: z.string().min(1),
+      unit: z.string().min(1),
+    })),
+    instructions: z.array(z.string().min(1)),
+    tags: z.array(z.string()).optional(),
+  });
+
   const cocktailForm = useForm({
-    resolver: zodResolver(cocktailFormSchema),
+    resolver: zodResolver(aiImportFormSchema),
     defaultValues: {
       name: "",
       description: "",
       instructions: [""],
       ingredients: [{ name: "", amount: "", unit: "" }],
       tags: [],
-
       servings: 1,
       glassType: "",
       garnish: "",
@@ -197,7 +207,7 @@ Rules:
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter(getModelForTask("parse" as const), rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse" as "parse"), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -213,6 +223,7 @@ Do not include any explanation or additional text - return only the JSON object.
         throw new Error("No valid recipe found in the content");
       }
       
+      console.log("Parsed recipe data:", parsed);
       setParsedRecipe(parsed);
       
       // Populate the form with parsed data
@@ -465,8 +476,37 @@ Do not include any explanation or additional text - return only the JSON object.
 
 
 
+                      {/* Show parsed ingredients and instructions */}
+                      {parsedRecipe?.ingredients && parsedRecipe.ingredients.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-white">Parsed Ingredients ({parsedRecipe.ingredients.length})</Label>
+                          <div className="bg-[#383529] border-[#544f3a] rounded p-3 text-white text-sm">
+                            {parsedRecipe.ingredients.map((ing, idx) => (
+                              <div key={idx} className="flex justify-between items-center py-1">
+                                <span className="font-medium">{ing.name}</span>
+                                <span className="text-[#bab59b]">{ing.amount} {ing.unit}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {parsedRecipe?.instructions && parsedRecipe.instructions.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-white">Parsed Instructions ({parsedRecipe.instructions.length})</Label>
+                          <div className="bg-[#383529] border-[#544f3a] rounded p-3 text-white text-sm space-y-2">
+                            {parsedRecipe.instructions.map((step, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                <span className="text-[#f2c40c] font-bold">{idx + 1}.</span>
+                                <span>{step}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="text-sm text-[#bab59b]">
-                        Additional fields like ingredients, instructions, and tags can be edited after saving.
+                        AI-parsed ingredients and instructions are shown above. Click "Save Cocktail" to finalize import.
                       </div>
 
                       {saveStatus === "success" && (
