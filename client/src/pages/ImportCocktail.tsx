@@ -1,4 +1,4 @@
-import { ArrowLeft, Link as LinkIcon, Youtube, Loader2, FileText, Wand2, Save, AlertCircle, CheckCircle, ClipboardPaste } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Youtube, Loader2, FileText, Wand2, Save, AlertCircle, CheckCircle, ClipboardPaste, Plus, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,60 @@ export const ImportCocktail = (): JSX.Element => {
     ));
   };
 
+  // Function to update ingredient details (name, amount, unit)
+  const updateIngredientField = (index: number, field: 'name' | 'amount' | 'unit', value: string) => {
+    setIngredientsWithCategories(prev => prev.map((ing, idx) => {
+      if (idx === index) {
+        const updated = { ...ing, [field]: value };
+        // Recalculate if ingredient is new when name changes
+        if (field === 'name') {
+          updated.isNew = isIngredientNew(value);
+          if (!updated.isNew) {
+            updated.category = '';
+            updated.subCategory = '';
+          }
+        }
+        return updated;
+      }
+      return ing;
+    }));
+
+    // Also update the form to keep it in sync
+    const currentIngredients = cocktailForm.getValues().ingredients;
+    const updatedIngredients = currentIngredients.map((ing, idx) => 
+      idx === index ? { ...ing, [field]: value } : ing
+    );
+    cocktailForm.setValue('ingredients', updatedIngredients);
+  };
+
+  // Function to remove an ingredient
+  const removeIngredient = (index: number) => {
+    setIngredientsWithCategories(prev => prev.filter((_, idx) => idx !== index));
+    
+    const currentIngredients = cocktailForm.getValues().ingredients;
+    const updatedIngredients = currentIngredients.filter((_, idx) => idx !== index);
+    cocktailForm.setValue('ingredients', updatedIngredients);
+  };
+
+  // Function to add a new ingredient
+  const addIngredient = () => {
+    const newIngredient = { name: '', amount: '', unit: '', isNew: true, category: '', subCategory: '' };
+    setIngredientsWithCategories(prev => [...prev, newIngredient]);
+    
+    const currentIngredients = cocktailForm.getValues().ingredients;
+    cocktailForm.setValue('ingredients', [...currentIngredients, { name: '', amount: '', unit: '' }]);
+  };
+
+  // Sync ingredients with categories to form on changes
+  const syncIngredientsToForm = () => {
+    const formIngredients = ingredientsWithCategories.map(ing => ({
+      name: ing.name,
+      amount: ing.amount,
+      unit: ing.unit || ''
+    }));
+    cocktailForm.setValue('ingredients', formIngredients);
+  };
+
   const createCocktailMutation = useMutation({
     mutationFn: async (cocktailData: any) => {
       const response = await fetch("/api/cocktails", {
@@ -238,7 +292,7 @@ Rules:
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter(getModelForTask("parse"), rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse" as any), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -629,25 +683,71 @@ SAMPLE RECIPE
 
 
 
-                      {/* Show parsed ingredients with NEW indicators and category selection */}
+                      {/* Show editable parsed ingredients with NEW indicators and category selection */}
                       {ingredientsWithCategories.length > 0 && (
                         <div className="space-y-4">
-                          <Label className="text-white">Parsed Ingredients ({ingredientsWithCategories.length})</Label>
+                          <div className="flex justify-between items-center">
+                            <Label className="text-white">Parsed Ingredients ({ingredientsWithCategories.length})</Label>
+                            <Button
+                              type="button"
+                              onClick={addIngredient}
+                              size="sm"
+                              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] text-xs"
+                            >
+                              <Plus className="w-3 h-3 mr-1" />
+                              Add
+                            </Button>
+                          </div>
                           <div className="space-y-3">
                             {ingredientsWithCategories.map((ing, idx) => (
                               <div key={idx} className="bg-[#383529] border-[#544f3a] rounded p-3">
-                                <div className="flex justify-between items-center mb-2">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium text-white">{ing.name}</span>
-                                    {ing.isNew && (
-                                      <Badge className="bg-[#f2c40c] text-[#161611] text-xs font-bold pointer-events-none">
-                                        NEW
-                                      </Badge>
-                                    )}
+                                {/* Editable ingredient fields */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-2 mb-3">
+                                  <div className="md:col-span-5">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <Label className="text-white text-xs">Ingredient Name</Label>
+                                      {ing.isNew && (
+                                        <Badge className="bg-[#f2c40c] text-[#161611] text-xs font-bold pointer-events-none">
+                                          NEW
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <Input
+                                      value={ing.name}
+                                      onChange={(e) => updateIngredientField(idx, 'name', e.target.value)}
+                                      className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs"
+                                      placeholder="Enter ingredient name"
+                                    />
                                   </div>
-                                  <span className="text-[#bab59b]">
-                                    {formatIngredientMeasurement(ing.amount || '', ing.unit || '')}
-                                  </span>
+                                  <div className="md:col-span-3">
+                                    <Label className="text-white text-xs">Amount</Label>
+                                    <Input
+                                      value={ing.amount}
+                                      onChange={(e) => updateIngredientField(idx, 'amount', e.target.value)}
+                                      className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs"
+                                      placeholder="2"
+                                    />
+                                  </div>
+                                  <div className="md:col-span-3">
+                                    <Label className="text-white text-xs">Unit</Label>
+                                    <Input
+                                      value={ing.unit || ''}
+                                      onChange={(e) => updateIngredientField(idx, 'unit', e.target.value)}
+                                      className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs"
+                                      placeholder="oz"
+                                    />
+                                  </div>
+                                  <div className="md:col-span-1 flex items-end">
+                                    <Button
+                                      type="button"
+                                      onClick={() => removeIngredient(idx)}
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-600/20"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </Button>
+                                  </div>
                                 </div>
                                 
                                 {/* Category selection for new ingredients */}
@@ -688,7 +788,7 @@ SAMPLE RECIPE
                                           <Label className="text-white text-xs">Sub-Category *</Label>
                                           <Select
                                             value={ing.subCategory}
-                                            onValueChange={(value) => updateIngredientCategory(idx, ing.category, value)}
+                                            onValueChange={(value) => updateIngredientCategory(idx, ing.category || '', value)}
                                           >
                                             <SelectTrigger className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs">
                                               <SelectValue placeholder="Select sub-category" />
@@ -740,19 +840,65 @@ SAMPLE RECIPE
                         </div>
                       )}
 
-                      {parsedRecipe?.instructions && parsedRecipe.instructions.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-white">Parsed Instructions ({parsedRecipe.instructions.length})</Label>
-                          <div className="bg-[#383529] border-[#544f3a] rounded p-3 text-white text-sm space-y-2">
-                            {parsedRecipe.instructions.map((step, idx) => (
-                              <div key={idx} className="flex gap-2">
-                                <span className="text-[#f2c40c] font-bold">{idx + 1}.</span>
-                                <span>{step}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+                      {/* Editable Instructions */}
+                      <FormField
+                        control={cocktailForm.control}
+                        name="instructions"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex justify-between items-center">
+                              <FormLabel className="text-white">Instructions ({field.value?.length || 0})</FormLabel>
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  const current = field.value || [];
+                                  field.onChange([...current, ""]);
+                                }}
+                                size="sm"
+                                className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] text-xs"
+                              >
+                                <Plus className="w-3 h-3 mr-1" />
+                                Add Step
+                              </Button>
+                            </div>
+                            <div className="space-y-2">
+                              {field.value?.map((instruction: string, idx: number) => (
+                                <div key={idx} className="flex gap-2 items-start">
+                                  <span className="text-[#f2c40c] font-bold text-sm mt-2 min-w-[20px]">
+                                    {idx + 1}.
+                                  </span>
+                                  <div className="flex-1">
+                                    <Textarea
+                                      value={instruction}
+                                      onChange={(e) => {
+                                        const updated = [...(field.value || [])];
+                                        updated[idx] = e.target.value;
+                                        field.onChange(updated);
+                                      }}
+                                      className="bg-[#383529] border-[#544f3a] text-white text-sm resize-none"
+                                      rows={2}
+                                      placeholder="Enter instruction step..."
+                                    />
+                                  </div>
+                                  <Button
+                                    type="button"
+                                    onClick={() => {
+                                      const updated = field.value?.filter((_, i) => i !== idx) || [];
+                                      field.onChange(updated);
+                                    }}
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-600/20 mt-1"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ))}
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
 
                       <div className="text-sm text-[#bab59b]">
                         AI-parsed ingredients and instructions are shown above. 

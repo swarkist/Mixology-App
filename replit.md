@@ -8,15 +8,16 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## Recent Changes (August 11, 2025)
+- **Enhanced AI Import with Full Editing**: Implemented comprehensive editing for AI-parsed ingredients and instructions with NEW indicators and category assignment
+- **Editable Ingredient Management**: Users can modify ingredient names, amounts, units, add/remove ingredients, and assign categories to new ingredients during import
+- **Interactive Instructions Editor**: Added numbered instruction steps with add/remove functionality for complete control over AI-parsed recipes
+- **Smart NEW Ingredient Detection**: Automatic detection of new ingredients with required category selection before saving
+- **Part Measurement Preservation**: Enhanced AI parsing to correctly preserve "part" measurements instead of converting to "oz"
 - **Photo OCR Mobile Bug Fixed**: Resolved HTTP 413 error by implementing consistent image compression for both OCR extraction and brand creation
 - **Image Compression Optimization**: Enhanced workflow to use 31KB compressed images throughout (down from 3.3MB), improving API efficiency
 - **AI-Powered Photo OCR Feature**: Implemented extract → review → edit → create workflow for preferred brands using OpenRouter vision models
 - **Enhanced YouTube Transcript Extraction**: Improved AI-powered recipe importing from YouTube videos with better transcript parsing
 - **Mobile-Responsive Button Design**: Fixed button readability and stacking for iPhone 14/15 resolutions with improved gold accent styling
-- **Comprehensive AI Integration**: Added OpenRouter API proxy with model routing for recipe parsing, brand extraction, and content analysis
-- **Improved Error Handling**: Enhanced React Query with retry logic, proper error states, and better loading indicators
-- **Photo Brand Extraction Workflow**: Users can upload bottle photos, extract brand information via AI, edit details, and create preferred brands
-- **AI Recipe Import Enhancement**: Improved parsing accuracy for web URLs and YouTube videos with fraction display and measurement conversion
 
 ## Previous Changes (August 10, 2025)
 - **Comprehensive Security Hardening**: Implemented enterprise-level security measures for server-only Firebase access
