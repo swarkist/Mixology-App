@@ -44,7 +44,7 @@ const TopNavigation = (): JSX.Element => {
             <div className="flex flex-col items-start">
               <Link href="/">
                 <h1 className="font-bold text-white text-lg leading-[23px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
-                  Mixology
+                  Mixi Mixology
                 </h1>
               </Link>
             </div>
