@@ -32,8 +32,6 @@ interface ParsedRecipe {
     unit?: string;
   }>;
   tags: string[];
-  difficulty?: 'Easy' | 'Medium' | 'Hard';
-  prepTime?: string;
 }
 
 const importFormSchema = z.object({
@@ -71,8 +69,7 @@ export const ImportCocktail = (): JSX.Element => {
       instructions: [""],
       ingredients: [{ name: "", amount: "", unit: "" }],
       tags: [],
-      difficulty: "Easy" as const,
-      prepTime: "",
+
       servings: 1,
       glassType: "",
       garnish: "",
@@ -466,28 +463,7 @@ Do not include any explanation or additional text - return only the JSON object.
                         )}
                       />
 
-                      <FormField
-                        control={cocktailForm.control}
-                        name="difficulty"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-white">Difficulty</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <FormControl>
-                                <SelectTrigger className="bg-[#383529] border-[#544f3a] text-white">
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent className="bg-[#383529] border-[#544f3a]">
-                                <SelectItem value="Easy">Easy</SelectItem>
-                                <SelectItem value="Medium">Medium</SelectItem>
-                                <SelectItem value="Hard">Hard</SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+
 
                       <div className="text-sm text-[#bab59b]">
                         Additional fields like ingredients, instructions, and tags can be edited after saving.
