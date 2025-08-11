@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Camera, CheckCircle } from "lucide-react";
+import { Loader2, Camera, CheckCircle, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Props = {
@@ -17,8 +17,10 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [result, setResult] = useState<any>(null);
-  const [autoCreate, setAutoCreate] = useState(false);
+  const [editedName, setEditedName] = useState("");
+  const [editedProof, setEditedProof] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   function toDataUrl(f: File): Promise<string> {
@@ -34,7 +36,10 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
     setFile(null);
     setPreview("");
     setResult(null);
+    setEditedName("");
+    setEditedProof("");
     setError(null);
+    setCreating(false);
   }
 
   function getConfidenceColor(confidence: number): string {
@@ -43,7 +48,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
     return "text-red-600";
   }
 
-  async function submit() {
+  async function extractBrand() {
     if (!file) return;
     setLoading(true);
     setError(null);
@@ -52,20 +57,60 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
       const res = await fetch("/api/ai/brands/from-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ base64, autoCreate }),
+        body: JSON.stringify({ base64, autoCreate: false }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "OCR request failed");
       setResult(json);
       
-      // Prefill the form with extracted data
-      if (json?.name) {
-        onPrefill({ name: json.name, proof: json.proof ?? null, bottle_text: json.bottle_text });
-      }
+      // Set editable fields with extracted data
+      setEditedName(json?.name || "");
+      setEditedProof(json?.proof ? String(json.proof) : "");
     } catch (e: any) {
       setError(e?.message ?? "Failed to process image");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function createBrand() {
+    if (!editedName.trim()) {
+      setError("Brand name is required");
+      return;
+    }
+    
+    setCreating(true);
+    setError(null);
+    try {
+      const payload = {
+        name: editedName.trim(),
+        proof: editedProof ? Number(editedProof) : null,
+        imageUrl: preview,
+        notes: result?.notes || undefined,
+      };
+      
+      const res = await fetch("/api/preferred-brands", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData?.error || "Failed to create brand");
+      }
+      
+      const created = await res.json();
+      
+      // Notify parent component about the creation
+      onPrefill({ name: editedName, proof: payload.proof, bottle_text: result?.bottle_text });
+      
+      // Close dialog after successful creation
+      onOpenChange(false);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to create brand");
+    } finally {
+      setCreating(false);
     }
   }
 
@@ -80,6 +125,9 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
             <Camera className="w-5 h-5" />
             Add Preferred Brand from Photo
           </DialogTitle>
+          <DialogDescription className="text-[#bab59b]">
+            Upload a bottle photo to extract brand information using AI vision models
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -93,6 +141,8 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
                 const f = e.target.files?.[0] || null;
                 setFile(f);
                 setResult(null);
+                setEditedName("");
+                setEditedProof("");
                 setError(null);
                 if (f) {
                   try {
@@ -118,18 +168,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
             </div>
           )}
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="autoCreate"
-              checked={autoCreate}
-              onChange={(e) => setAutoCreate(e.target.checked)}
-              className="rounded border-[#544f3a] bg-[#383529]"
-            />
-            <Label htmlFor="autoCreate" className="text-sm text-[#bab59b]">
-              Auto-create preferred brand if confidence ≥ 70%
-            </Label>
-          </div>
+
 
           {error && (
             <Alert className="bg-red-600/20 border-red-600">
@@ -155,21 +194,32 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
               </div>
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-4">
               <div>
-                <span className="text-[#bab59b] text-sm">Brand Name:</span>
-                <div className="font-medium text-white">{result.name || "—"}</div>
+                <Label className="text-[#bab59b] text-sm">Brand Name</Label>
+                <Input
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  placeholder="Enter brand name"
+                  className="mt-1 bg-[#2a2920] border-[#544f3a] text-white"
+                />
               </div>
               
               <div>
-                <span className="text-[#bab59b] text-sm">Proof:</span>
-                <div className="font-medium text-white">{result.proof ? `${result.proof}°` : "—"}</div>
+                <Label className="text-[#bab59b] text-sm">Proof (optional)</Label>
+                <Input
+                  type="number"
+                  value={editedProof}
+                  onChange={(e) => setEditedProof(e.target.value)}
+                  placeholder="e.g. 80"
+                  className="mt-1 bg-[#2a2920] border-[#544f3a] text-white"
+                />
               </div>
 
               {result.notes && (
                 <div>
-                  <span className="text-[#bab59b] text-sm">Notes:</span>
-                  <div className="text-white text-sm">{result.notes}</div>
+                  <span className="text-[#bab59b] text-sm">AI Notes:</span>
+                  <div className="text-white text-sm bg-[#2a2920] p-2 rounded border border-[#544f3a]">{result.notes}</div>
                 </div>
               )}
             </div>
@@ -185,14 +235,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
               </div>
             )}
 
-            {result.created && (
-              <Alert className="bg-green-600/20 border-green-600">
-                <CheckCircle className="h-4 w-4 text-green-400" />
-                <AlertDescription className="text-green-200">
-                  ✅ Created Preferred Brand: <strong>{result.created?.name}</strong>
-                </AlertDescription>
-              </Alert>
-            )}
+
           </div>
         )}
 
@@ -204,23 +247,44 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
           >
             Close
           </Button>
-          <Button 
-            onClick={submit} 
-            disabled={!file || loading}
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Reading...
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4 mr-2" />
-                Extract Brand
-              </>
-            )}
-          </Button>
+          
+          {!result ? (
+            <Button 
+              onClick={extractBrand} 
+              disabled={!file || loading}
+              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Reading...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4 mr-2" />
+                  Extract Brand
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button 
+              onClick={createBrand} 
+              disabled={!editedName.trim() || creating}
+              className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
+            >
+              {creating ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Brand Item
+                </>
+              )}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
