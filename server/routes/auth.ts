@@ -248,17 +248,25 @@ export function createAuthRoutes(storage: IStorage): Router {
   // GET /api/auth/me
   router.get('/me', requireAuth(storage), async (req, res) => {
     try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Get fresh user data from storage
+      const fullUser = await storage.getUserById(user.id);
+      if (!fullUser) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
       const csrfToken = generateCSRFToken();
-      
-      // Store CSRF token in session or cache if needed
-      req.csrfToken = csrfToken;
       
       res.json({
         user: {
-          id: req.user!.id,
-          email: (await storage.getUserById(req.user!.id))?.email,
-          role: req.user!.role,
-          is_active: req.user!.is_active
+          id: fullUser.id,
+          email: fullUser.email,
+          role: fullUser.role,
+          is_active: fullUser.is_active
         },
         csrfToken
       });

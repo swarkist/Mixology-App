@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import NotFound from "@/pages/not-found";
 
 import { Frame } from "@/pages/Frame";
@@ -29,22 +30,87 @@ function Router() {
       {/* Add pages below */}
       <Route path="/" component={Frame} />
       <Route path="/cocktails" component={CocktailList} />
-      <Route path="/add-cocktail" component={AddCocktail} />
-      <Route path="/edit-cocktail/:id?" component={AddCocktail} />
+      {/* Admin-only routes */}
+      <Route path="/add-cocktail">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <AddCocktail />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/edit-cocktail/:id?">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <AddCocktail />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/add-ingredient">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <AddIngredient />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/edit-ingredient/:id">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <EditIngredient />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/import">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <ImportCocktail />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/cocktails/import">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <ImportCocktail />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/admin">
+        {() => (
+          <ProtectedRoute requireRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+      
+      {/* User-specific routes (require login) */}
+      <Route path="/my-bar">
+        {() => (
+          <ProtectedRoute>
+            <MyBar />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/add-preferred-brand">
+        {() => (
+          <ProtectedRoute>
+            <AddPreferredBrand />
+          </ProtectedRoute>
+        )}
+      </Route>
+      <Route path="/edit-preferred-brand/:id">
+        {() => (
+          <ProtectedRoute>
+            <EditPreferredBrand />
+          </ProtectedRoute>
+        )}
+      </Route>
+      
+      {/* Public routes */}
       <Route path="/ingredients" component={Ingredients} />
-      <Route path="/my-bar" component={MyBar} />
-      <Route path="/add-ingredient" component={AddIngredient} />
-      <Route path="/edit-ingredient/:id" component={EditIngredient} />
       <Route path="/preferred-brands" component={PreferredBrands} />
-      <Route path="/add-preferred-brand" component={AddPreferredBrand} />
-      <Route path="/edit-preferred-brand/:id" component={EditPreferredBrand} />
-      <Route path="/import" component={ImportCocktail} />
-      <Route path="/cocktails/import" component={ImportCocktail} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
-      <Route path="/admin" component={AdminDashboard} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

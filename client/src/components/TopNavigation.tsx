@@ -18,11 +18,20 @@ interface NavItem {
   href: string;
 }
 
-const navItems: NavItem[] = [
+// Public navigation items (visible to all users)
+const publicNavItems: NavItem[] = [
   { label: "Cocktails", href: "/cocktails" },
   { label: "Ingredients", href: "/ingredients" },
   { label: "Preferred Brands", href: "/preferred-brands" },
+];
+
+// Authenticated user items (visible to logged-in users)
+const userNavItems: NavItem[] = [
   { label: "My Bar", href: "/my-bar" },
+];
+
+// Admin-only items (visible to admin users)
+const adminNavItems: NavItem[] = [
   { label: "Import Recipe", href: "/import" },
 ];
 
@@ -62,8 +71,27 @@ const TopNavigation = (): JSX.Element => {
 
           {/* Navigation links */}
           <div className="flex items-center gap-9">
-            {navItems.map((item, index) => (
-              <Link key={index} href={item.href}>
+            {/* Public navigation */}
+            {publicNavItems.map((item, index) => (
+              <Link key={`public-${index}`} href={item.href}>
+                <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+            
+            {/* User-specific navigation (only show if logged in) */}
+            {user && userNavItems.map((item, index) => (
+              <Link key={`user-${index}`} href={item.href}>
+                <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
+                  {item.label}
+                </span>
+              </Link>
+            ))}
+            
+            {/* Admin-only navigation (only show if admin) */}
+            {user?.role === 'admin' && adminNavItems.map((item, index) => (
+              <Link key={`admin-${index}`} href={item.href}>
                 <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
                   {item.label}
                 </span>
@@ -92,11 +120,14 @@ const TopNavigation = (): JSX.Element => {
 
           {/* Auth buttons */}
           <div className="flex items-center gap-2">
-            <Link href="/add-cocktail">
-              <Button className="h-10 px-4 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Add Recipe
-              </Button>
-            </Link>
+            {/* Admin-only Add Recipe button */}
+            {user?.role === 'admin' && (
+              <Link href="/add-cocktail">
+                <Button className="h-10 px-4 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  Add Recipe
+                </Button>
+              </Link>
+            )}
             
             {/* Authentication UI */}
             {isLoading ? (
@@ -183,8 +214,9 @@ const TopNavigation = (): JSX.Element => {
 
           {/* Navigation links */}
           <div className="px-4 py-2 space-y-3">
-            {navItems.map((item, index) => (
-              <Link key={index} href={item.href}>
+            {/* Public navigation */}
+            {publicNavItems.map((item, index) => (
+              <Link key={`public-${index}`} href={item.href}>
                 <div 
                   className="block font-medium text-white text-base py-2 [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
                   onClick={() => setMobileMenuOpen(false)}
@@ -194,15 +226,41 @@ const TopNavigation = (): JSX.Element => {
               </Link>
             ))}
             
-            {/* Add Recipe button */}
-            <Link href="/add-cocktail">
-              <Button 
-                className="w-full mt-4 h-10 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Add Recipe
-              </Button>
-            </Link>
+            {/* User-specific navigation (only show if logged in) */}
+            {user && userNavItems.map((item, index) => (
+              <Link key={`user-${index}`} href={item.href}>
+                <div 
+                  className="block font-medium text-white text-base py-2 [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </div>
+              </Link>
+            ))}
+            
+            {/* Admin-only navigation (only show if admin) */}
+            {user?.role === 'admin' && adminNavItems.map((item, index) => (
+              <Link key={`admin-${index}`} href={item.href}>
+                <div 
+                  className="block font-medium text-white text-base py-2 [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </div>
+              </Link>
+            ))}
+            
+            {/* Admin-only Add Recipe button */}
+            {user?.role === 'admin' && (
+              <Link href="/add-cocktail">
+                <Button 
+                  className="w-full mt-4 h-10 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Add Recipe
+                </Button>
+              </Link>
+            )}
 
             {/* Authentication UI for Mobile */}
             <div className="border-t border-[#383528] pt-4 mt-4">

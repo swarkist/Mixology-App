@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "wouter";
 import { Separator } from "@/components/ui/separator";
+import { RoleGate } from "@/components/RoleGate";
 
 export const FooterSection = (): JSX.Element => {
   // Footer navigation links data
@@ -76,11 +77,18 @@ export const FooterSection = (): JSX.Element => {
           {/* Divider Line */}
           <Separator className="bg-[#bab59b] opacity-30" />
 
-          {/* Copyright Text */}
-          <div className="flex justify-center w-full">
+          {/* Copyright Text and Admin Link */}
+          <div className="flex justify-center items-center gap-4 w-full">
             <p className="[font-family:'Plus_Jakarta_Sans',Helvetica] font-normal text-[#bab59b] text-base text-center tracking-[0] leading-6">
               © 2025 Mixi Mixology. All rights reserved.
             </p>
+            <RoleGate role="admin">
+              <Link href="/admin">
+                <span className="font-normal text-[#f2c40c] text-base [font-family:'Plus_Jakarta_Sans',Helvetica] hover:underline cursor-pointer">
+                  Admin
+                </span>
+              </Link>
+            </RoleGate>
           </div>
         </div>
       </div>

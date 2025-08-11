@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import crypto from 'crypto';
 import { Response } from 'express';
 import type { User } from '@shared/schema';
 
@@ -101,5 +102,5 @@ export function normalizeEmail(email: string): string {
 
 // Generate CSRF token
 export function generateCSRFToken(): string {
-  return require('crypto').randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString('hex');
 }
