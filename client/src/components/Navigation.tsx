@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Home, List, Beaker } from "lucide-react";
+import { Home, List, Beaker, BarChart3 } from "lucide-react";
 
 export const Navigation = (): JSX.Element => {
   const [location] = useLocation();
@@ -8,7 +8,8 @@ export const Navigation = (): JSX.Element => {
   const navItems = [
     { path: "/", label: "Home", icon: Home },
     { path: "/cocktails", label: "Cocktails", icon: List },
-    { path: "/ingredients", label: "Ingredients", icon: Beaker }
+    { path: "/ingredients", label: "Ingredients", icon: Beaker },
+    { path: "/my-bar", label: "My Bar", icon: BarChart3 }
   ];
 
   return (

@@ -226,8 +226,8 @@ const TopNavigation = (): JSX.Element => {
               </Link>
             ))}
             
-            {/* User-specific navigation (only show if logged in) */}
-            {user && userNavItems.map((item, index) => (
+            {/* User-specific navigation (My Bar etc.) - visible to all but requires login */}
+            {userNavItems.map((item, index) => (
               <Link key={`user-${index}`} href={item.href}>
                 <div 
                   className="block font-medium text-white text-base py-2 [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
