@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { formatIngredientMeasurement } from "@/lib/fractionUtils";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailRecipe = (): JSX.Element => {
@@ -197,7 +198,7 @@ export const CocktailRecipe = (): JSX.Element => {
                 ingredients.map((item: any, index: number) => (
                   <div key={index} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
                     <span className="text-white font-medium">{item.ingredient?.name || 'Unknown ingredient'}</span>
-                    <span className="text-[#f2c40c] font-semibold">{item.amount} {item.unit}</span>
+                    <span className="text-[#f2c40c] font-semibold">{formatIngredientMeasurement(item.amount, item.unit)}</span>
                   </div>
                 ))
               ) : (

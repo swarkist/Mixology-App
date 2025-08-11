@@ -20,6 +20,7 @@ import { scrapeWebContent } from "@/lib/scrapeURL";
 import { callOpenRouter } from "@/lib/aiRequest";
 import { getModelForTask } from "@/lib/modelRouter";
 import { cocktailFormSchema, insertCocktailSchema } from "@shared/schema";
+import { formatIngredientMeasurement } from "@/lib/fractionUtils";
 import type { Ingredient, Tag } from "@shared/schema";
 
 interface ParsedRecipe {
@@ -484,7 +485,7 @@ Do not include any explanation or additional text - return only the JSON object.
                             {parsedRecipe.ingredients.map((ing, idx) => (
                               <div key={idx} className="flex justify-between items-center py-1">
                                 <span className="font-medium">{ing.name}</span>
-                                <span className="text-[#bab59b]">{ing.amount} {ing.unit}</span>
+                                <span className="text-[#bab59b]">{formatIngredientMeasurement(ing.amount, ing.unit)}</span>
                               </div>
                             ))}
                           </div>
