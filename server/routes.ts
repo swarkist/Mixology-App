@@ -862,36 +862,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/youtube-transcript", async (req, res) => {
-    try {
-      const { videoId } = req.body;
-      
-      if (!videoId) {
-        return res.status(400).json({ error: "Video ID is required" });
-      }
-      
-      // Use the youtube-transcript package
-      const { YoutubeTranscript } = await import('youtube-transcript');
-      
-      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
-      
-      if (!transcriptItems || transcriptItems.length === 0) {
-        return res.status(404).json({ error: "No transcript found for this video" });
-      }
-      
-      // Join all transcript text
-      const transcript = transcriptItems.map(item => item.text).join(' ');
-      
-      res.json({ transcript });
-    } catch (error) {
-      console.error("YouTube transcript extraction failed:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to extract YouTube transcript" 
-      });
-    }
-  });
-
-  // Remove duplicated routes since we moved them to registerReadOnlyRoutes
+  // YouTube transcript route moved to registerReadOnlyRoutes to avoid duplication
 
   const httpServer = createServer(app);
   return httpServer;
@@ -1015,7 +986,9 @@ export function registerReadOnlyRoutes(app: Express) {
       const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
       
       if (!transcriptItems || transcriptItems.length === 0) {
-        return res.status(404).json({ error: "No transcript found for this video" });
+        return res.status(404).json({ 
+          error: "No transcript found for this video. The video may not have auto-generated captions or manual subtitles available. Try a different video with captions." 
+        });
       }
       
       // Join all transcript text
