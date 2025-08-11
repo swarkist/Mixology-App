@@ -22,8 +22,7 @@ export const CocktailRecipe = (): JSX.Element => {
   const { data: cocktailDetails, isLoading, error } = useQuery({
     queryKey: ['/api/cocktails', cocktailId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/cocktails/${cocktailId}`);
-      return response.json();
+      return await apiRequest(`/api/cocktails/${cocktailId}`, { method: 'GET' });
     },
     enabled: !!cocktailId,
     retry: false, // Don't retry for 404s on deleted cocktails
@@ -31,7 +30,7 @@ export const CocktailRecipe = (): JSX.Element => {
 
   // Delete cocktail mutation
   const deleteMutation = useMutation({
-    mutationFn: () => apiRequest('DELETE', `/api/cocktails/${cocktailId}`),
+    mutationFn: () => apiRequest(`/api/cocktails/${cocktailId}`, { method: 'DELETE' }),
     onSuccess: () => {
       toast({
         title: "Recipe deleted",
@@ -55,7 +54,7 @@ export const CocktailRecipe = (): JSX.Element => {
 
   // Increment popularity mutation
   const incrementPopularityMutation = useMutation({
-    mutationFn: () => apiRequest('PATCH', `/api/cocktails/${cocktailId}/increment-popularity`),
+    mutationFn: () => apiRequest(`/api/cocktails/${cocktailId}/increment-popularity`, { method: 'PATCH' }),
     onSuccess: () => {
       toast({
         title: "Started making cocktail!",
