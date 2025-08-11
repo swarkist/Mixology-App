@@ -208,7 +208,7 @@ Rules:
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter(getModelForTask("parse" as "parse"), rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse"), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -485,7 +485,7 @@ Do not include any explanation or additional text - return only the JSON object.
                             {parsedRecipe.ingredients.map((ing, idx) => (
                               <div key={idx} className="flex justify-between items-center py-1">
                                 <span className="font-medium">{ing.name}</span>
-                                <span className="text-[#bab59b]">{formatIngredientMeasurement(ing.amount, ing.unit)}</span>
+                                <span className="text-[#bab59b]">{formatIngredientMeasurement(ing.amount || '', ing.unit || '')}</span>
                               </div>
                             ))}
                           </div>
