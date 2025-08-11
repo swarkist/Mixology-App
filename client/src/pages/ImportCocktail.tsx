@@ -228,8 +228,9 @@ Return ONLY a valid JSON object in this exact format:
 
 Rules:
 - Extract only ONE main cocktail recipe
-- Normalize measurements (use oz for spirits, ml for syrups, dash for bitters)
+- Normalize measurements: use "part" for part-based recipes, "oz" for spirits/liqueurs, "ml" for syrups, "dash" for bitters, "splash" for small amounts
 - For ranges like "2-3 oz", use lower bound "2"
+- Preserve "part" measurements when recipes use parts (e.g. "2 part Orange Juice" becomes "2" amount, "part" unit)
 - Use common ingredient names (e.g. "Simple Syrup" not "simple syrup")
 - Include relevant tags like drink type, flavor profile, occasion  
 - Keep instructions clear and numbered
@@ -639,7 +640,7 @@ SAMPLE RECIPE
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium text-white">{ing.name}</span>
                                     {ing.isNew && (
-                                      <Badge className="bg-[#f2c40c] text-[#161611] text-xs font-bold">
+                                      <Badge className="bg-[#f2c40c] text-[#161611] text-xs font-bold pointer-events-none">
                                         NEW
                                       </Badge>
                                     )}
