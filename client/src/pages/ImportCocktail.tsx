@@ -18,6 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isYouTubeURL, extractYouTubeTranscript } from "@/lib/extractYouTubeTranscript";
 import { scrapeWebContent } from "@/lib/scrapeURL";
 import { callOpenRouter } from "@/lib/aiRequest";
+import { getModelForTask } from "@/lib/modelRouter";
 import { cocktailFormSchema } from "@shared/schema";
 import type { Ingredient, Tag } from "@shared/schema";
 
@@ -185,9 +186,7 @@ Return ONLY a valid JSON object in this exact format:
     {"name": "ingredient name", "amount": "2", "unit": "oz"},
     {"name": "ingredient name", "amount": "1", "unit": "dash"}
   ],
-  "tags": ["tag1", "tag2"],
-  "difficulty": "Easy",
-  "prepTime": "5 minutes"
+  "tags": ["tag1", "tag2"]
 }
 
 Rules:
@@ -195,14 +194,13 @@ Rules:
 - Normalize measurements (use oz for spirits, ml for syrups, dash for bitters)
 - For ranges like "2-3 oz", use lower bound "2"
 - Use common ingredient names (e.g. "Simple Syrup" not "simple syrup")
-- Include relevant tags like drink type, flavor profile, occasion
-- Set difficulty as "Easy", "Medium", or "Hard"
+- Include relevant tags like drink type, flavor profile, occasion  
 - Keep instructions clear and numbered
 - If no clear recipe is found, return null for all fields except name
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter("parse", rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse" as const), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -226,9 +224,7 @@ Do not include any explanation or additional text - return only the JSON object.
         description: parsed.description,
         instructions: parsed.instructions.length > 0 ? parsed.instructions : [""],
         ingredients: parsed.ingredients.length > 0 ? parsed.ingredients : [{ name: "", amount: "", unit: "" }],
-        tags: (Array.isArray(parsed.tags) ? parsed.tags : []) as string[],
-        difficulty: (parsed.difficulty as any) || "Easy",
-        prepTime: parsed.prepTime || "",
+        tags: [],
         servings: 1,
         glassType: "",
         garnish: "",

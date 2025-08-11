@@ -34,6 +34,7 @@ function Router() {
       <Route path="/add-preferred-brand" component={AddPreferredBrand} />
       <Route path="/edit-preferred-brand/:id" component={EditPreferredBrand} />
       <Route path="/import" component={ImportCocktail} />
+      <Route path="/cocktails/import" component={ImportCocktail} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
