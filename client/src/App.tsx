@@ -81,14 +81,7 @@ function Router() {
         )}
       </Route>
       
-      {/* User-specific routes (require login) */}
-      <Route path="/my-bar">
-        {() => (
-          <ProtectedRoute>
-            <MyBar />
-          </ProtectedRoute>
-        )}
-      </Route>
+      {/* User-specific routes (handle auth internally) */}
       <Route path="/add-preferred-brand">
         {() => (
           <ProtectedRoute>
@@ -107,6 +100,7 @@ function Router() {
       {/* Public routes */}
       <Route path="/ingredients" component={Ingredients} />
       <Route path="/preferred-brands" component={PreferredBrands} />
+      <Route path="/my-bar" component={MyBar} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
