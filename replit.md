@@ -8,6 +8,8 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## Recent Changes (August 11, 2025)
+- **Photo OCR Mobile Bug Fixed**: Resolved HTTP 413 error by implementing consistent image compression for both OCR extraction and brand creation
+- **Image Compression Optimization**: Enhanced workflow to use 31KB compressed images throughout (down from 3.3MB), improving API efficiency
 - **AI-Powered Photo OCR Feature**: Implemented extract → review → edit → create workflow for preferred brands using OpenRouter vision models
 - **Enhanced YouTube Transcript Extraction**: Improved AI-powered recipe importing from YouTube videos with better transcript parsing
 - **Mobile-Responsive Button Design**: Fixed button readability and stacking for iPhone 14/15 resolutions with improved gold accent styling
