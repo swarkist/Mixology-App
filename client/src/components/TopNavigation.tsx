@@ -11,10 +11,10 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { label: "Cocktails", href: "/cocktails" },
-  { label: "Import Recipe", href: "/import" },
   { label: "Ingredients", href: "/ingredients" },
   { label: "Preferred Brands", href: "/preferred-brands" },
   { label: "My Bar", href: "/my-bar" },
+  { label: "Import Recipe", href: "/import" },
 ];
 
 const TopNavigation = (): JSX.Element => {

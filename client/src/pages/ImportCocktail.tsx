@@ -328,12 +328,12 @@ Do not include any explanation or additional text - return only the JSON object.
                   name="url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-white">YouTube Video or Website URL</FormLabel>
+                      <FormLabel className="text-white">Website URL</FormLabel>
                       <FormControl>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Input
-                              placeholder="https://youtube.com/watch?v=... or https://example.com/recipe"
+                              placeholder="https://example.com/recipe"
                               className="bg-[#383529] border-[#544f3a] text-white placeholder-[#bab59b] pl-10"
                               {...field}
                             />
@@ -398,13 +398,10 @@ Do not include any explanation or additional text - return only the JSON object.
                   placeholder="Paste recipe content here...
 
 Example:
-THE BLOODY MARY RECIPE
+SAMPLE RECIPE
 1.5 oz. Vodka
-4 oz. Tomato juice
 3/4 oz. Fresh lemon juice
-1/4 oz. Worcestershire sauce
-Salt and pepper to taste
-Garnish with celery stick"
+1/4 oz. Bourbon"
                   className="min-h-[200px] bg-[#383529] border-[#544f3a] text-white placeholder-[#bab59b]"
                 />
               </div>

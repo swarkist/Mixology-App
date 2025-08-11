@@ -79,7 +79,7 @@ export const FooterSection = (): JSX.Element => {
           {/* Copyright Text */}
           <div className="flex justify-center w-full">
             <p className="[font-family:'Plus_Jakarta_Sans',Helvetica] font-normal text-[#bab59b] text-base text-center tracking-[0] leading-6">
-              © 2025 Mixology. All rights reserved.
+              © 2025 Mixi Mixology. All rights reserved.
             </p>
           </div>
         </div>
