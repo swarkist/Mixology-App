@@ -18,7 +18,7 @@ import PreferredBrands from "@/pages/PreferredBrands";
 import AddPreferredBrand from "@/pages/AddPreferredBrand";
 import EditPreferredBrand from "@/pages/EditPreferredBrand";
 import { ImportCocktail } from "@/pages/ImportCocktail";
-import { MyBar } from "@/pages/MyBar";
+import MyBar from "@/pages/MyBar";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
 import AdminDashboard from "@/pages/AdminDashboard";

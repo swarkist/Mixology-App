@@ -1,224 +1,130 @@
-import React, { useState, useMemo } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus } from "lucide-react";
+import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
-import type { Ingredient, PreferredBrand } from "@shared/schema";
-import { INGREDIENT_CATEGORIES } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import type { PreferredBrand } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
-export const MyBar = (): JSX.Element => {
+export default function MyBar() {
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
   const queryClient = useQueryClient();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
+  
+  const isLoggedIn = !!user;
 
-  // Fetch preferred brands in My Bar
-  const { data: myBarBrands, isLoading: brandsLoading } = useQuery<PreferredBrand[]>({
-    queryKey: ['/api/preferred-brands?inMyBar=true'],
-  });
-
-  // Fetch all ingredients to organize brands by ingredient associations
-  const { data: allIngredients } = useQuery<Ingredient[]>({
-    queryKey: ['/api/ingredients'],
-  });
-
-  // Fetch detailed brand data with associations for each brand in My Bar
-  const { data: myBarBrandDetails } = useQuery({
-    queryKey: ['my-bar-brand-details', myBarBrands?.map(b => b.id)],
-    queryFn: async () => {
-      if (!myBarBrands || myBarBrands.length === 0) return [];
-      
-      const brandDetails = await Promise.all(
-        myBarBrands.map(async (brand) => {
-          try {
-            const response = await fetch(`/api/preferred-brands/${brand.id}`);
-            const data = await response.json();
-            
-            // Merge the brand data with ingredients
-            return {
-              ...data.brand,
-              ingredients: data.ingredients || []
-            };
-          } catch (error) {
-            console.error(`Error fetching brand details for ${brand.id}:`, error);
-            return { ...brand, ingredients: [] }; // fallback to basic brand data
-          }
-        })
-      );
-      return brandDetails;
-    },
-    enabled: !!myBarBrands && myBarBrands.length > 0,
-    staleTime: 0, // Force fresh data every time
-    refetchOnMount: true,
-  });
-
-  // Group brands by their associated ingredients
-  const organizedByIngredients = useMemo(() => {
-    if (!myBarBrandDetails) return {};
-    
-    const organized: { [ingredientName: string]: { ingredient: Ingredient; brands: PreferredBrand[] } } = {};
-    
-    myBarBrandDetails.forEach((brand) => {
-      if (brand.ingredients && brand.ingredients.length > 0) {
-        brand.ingredients.forEach((ingredient: Ingredient) => {
-          if (!organized[ingredient.name]) {
-            organized[ingredient.name] = {
-              ingredient,
-              brands: []
-            };
-          }
-          organized[ingredient.name].brands.push(brand);
-        });
-      } else {
-        // If no associations, put in "Unassociated" category
-        if (!organized["Unassociated Brands"]) {
-          organized["Unassociated Brands"] = {
-            ingredient: { name: "Unassociated Brands", category: "other" } as Ingredient,
-            brands: []
-          };
-        }
-        organized["Unassociated Brands"].brands.push(brand);
-      }
-    });
-    
-    return organized;
-  }, [myBarBrandDetails]);
-
-  // Calculate unique cocktail count that use My Bar ingredients
-  const calculateMyBarCocktailCount = (ingredients: Ingredient[] | undefined): number => {
-    if (!ingredients || ingredients.length === 0) return 0;
-    
-    // For this calculation, we need to count unique cocktails
-    // Since we don't have detailed cocktail-ingredient mapping on frontend,
-    // we'll use a simplified approach based on the data we know:
-    // - If only White Rum (1753706222823) is in My Bar -> 1 cocktail
-    // - If both White Rum and Grenadine are in My Bar -> 2 cocktails
-    const ingredientIds = ingredients.map(ing => ing.id);
-    const hasWhiteRum = ingredientIds.includes(1753706222823);
-    const hasGrenadine = ingredientIds.includes(1753706223154);
-    
-    if (hasWhiteRum && hasGrenadine) return 2; // Both cocktails 1753657939319, 1753670068642
-    if (hasWhiteRum || hasGrenadine) return hasGrenadine ? 2 : 1; // Grenadine alone = 2, White Rum alone = 1
-    return 0;
-  };
-
-  // Toggle "My Bar" status mutation for ingredients
-  const toggleMyBarMutation = useMutation({
-    mutationFn: async ({ id, inMyBar }: { id: string; inMyBar: boolean }) => {
-      return apiRequest("PATCH", `/api/ingredients/${id}/toggle-mybar`, { inMyBar });
-    },
-    onSuccess: () => {
-      // Invalidate all ingredient queries to ensure proper cache updates across all views
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          return !!(query.queryKey[0] && typeof query.queryKey[0] === 'string' && query.queryKey[0].startsWith('/api/ingredients'));
-        }
-      });
-    },
-  });
-
-  // Toggle "My Bar" status mutation for preferred brands
-  const toggleBrandMyBarMutation = useMutation({
-    mutationFn: async (brandId: number) => {
-      return apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`);
-    },
-    onSuccess: () => {
-      // Invalidate preferred brand queries
-      queryClient.invalidateQueries({ 
-        predicate: (query) => {
-          return !!(query.queryKey[0] && typeof query.queryKey[0] === 'string' && query.queryKey[0].startsWith('/api/preferred-brands'));
-        }
-      });
-    },
-  });
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
-  const handleToggleMyBar = (ingredient: Ingredient) => {
-    // My Bar functionality has been moved to preferred brands system
-    console.log("My Bar functionality moved to preferred brands");
-  };
-
-  // Get subcategories for selected category  
-  const getSubcategoriesForCategory = (category: string) => {
-    if (category === "all") return [];
-    if (category === "spirits") {
-      return ["tequila", "whiskey", "rum", "vodka", "gin", "scotch", "moonshine", "brandy"];
-    }
-    return [];
-  };
-
-  const subcategories = getSubcategoriesForCategory(selectedCategory);
-
-  // Filter organized ingredients based on search query and category filters
-  const filteredOrganizedIngredients = useMemo(() => {
-    const filtered: { [ingredientName: string]: { ingredient: Ingredient; brands: PreferredBrand[] } } = {};
-    
-    Object.entries(organizedByIngredients).forEach(([ingredientName, { ingredient, brands }]) => {
-      // Filter by search query - search both ingredient names and brand names
-      const matchesSearch = searchQuery === "" || 
-        ingredientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        brands.some(brand => brand.name.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      // Filter by category
-      const matchesCategory = selectedCategory === "all" || 
-        ingredient.category === selectedCategory;
-      
-      // Filter by subcategory (if applicable)
-      const matchesSubcategory = selectedSubcategory === "all" || 
-        !ingredient.subcategory || 
-        ingredient.subcategory === selectedSubcategory;
-      
-      // Only include if all filters match
-      if (matchesSearch && matchesCategory && matchesSubcategory) {
-        // Additionally filter brands within this ingredient group by search
-        const filteredBrands = brands.filter(brand => 
-          searchQuery === "" || 
-          ingredientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          brand.name.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        
-        if (filteredBrands.length > 0) {
-          filtered[ingredientName] = {
-            ingredient,
-            brands: filteredBrands
-          };
-        }
-      }
-    });
-    
-    return filtered;
-  }, [organizedByIngredients, searchQuery, selectedCategory, selectedSubcategory]);
-
-  if (brandsLoading) {
+  // Show login message for non-logged-in users
+  if (!isLoggedIn) {
     return (
-      <div className="min-h-screen bg-[#161611] text-white p-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-            <Card key={i} className="bg-[#383629] border-[#544f3b] animate-pulse">
-              <CardContent className="p-4">
-                <div className="h-4 bg-[#544f3b] rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-[#544f3b] rounded w-full mb-1"></div>
-                <div className="h-3 bg-[#544f3b] rounded w-2/3"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              My Bar
+            </h1>
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg mb-4">
+                Please login to see or manage your bar.
+              </p>
+              <Link href="/login">
+                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                  Login to Continue
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
+        <Navigation />
       </div>
     );
   }
 
+  const { data: myBarItems = [], isLoading, error } = useQuery({
+    queryKey: ["/api/preferred-brands", searchTerm, { inMyBar: true }],
+    queryFn: async () => {
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm.trim()) {
+          params.append("search", searchTerm);
+        }
+        params.append("inMyBar", "true");
+        const response = await fetch(`/api/preferred-brands?${params}`);
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(`Failed to fetch my bar items: ${response.status}`);
+        }
+        return data;
+      } catch (error) {
+        console.error("Error fetching my bar items:", error);
+        throw error;
+      }
+    },
+    retry: 2,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
+  const toggleMyBarMutation = useMutation({
+    mutationFn: async (brandId: number) => {
+      return apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
+    },
+  });
+
+  const handleToggleMyBar = async (brand: PreferredBrand) => {
+    try {
+      await toggleMyBarMutation.mutateAsync(brand.id);
+    } catch (error) {
+      console.error("Error toggling My Bar:", error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              My Bar
+            </h1>
+            <p className="text-sm text-[#bab59c]">Loading your bar...</p>
+          </div>
+        </div>
+        <Navigation />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              My Bar
+            </h1>
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg mb-4">
+                Error loading your bar. Please try again.
+              </p>
+            </div>
+          </div>
+        </div>
+        <Navigation />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
@@ -231,216 +137,130 @@ export const MyBar = (): JSX.Element => {
             My Bar
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Your preferred brands organized by ingredient type. {myBarBrands?.length || 0} brands in your bar.
+            Manage your personal collection of spirits, liqueurs, and ingredients. 
+            Add items to track what you have available for crafting cocktails.
           </p>
         </div>
 
-        {/* Search Form */}
+        {/* Search */}
         <div className="px-4 py-3">
-          <form onSubmit={handleSearch} className="h-12">
+          <div className="h-12">
             <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
               <div className="pl-4 flex items-center">
-                <SearchIcon className="h-5 w-5 text-[#bab59c]" />
+                <Search className="h-5 w-5 text-[#bab59c]" />
               </div>
               <Input
                 type="text"
                 placeholder="Search my bar..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
               />
-            </div>
-          </form>
-        </div>
-
-        {/* Filters and Controls */}
-        <div className="flex gap-3 pl-3 pr-4 py-3">
-
-          {/* Category Filter */}
-          <Select value={selectedCategory} onValueChange={(value) => {
-            setSelectedCategory(value);
-            setSelectedSubcategory("all"); // Reset subcategory when category changes
-          }}>
-            <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#383629] border-[#544f3b]">
-              <SelectItem value="all" className="text-white">
-                All Categories
-              </SelectItem>
-              {INGREDIENT_CATEGORIES.map((category) => (
-                <SelectItem 
-                  key={category} 
-                  value={category}
-                  className="text-white capitalize"
-                >
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Subcategory Filter - Only show if spirits selected and subcategories available */}
-          {subcategories.length > 0 && (
-            <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-              <SelectTrigger className="w-auto h-8 gap-2 pl-4 pr-2 rounded-lg bg-[#383629] border-0 text-sm font-medium text-white">
-                <SelectValue placeholder="All Types" />
-              </SelectTrigger>
-              <SelectContent className="bg-[#383629] border-[#544f3b]">
-                <SelectItem value="all" className="text-white">
-                  All Types
-                </SelectItem>
-                {subcategories.map((subcategory) => (
-                  <SelectItem 
-                    key={subcategory} 
-                    value={subcategory}
-                    className="text-white capitalize"
-                  >
-                    {subcategory}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-
-          {/* Note: Add Ingredient button is intentionally removed per user request */}
-        </div>
-
-        {/* Stats Bar */}
-        <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Total Brands: {myBarBrands?.length || 0}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="h-4 w-4 text-[#f2c40c]" />
-              <span>Ingredient Types: {Object.keys(filteredOrganizedIngredients).length}</span>
             </div>
           </div>
         </div>
 
-        {/* Content - Brands Organized by Ingredient */}
-        <div className="px-4 py-6">
-          {Object.keys(filteredOrganizedIngredients).length > 0 ? (
-            <div className="space-y-8">
-              {Object.entries(filteredOrganizedIngredients).map(([ingredientName, { ingredient, brands }]) => (
-                <div key={ingredientName} className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                      {ingredientName}
-                    </h2>
-                    {ingredient.category && ingredient.category !== "other" && (
-                      <Badge variant="outline" className="border-[#bab59b] text-[#bab59b] text-xs">
-                        {ingredient.category}
-                      </Badge>
-                    )}
-                    <span className="text-sm text-[#bab59c]">
-                      {brands.length} brand{brands.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {brands.map((brand: PreferredBrand) => (
-                      <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
-                        {/* Image Section */}
-                        <div
-                          className="w-full h-48 bg-cover bg-center"
-                          style={{
-                            backgroundImage: brand.imageUrl
-                              ? `url(${brand.imageUrl})`
-                              : `url(${noPhotoImage})`,
-                          }}
-                        />
+        {/* Action Buttons */}
+        <div className="px-3 py-3 space-y-3">
+          <div className="flex gap-2 flex-wrap justify-between">
+            <div className="flex gap-2">
+              <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
+                My Collection
+              </Badge>
+            </div>
+            <div className="flex gap-2">
+              <Link href="/preferred-brands">
+                <Button
+                  size="sm"
+                  className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Add Items
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
 
-                        <CardHeader className="pb-3">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
-                                In My Bar
-                              </Badge>
-                              {brand.proof && (
-                                <div className="flex items-center gap-1 text-[#bab59b] text-sm">
-                                  <span>{brand.proof}° Proof</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={brand.name}>
-                            {brand.name}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col flex-1">
-                          <div className="flex-1">
-                            {/* Description content can go here if needed */}
-                          </div>
-                          <div className="flex items-center gap-2 mt-auto">
-                            <Button
-                              size="sm"
-                              onClick={() => toggleBrandMyBarMutation.mutate(brand.id)}
-                              className="flex-1 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
-                              disabled={toggleBrandMyBarMutation.isPending}
-                            >
-                              <Check className="h-3 w-3 mr-1" />
-                              Remove from Bar
-                            </Button>
-                            <Link href={`/edit-preferred-brand/${brand.id}`}>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                            </Link>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </div>
+        {/* Stats */}
+        <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Total Items: {myBarItems.length}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Check className="h-4 w-4 text-[#f2c40c]" />
+              <span>Available for mixing</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-4 py-6">
+          {myBarItems && myBarItems.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {myBarItems.map((item: PreferredBrand) => (
+                <Card key={item.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
+                  {/* Image Section */}
+                  <div
+                    className="w-full h-48 bg-cover bg-center"
+                    style={{
+                      backgroundImage: item.imageUrl
+                        ? `url(${item.imageUrl})`
+                        : `url(${noPhotoImage})`,
+                    }}
+                  />
+
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
+                        Spirit
+                      </Badge>
+                    </div>
+                    <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={item.name}>
+                      {item.name}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col flex-1">
+                    <div className="flex-1">
+                      {item.proof && (
+                        <p className="text-[#bab59b] text-sm mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                          {item.proof}% ABV
+                        </p>
+                      )}
+                      <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                        Added to your personal bar collection
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 mt-auto">
+                      <Button
+                        size="sm"
+                        onClick={() => handleToggleMyBar(item)}
+                        className="flex-1 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] border-0"
+                        disabled={toggleMyBarMutation.isPending}
+                      >
+                        <Check className="h-3 w-3 mr-1" />
+                        Remove from Bar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
             <Card className="bg-[#383629] border-[#544f3b]">
               <CardContent className="p-8 text-center">
-                <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-                {searchQuery || selectedCategory !== "all" || selectedSubcategory !== "all" ? (
-                  <>
-                    <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
-                      No brands found matching your search criteria.
-                    </p>
-                    <Button 
-                      onClick={() => {
-                        setSearchQuery("");
-                        setSelectedCategory("all");
-                        setSelectedSubcategory("all");
-                      }}
-                      variant="outline" 
-                      className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
-                    >
-                      Clear Filters
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
-                      Your bar is empty. Start building your preferred brands collection!
-                    </p>
-                    <div className="flex gap-3 justify-center">
-                      <Link href="/preferred-brands">
-                        <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                          Browse Preferred Brands
-                        </Button>
-                      </Link>
-                      <Link href="/ingredients">
-                        <Button variant="outline" className="border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]">
-                          Browse Ingredients
-                        </Button>
-                      </Link>
-                    </div>
-                  </>
-                )}
+                <Heart className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
+                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica] mb-4">
+                  Your bar is empty. Start building your collection by adding your favorite spirits and ingredients.
+                </p>
+                <Link href="/preferred-brands">
+                  <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                    <Plus className="h-3 w-3 mr-2" />
+                    Add Your First Item
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           )}
@@ -449,4 +269,4 @@ export const MyBar = (): JSX.Element => {
       <Navigation />
     </div>
   );
-};
+}

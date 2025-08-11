@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -16,9 +17,12 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
+  
+  const isAdmin = user?.role === 'admin';
 
   // Build query string
   const buildQueryString = () => {
@@ -189,14 +193,16 @@ export const Ingredients = (): JSX.Element => {
             )}
 
             {/* Add Ingredient Button */}
-            <Link href="/add-ingredient">
-              <Button
-                size="sm"
-                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs whitespace-nowrap"
-              >
-                Add Ingredient
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link href="/add-ingredient">
+                <Button
+                  size="sm"
+                  className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs whitespace-nowrap"
+                >
+                  Add Ingredient
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -277,15 +283,17 @@ export const Ingredients = (): JSX.Element => {
                         <Plus className="h-3 w-3 mr-1" />
                         My Bar
                       </Button>
-                      <Link href={`/edit-ingredient/${ingredient.id}`}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      </Link>
+                      {isAdmin && (
+                        <Link href={`/edit-ingredient/${ingredient.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -298,11 +306,13 @@ export const Ingredients = (): JSX.Element => {
                 <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
                   No ingredients found. Try adjusting your search or filters.
                 </p>
-                <Link href="/add-ingredient">
-                  <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                    Add Your First Ingredient
-                  </Button>
-                </Link>
+                {isAdmin && (
+                  <Link href="/add-ingredient">
+                    <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                      Add Your First Ingredient
+                    </Button>
+                  </Link>
+                )}
               </CardContent>
             </Card>
           )}

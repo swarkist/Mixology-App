@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -31,11 +32,14 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 export const CocktailList = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [spiritFilter, setSpiritFilter] = useState<string>("all");
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+  
+  const isAdmin = user?.role === 'admin';
 
   // Parse URL params
   useEffect(() => {
@@ -211,14 +215,16 @@ export const CocktailList = (): JSX.Element => {
               Popular
             </Button>
 
-            <Link href="/add-cocktail">
-              <Button
-                size="sm"
-                className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs"
-              >
-                Add Cocktail
-              </Button>
-            </Link>
+            {isAdmin && (
+              <Link href="/add-cocktail">
+                <Button
+                  size="sm"
+                  className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs"
+                >
+                  Add Cocktail
+                </Button>
+              </Link>
+            )}
           </div>
 
           {/* Second Row: View Mode Buttons - Hidden for now */}
@@ -282,17 +288,23 @@ export const CocktailList = (): JSX.Element => {
                           <span>{cocktail.popularityCount} crafted</span>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleFeatured(cocktail)}
-                        className="text-[#bab59b] hover:text-[#f2c40c]"
-                        disabled={toggleFeaturedMutation.isPending}
-                      >
+                      {isAdmin ? (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleFeatured(cocktail)}
+                          className="text-[#bab59b] hover:text-[#f2c40c]"
+                          disabled={toggleFeaturedMutation.isPending}
+                        >
+                          <StarIcon
+                            className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`}
+                          />
+                        </Button>
+                      ) : (
                         <StarIcon
-                          className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`}
+                          className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : "text-[#bab59b]"}`}
                         />
-                      </Button>
+                      )}
                     </div>
                     <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={cocktail.name}>
                       {cocktail.name}
