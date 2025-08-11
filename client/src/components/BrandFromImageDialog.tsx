@@ -17,6 +17,7 @@ type Props = {
 export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: Props) {
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string>("");
+  const [compressedImage, setCompressedImage] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -36,6 +37,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
   function resetForm() {
     setFile(null);
     setPreview("");
+    setCompressedImage("");
     setResult(null);
     setEditedName("");
     setEditedProof("");
@@ -60,6 +62,9 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
       // OCR works well even with lower quality images
       const compressedBase64 = await compressImage(file, 512, 0.6); // 512px max, 60% quality
       console.log("🔥 Client: Compressed image length:", compressedBase64.length);
+      
+      // Store compressed image for later use in brand creation
+      setCompressedImage(compressedBase64);
       
       const res = await fetch("/api/ai/brands/from-image", {
         method: "POST",
@@ -102,7 +107,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
       const payload = {
         name: editedName.trim(),
         proof: editedProof ? Number(editedProof) : null,
-        imageUrl: preview,
+        imageUrl: compressedImage || preview, // Use compressed image if available, fallback to preview
         notes: result?.notes || undefined,
       };
       
