@@ -47,7 +47,8 @@ app.use(helmet({
 }));
 app.use(morgan("combined"));
 
-// Body limits
+// Body limits - default 512KB for security, but OCR endpoint needs more
+app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR endpoint needs larger limit
 app.use(express.json({ limit: "512kb" }));
 app.use(express.urlencoded({ extended: true, limit: "512kb" }));
 

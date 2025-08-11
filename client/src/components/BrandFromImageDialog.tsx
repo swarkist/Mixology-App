@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Camera, CheckCircle, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { compressImage } from "@/lib/imageCompression";
 
 type Props = {
   open: boolean;
@@ -54,13 +55,16 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
     setError(null);
     try {
       console.log("🔥 Client: Starting OCR extraction for file:", file.name, file.size);
-      const base64 = preview || (await toDataUrl(file));
-      console.log("🔥 Client: Base64 prepared, length:", base64.length);
+      
+      // Compress image for OCR - more aggressive compression for API efficiency
+      // OCR works well even with lower quality images
+      const compressedBase64 = await compressImage(file, 512, 0.6); // 512px max, 60% quality
+      console.log("🔥 Client: Compressed image length:", compressedBase64.length);
       
       const res = await fetch("/api/ai/brands/from-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ base64, autoCreate: false }),
+        body: JSON.stringify({ base64: compressedBase64, autoCreate: false }),
       });
       
       console.log("🔥 Client: Response status:", res.status);
@@ -68,7 +72,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
       console.log("🔥 Client: Response JSON:", json);
       
       if (!res.ok) {
-        const errorMsg = json?.error || "OCR request failed";
+        const errorMsg = json?.error || json?.message || "OCR request failed";
         const details = json?.details ? `\n\nDetails: ${json.details}` : "";
         throw new Error(errorMsg + details);
       }
