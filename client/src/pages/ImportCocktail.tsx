@@ -226,7 +226,7 @@ Do not include any explanation or additional text - return only the JSON object.
         description: parsed.description,
         instructions: parsed.instructions.length > 0 ? parsed.instructions : [""],
         ingredients: parsed.ingredients.length > 0 ? parsed.ingredients : [{ name: "", amount: "", unit: "" }],
-        tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+        tags: (Array.isArray(parsed.tags) ? parsed.tags : []) as string[],
         difficulty: (parsed.difficulty as any) || "Easy",
         prepTime: parsed.prepTime || "",
         servings: 1,

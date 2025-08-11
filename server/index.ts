@@ -104,6 +104,12 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
   }
   return next();
 };
+// Register read-only POST endpoints before admin key middleware
+(async () => {
+  const { registerReadOnlyRoutes } = await import('./routes');
+  registerReadOnlyRoutes(app);
+})();
+
 // Temporarily disable admin key middleware to test functionality
 // app.use("/api", requireAdminForWrites);
 

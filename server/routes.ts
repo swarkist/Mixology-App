@@ -911,9 +911,7 @@ export function registerReadOnlyRoutes(app: Express) {
       // Use AllOrigins proxy to bypass CORS
       const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
       
-      const response = await fetch(proxyUrl, {
-        timeout: 30000 // 30 second timeout
-      });
+      const response = await fetch(proxyUrl);
       
       if (!response.ok) {
         return res.status(response.status).json({ 
