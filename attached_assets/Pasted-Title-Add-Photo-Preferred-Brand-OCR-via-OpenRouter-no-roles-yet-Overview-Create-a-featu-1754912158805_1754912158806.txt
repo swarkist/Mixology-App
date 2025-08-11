@@ -1,0 +1,350 @@
+Title
+Add “Photo → Preferred Brand (OCR)” via OpenRouter (no roles yet)
+
+Overview
+Create a feature that lets users add a Preferred Brand by uploading a bottle photo. The server calls OpenRouter vision models to OCR the label and return `{ name, proof, bottle_text, confidence }`. If `autoCreate=true` and `confidence>=0.7`, auto-create the Preferred Brand. (No user roles yet — any user can auto-create. Leave a TODO where role checks will go later.)
+
+Models (OpenRouter, free tiers as of now)
+- qwen/qwen2.5-vl-32b-instruct:free  (primary)
+- qwen/qwen2.5-vl-72b-instruct:free  (fallback)
+- opengvlab/internvl3-14b:free       (fallback)
+- meta-llama/llama-3.2-11b-vision-instruct:free (fallback)
+
+Assumptions
+- Server routes live in `server/routes.ts`
+- Frontend is React (shadcn ok)
+- Preferred Brand create endpoint exists: `POST /api/preferred-brands` with `{ name, proof?, imageUrl?, notes? }`
+- You can store image as data URL for prototype (replace with real storage later)
+
+Environment
+- Set `OPENROUTER_API_KEY` in Replit Secrets
+- (Optional) `APP_BASE_URL` (defaults to `http://localhost:3000`)
+
+Files to create/update
+1) server/ai/openrouter.ts   (NEW)
+2) server/routes.ts          (UPDATE) add new OCR route
+3) client/src/components/BrandFromImageDialog.tsx (NEW)
+4) client/src/pages/PreferredBrands.tsx          (UPDATE) add button & dialog wire-up
+
+Dependencies
+- None new; use native fetch. (If Node <18, ensure fetch polyfill, but default Replit Node is fine.)
+
+Acceptance Criteria
+- Uploading a bottle image returns `{ name, proof, bottle_text, confidence, model }`
+- If `autoCreate=true` and `confidence>=0.7`, the brand is created automatically
+- Frontend shows preview, extracted values, confidence, and created confirmation
+- No secrets exposed in the browser
+- TODO comment present where role checks will go later
+
+------------------------------------------
+FILE: server/ai/openrouter.ts (NEW)
+------------------------------------------
+/* OpenRouter multimodal helpers for image+text prompts */
+type VisionResult = {
+  name?: string;
+  proof?: number | null;
+  bottle_text?: string;
+  confidence?: number; // 0..1
+  notes?: string;
+  warnings?: string[];
+};
+
+const DEFAULT_MODELS = [
+  "qwen/qwen2.5-vl-32b-instruct:free",
+  "qwen/qwen2.5-vl-72b-instruct:free",
+  "opengvlab/internvl3-14b:free",
+  "meta-llama/llama-3.2-11b-vision-instruct:free",
+];
+
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+function buildBody(base64DataUrl: string, systemHint?: string) {
+  return {
+    messages: [
+      {
+        role: "system",
+        content:
+          systemHint ??
+          "You are an expert at reading bottle labels and extracting brand data with high accuracy and conservative confidence scoring.",
+      },
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: `Read the bottle label. Return strict JSON only with fields:
+{
+  "name": string,
+  "proof": number|null,
+  "bottle_text": string,
+  "confidence": number,
+  "notes": string
+}
+Rules:
+- If only ABV is printed (e.g., "40% ABV"), you may compute proof = ABV*2 and mention this in "notes".
+- If neither proof nor ABV appears, set proof=null.
+- Favor the most prominent brand line as "name".
+- Output ONLY JSON. No extra commentary.`,
+          },
+          {
+            type: "image_url",
+            image_url: { url: base64DataUrl },
+          },
+        ],
+      },
+    ],
+    temperature: 0,
+    response_format: { type: "json_object" },
+  };
+}
+
+export async function extractBrandFromImage(
+  base64DataUrl: string,
+  preferredModels = DEFAULT_MODELS
+): Promise<{ result: VisionResult; model: string }> {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) throw new Error("Missing OPENROUTER_API_KEY");
+
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${apiKey}`,
+    "HTTP-Referer": "https://your-app-domain.example",
+    "X-Title": "Mixology - Brand OCR",
+  };
+
+  let lastErr: any;
+  for (const model of preferredModels) {
+    try {
+      const body = JSON.stringify({ ...buildBody(base64DataUrl), model });
+      const res = await fetch(OPENROUTER_URL, { method: "POST", headers, body } as any);
+      if (!res.ok) throw new Error(`OpenRouter ${model} failed: ${res.status} ${res.statusText}`);
+      const json = await res.json();
+
+      const raw = json?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error(`No content from ${model}`);
+      const parsed: VisionResult = typeof raw === "string" ? JSON.parse(raw) : raw;
+
+      if (parsed && typeof parsed.proof === "string") {
+        const n = Number(String(parsed.proof).replace(/[^\d.]/g, ""));
+        parsed.proof = Number.isFinite(n) ? n : null;
+      }
+
+      if (parsed && Number.isFinite(parsed.confidence as number)) {
+        parsed.confidence = Math.max(0, Math.min(1, Number(parsed.confidence)));
+      } else if (parsed) {
+        parsed.confidence = 0.5;
+      }
+
+      return { result: parsed, model };
+    } catch (err) {
+      lastErr = err;
+      // Try next model
+    }
+  }
+  throw lastErr ?? new Error("All models failed");
+}
+
+------------------------------------------
+FILE: server/routes.ts (UPDATE)
+------------------------------------------
+/* Add at top near other imports */
+import { extractBrandFromImage } from "./ai/openrouter";
+
+/* Add new route somewhere with other app.post handlers */
+app.post("/api/ai/brands/from-image", async (req, res) => {
+  try {
+    // Expect JSON: { base64: "data:image/...;base64,xxx", autoCreate?: boolean }
+    const { base64, autoCreate } = req.body ?? {};
+    if (!base64 || !String(base64).startsWith("data:image")) {
+      return res.status(400).json({ error: "Send { base64: 'data:image/...;base64,XXX' }" });
+    }
+
+    const { result, model } = await extractBrandFromImage(base64);
+
+    // No roles yet — any user can auto-create for now.
+    // TODO (roles): Once roles are implemented, require admin for autoCreate.
+    let created: any = null;
+
+    if (autoCreate && result?.name && result?.confidence && result.confidence >= 0.7) {
+      const payload = {
+        name: result.name.trim(),
+        proof: result.proof ?? null,
+        imageUrl: base64, // prototype (replace with uploaded URL later)
+        notes: result.notes ?? undefined,
+      };
+      const r = await fetch(
+        `${process.env.APP_BASE_URL ?? "http://localhost:3000"}/api/preferred-brands`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+      if (r.ok) created = await r.json();
+    }
+
+    return res.json({ model, ...result, created });
+  } catch (e: any) {
+    console.error(e);
+    return res.status(500).json({ error: e?.message ?? "OCR failed" });
+  }
+});
+
+------------------------------------------
+FILE: client/src/components/BrandFromImageDialog.tsx (NEW)
+------------------------------------------
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+
+type Props = {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  onPrefill: (v: { name?: string; proof?: number | null; bottle_text?: string }) => void;
+};
+
+export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: Props) {
+  const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>("");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [autoCreate, setAutoCreate] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function toDataUrl(f: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(f);
+    });
+  }
+
+  async function submit() {
+    if (!file) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const base64 = preview || (await toDataUrl(file));
+      const res = await fetch("/api/ai/brands/from-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ base64, autoCreate }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error || "OCR request failed");
+      setResult(json);
+      if (json?.name) {
+        onPrefill({ name: json.name, proof: json.proof ?? null, bottle_text: json.bottle_text });
+      }
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to process image");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader>
+          <DialogTitle>Add Preferred Brand from Photo</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <Label>Upload bottle photo</Label>
+          <Input
+            type="file"
+            accept="image/*"
+            onChange={async (e) => {
+              const f = e.target.files?.[0] || null;
+              setFile(f);
+              setResult(null);
+              if (f) setPreview(await toDataUrl(f));
+            }}
+          />
+          {preview && <img src={preview} alt="preview" className="w-full rounded-lg" />}
+          <label className="flex items-center gap-2 mt-2 text-sm">
+            <input
+              type="checkbox"
+              checked={autoCreate}
+              onChange={(e) => setAutoCreate(e.target.checked)}
+            />
+            Auto-create if confidence ≥ 0.7
+          </label>
+          {error && <div className="text-sm text-red-600">{error}</div>}
+        </div>
+
+        {result && (
+          <div className="mt-3 text-sm rounded-lg border p-3 space-y-1">
+            <div><b>Model:</b> {result.model}</div>
+            <div><b>Name:</b> {result.name ?? "—"}</div>
+            <div><b>Proof:</b> {result.proof ?? "—"}</div>
+            <div><b>Confidence:</b> {typeof result.confidence === "number" ? result.confidence.toFixed(2) : "—"}</div>
+            {result.bottle_text && (
+              <>
+                <div className="mt-2 font-medium">Text Detected:</div>
+                <Textarea value={result.bottle_text} readOnly className="min-h-[100px]" />
+              </>
+            )}
+            {result.created && (
+              <div className="mt-2 text-green-600">
+                ✅ Created Preferred Brand: {result.created?.name}
+              </div>
+            )}
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+          <Button onClick={submit} disabled={!file || loading}>
+            {loading ? "Reading..." : "Extract"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+------------------------------------------
+FILE: client/src/pages/PreferredBrands.tsx (UPDATE)
+------------------------------------------
+/* Add at top with other imports */
+import { useState } from "react";
+import BrandFromImageDialog from "@/components/BrandFromImageDialog";
+
+/* Inside component */
+const [ocrOpen, setOcrOpen] = useState(false);
+const [draftBrand, setDraftBrand] = useState<{ name?: string; proof?: number | null } | null>(null);
+
+/* In the header/actions area, add this button */
+<Button variant="outline" onClick={() => setOcrOpen(true)}>Add via Photo (OCR)</Button>
+
+/* Render dialog near end of component JSX */
+<BrandFromImageDialog
+  open={ocrOpen}
+  onOpenChange={setOcrOpen}
+  onPrefill={(v) => {
+    // If you have a create form or drawer, prefill it here.
+    setDraftBrand({ name: v.name, proof: v.proof ?? null });
+    // Example: setFormData(prev => ({...prev, name: v.name ?? "", proof: v.proof ?? ""}));
+  }}
+/>
+
+Testing
+- Try a clear label, angled label, and dim lighting.
+- For labels that only show ABV (e.g., 40% ABV), expect proof ≈ 80 and a note.
+- Toggle auto-create on/off; verify a new brand appears when confidence ≥ 0.7.
+- Confirm no API key leaks to client (only server calls OpenRouter).
+
+Notes / Future TODOs
+- Replace data URL storage with real upload (S3/Cloudflare R2) and save a public URL
+- Hook in role checks once user roles are available:
+  // if (!isAdmin) { skip auto-create }
+- Consider debouncing and retry with fallbacks when confidence < 0.7
+

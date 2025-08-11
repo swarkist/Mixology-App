@@ -7,6 +7,7 @@ import {
   type Cocktail, type Ingredient, type PreferredBrand
 } from "@shared/schema";
 import firebaseTestRoutes from "./routes/firebase-test";
+import { extractBrandFromImage } from "./ai/openrouter";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // =================== USERS ===================
@@ -859,6 +860,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("OpenRouter request failed:", error);
       res.status(500).json({ error: "Failed to process OpenRouter request" });
+    }
+  });
+
+  // Photo → Preferred Brand OCR endpoint
+  app.post("/api/ai/brands/from-image", async (req, res) => {
+    try {
+      // Expect JSON: { base64: "data:image/...;base64,xxx", autoCreate?: boolean }
+      const { base64, autoCreate } = req.body ?? {};
+      if (!base64 || !String(base64).startsWith("data:image")) {
+        return res.status(400).json({ error: "Send { base64: 'data:image/...;base64,XXX' }" });
+      }
+
+      const { result, model } = await extractBrandFromImage(base64);
+
+      // No roles yet — any user can auto-create for now.
+      // TODO (roles): Once roles are implemented, require admin for autoCreate.
+      let created: any = null;
+
+      if (autoCreate && result?.name && result?.confidence && result.confidence >= 0.7) {
+        const payload = {
+          name: result.name.trim(),
+          proof: result.proof ?? null,
+          imageUrl: base64, // prototype (replace with uploaded URL later)
+          notes: result.notes ?? undefined,
+        };
+        
+        // Create the preferred brand using internal API
+        try {
+          const createdBrand = await storage.createPreferredBrand(payload);
+          created = createdBrand;
+        } catch (createError) {
+          console.error("Failed to auto-create brand:", createError);
+          // Don't fail the OCR response if creation fails
+        }
+      }
+
+      return res.json({ model, ...result, created });
+    } catch (e: any) {
+      console.error("OCR extraction failed:", e);
+      return res.status(500).json({ error: e?.message ?? "OCR failed" });
     }
   });
 

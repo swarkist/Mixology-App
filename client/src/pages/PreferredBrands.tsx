@@ -4,16 +4,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Star, Heart, Edit, Edit2, BarChart3, Check } from "lucide-react";
+import { Search, Plus, Star, Heart, Edit, Edit2, BarChart3, Check, Camera } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import type { PreferredBrand } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
+import BrandFromImageDialog from "@/components/BrandFromImageDialog";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export default function PreferredBrands() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [ocrOpen, setOcrOpen] = useState(false);
+  const [draftBrand, setDraftBrand] = useState<{ name?: string; proof?: number | null } | null>(null);
   const queryClient = useQueryClient();
 
   const { data: brands = [], isLoading } = useQuery({
@@ -95,8 +98,16 @@ export default function PreferredBrands() {
           </div>
         </div>
 
-        {/* Add Brand Button */}
-        <div className="px-4 py-3">
+        {/* Action Buttons */}
+        <div className="px-4 py-3 flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setOcrOpen(true)}
+            className="border-[#544f3b] text-[#bab59c] hover:bg-[#383629] hover:text-[#f2c40c] hover:border-[#f2c40c]"
+          >
+            <Camera className="w-4 h-4 mr-2" />
+            Add via Photo
+          </Button>
           <Link href="/add-preferred-brand">
             <Button className="bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
               <Plus className="w-4 h-4 mr-2" />
@@ -217,6 +228,18 @@ export default function PreferredBrands() {
         </div>
       </div>
       <Navigation />
+      
+      {/* Photo OCR Dialog */}
+      <BrandFromImageDialog
+        open={ocrOpen}
+        onOpenChange={setOcrOpen}
+        onPrefill={(v) => {
+          // Set draft brand for future form prefill integration
+          setDraftBrand({ name: v.name, proof: v.proof ?? null });
+          // Refresh brands list to show newly created brand if auto-created
+          queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
+        }}
+      />
     </div>
   );
 }
