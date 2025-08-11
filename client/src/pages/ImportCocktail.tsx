@@ -1,4 +1,4 @@
-import { ArrowLeft, Link as LinkIcon, Youtube, Loader2, FileText, Wand2, Save, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, Link as LinkIcon, Youtube, Loader2, FileText, Wand2, Save, AlertCircle, CheckCircle, ClipboardPaste } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -208,7 +208,7 @@ Rules:
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter(getModelForTask("parse"), rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse" as const), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -312,14 +312,16 @@ Do not include any explanation or additional text - return only the JSON object.
       </div>
 
       <div className="max-w-6xl mx-auto p-4 space-y-6">
-        {/* URL Input */}
-        <Card className="bg-[#2a2920] border-[#4a4735]">
-          <CardHeader>
-            <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica] flex items-center gap-2">
-              <Wand2 className="w-5 h-5" />
-              Import from URL
-            </CardTitle>
-          </CardHeader>
+        {/* Import Methods */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* URL Input */}
+          <Card className="bg-[#2a2920] border-[#4a4735]">
+            <CardHeader>
+              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica] flex items-center gap-2">
+                <LinkIcon className="w-5 h-5" />
+                Import from URL
+              </CardTitle>
+            </CardHeader>
           <CardContent className="space-y-4">
             <Form {...importForm}>
               <form onSubmit={importForm.handleSubmit(extractContent)} className="space-y-4">
@@ -377,8 +379,66 @@ Do not include any explanation or additional text - return only the JSON object.
                 </AlertDescription>
               </Alert>
             )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          {/* Copy/Paste Input */}
+          <Card className="bg-[#2a2920] border-[#4a4735]">
+            <CardHeader>
+              <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica] flex items-center gap-2">
+                <ClipboardPaste className="w-5 h-5" />
+                Import from Copy/Paste
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label className="text-white mb-2 block">Paste Recipe Content</Label>
+                <Textarea
+                  value={rawContent}
+                  onChange={(e) => setRawContent(e.target.value)}
+                  placeholder="Paste recipe content here...
+
+Example:
+THE BLOODY MARY RECIPE
+1.5 oz. Vodka
+4 oz. Tomato juice
+3/4 oz. Fresh lemon juice
+1/4 oz. Worcestershire sauce
+Salt and pepper to taste
+Garnish with celery stick"
+                  className="min-h-[200px] bg-[#383529] border-[#544f3a] text-white placeholder-[#bab59b]"
+                />
+              </div>
+              
+              <Button
+                onClick={parseWithAI}
+                disabled={isParsing || !rawContent.trim()}
+                className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
+              >
+                {isParsing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Parsing with AI...
+                  </>
+                ) : (
+                  <>
+                    <Wand2 className="w-4 h-4 mr-2" />
+                    Parse with AI
+                  </>
+                )}
+              </Button>
+
+              {parseError && (
+                <Alert className="bg-red-600/20 border-red-600">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription className="text-red-200">
+                    {parseError}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Two Column Layout */}
         {rawContent && (
