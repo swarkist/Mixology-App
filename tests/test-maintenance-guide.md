@@ -11,8 +11,11 @@ This guide ensures regression tests and unit tests stay up-to-date with all proj
 - Modifying existing API functionality
 - Adding new UI components or pages
 - Changing database schema or data models
-- Adding new features (search, filtering, etc.)
+- Adding new features (search, filtering, AI integration, etc.)
 - Modifying business logic
+- Integrating external AI services (OpenRouter, OCR, transcript processing)
+- Adding new photo upload or processing workflows
+- Implementing new preferred brand functionality
 - Updating validation rules
 - Adding authentication/authorization
 - Performance optimizations

@@ -7,7 +7,16 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
-## Recent Changes (August 10, 2025)
+## Recent Changes (August 11, 2025)
+- **AI-Powered Photo OCR Feature**: Implemented extract → review → edit → create workflow for preferred brands using OpenRouter vision models
+- **Enhanced YouTube Transcript Extraction**: Improved AI-powered recipe importing from YouTube videos with better transcript parsing
+- **Mobile-Responsive Button Design**: Fixed button readability and stacking for iPhone 14/15 resolutions with improved gold accent styling
+- **Comprehensive AI Integration**: Added OpenRouter API proxy with model routing for recipe parsing, brand extraction, and content analysis
+- **Improved Error Handling**: Enhanced React Query with retry logic, proper error states, and better loading indicators
+- **Photo Brand Extraction Workflow**: Users can upload bottle photos, extract brand information via AI, edit details, and create preferred brands
+- **AI Recipe Import Enhancement**: Improved parsing accuracy for web URLs and YouTube videos with fraction display and measurement conversion
+
+## Previous Changes (August 10, 2025)
 - **Comprehensive Security Hardening**: Implemented enterprise-level security measures for server-only Firebase access
 - **Firestore Server-Only Rules**: Deployed strict "deny all" Firestore rules forcing all data access through Admin SDK
 - **Express Security Middleware**: Added Helmet, CORS allowlist, Morgan logging, and express-rate-limit (300 req/15min)
@@ -49,9 +58,11 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, write protection.
 - **Storage**: Abstract storage interface with Firebase Firestore implementation using Admin SDK.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
+- **AI Integration**: OpenRouter API proxy with model routing for recipe parsing, OCR, and content analysis.
+- **YouTube Processing**: Transcript extraction and AI-powered recipe parsing from video content.
 
 ### Key Features & Design Decisions
-- **Multi-page Application**: Home, Cocktail List, Individual Recipe, Ingredients, and My Bar pages.
+- **Multi-page Application**: Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages.
 - **Navigation**: Responsive navigation system (desktop header + mobile bottom nav).
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
 - **Authentication**: Session-based authentication with PostgreSQL storage.
@@ -61,6 +72,9 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion.
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
 - **Error Handling**: Global error middleware, custom request logging.
+- **AI-Powered Features**: Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis.
+- **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
+- **Fraction Display**: Automatic conversion of decimal measurements to fractions (0.75 → 3/4) across all recipe displays.
 
 ## External Dependencies
 
@@ -78,3 +92,4 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Testing**: Vitest.
 - **Development Utilities**: tsx.
 - **Replit Integration**: Cartographer, error overlay plugins.
+- **AI Services**: OpenRouter API integration, YouTube transcript processing, Cheerio for web scraping.

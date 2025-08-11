@@ -27,6 +27,8 @@ Tests all CRUD operations and basic functionality:
 - **Tags System**: Tag creation, retrieval, and search
 - **Featured System**: Featured cocktail toggle functionality
 - **Popularity Tracking**: Cocktail popularity increment system
+- **AI Features**: Photo OCR brand extraction, recipe importing, and text parsing
+- **Preferred Brands**: Brand creation, association, and My Bar integration
 
 ### 🔥 `firebase-persistence.test.ts` - Data Persistence
 Tests Firebase storage and data synchronization:
