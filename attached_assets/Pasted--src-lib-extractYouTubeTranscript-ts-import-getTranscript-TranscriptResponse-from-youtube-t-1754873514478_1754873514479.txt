@@ -1,0 +1,66 @@
+// src/lib/extractYouTubeTranscript.ts
+import { getTranscript, TranscriptResponse } from "youtube-transcript";
+
+// More robust ID extraction supporting youtu.be, shorts, embed, and query params
+function extractVideoId(input: string): string | null {
+  try {
+    // Normalize
+    const url = new URL(input);
+    // youtu.be/<id>
+    if (url.hostname === "youtu.be") {
+      return url.pathname.replace("/", "").split("?")[0] || null;
+    }
+    // youtube.com/shorts/<id> or /embed/<id> or /watch?v=<id>
+    if (url.hostname.includes("youtube.com")) {
+      const pathParts = url.pathname.split("/").filter(Boolean);
+      if (url.searchParams.get("v")) return url.searchParams.get("v");
+      if (pathParts[0] === "shorts" && pathParts[1]) return pathParts[1];
+      if (pathParts[0] === "embed" && pathParts[1]) return pathParts[1];
+    }
+    return null;
+  } catch {
+    // As a last resort, try common patterns
+    const m =
+      input.match(/(?:v=|\/shorts\/|\/embed\/|youtu\.be\/)([A-Za-z0-9_-]{6,})/);
+    return m?.[1] ?? null;
+  }
+}
+
+export async function extractYouTubeText(url: string): Promise<string> {
+  const videoId = extractVideoId(url);
+  if (!videoId) throw new Error("Invalid YouTube URL");
+
+  // Try multiple language hints + allow auto-generated
+  const tryLangs = ["en", "en-US", "en-GB"];
+  let transcript: TranscriptResponse | null = null;
+  let lastErr: any;
+
+  for (const lang of tryLangs) {
+    try {
+      transcript = await getTranscript(videoId, { lang });
+      if (transcript?.length) break;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  // Fallback: no language hint (lets library try auto-generated)
+  if (!transcript || transcript.length === 0) {
+    try {
+      transcript = await getTranscript(videoId);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+
+  if (!transcript || transcript.length === 0) {
+    // Final, explicit error to surface to the UI/logs
+    throw new Error(
+      `No transcript available or fetch blocked for video ${videoId}. ${lastErr ? String(lastErr) : ""}`
+    );
+  }
+
+  const text = transcript.map((t) => t.text).join(" ");
+  // Keep it trim for token limits
+  return text.replace(/\s+/g, " ").trim().slice(0, 12000);
+}

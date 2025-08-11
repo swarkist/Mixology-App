@@ -971,7 +971,7 @@ export function registerReadOnlyRoutes(app: Express) {
     }
   });
 
-  // YouTube transcript endpoint
+  // YouTube transcript endpoint with multiple language attempts
   app.post("/api/youtube-transcript", async (req, res) => {
     try {
       const { videoId } = req.body;
@@ -980,19 +980,45 @@ export function registerReadOnlyRoutes(app: Express) {
         return res.status(400).json({ error: "Video ID is required" });
       }
       
-      // Use the youtube-transcript package
+      // Import the youtube-transcript library
       const { YoutubeTranscript } = await import('youtube-transcript');
       
-      const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+      // Try multiple language hints + allow auto-generated
+      const tryLangs = ["en", "en-US", "en-GB"];
+      let transcriptItems: any = null;
+      let lastError: any;
+
+      for (const lang of tryLangs) {
+        try {
+          transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, { lang });
+          if (transcriptItems?.length) break;
+        } catch (e) {
+          lastError = e;
+        }
+      }
+
+      // Fallback: no language hint (lets library try auto-generated)
+      if (!transcriptItems || transcriptItems.length === 0) {
+        try {
+          transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
+        } catch (e) {
+          lastError = e;
+        }
+      }
       
       if (!transcriptItems || transcriptItems.length === 0) {
         return res.status(404).json({ 
-          error: "No transcript found for this video. The video may not have auto-generated captions or manual subtitles available. Try a different video with captions." 
+          error: `No transcript available or fetch blocked for video ${videoId}. The video may not have auto-generated captions or manual subtitles available. Try a different video with captions.`
         });
       }
       
-      // Join all transcript text
-      const transcript = transcriptItems.map(item => item.text).join(' ');
+      // Join all transcript text and limit length for token limits
+      const transcript = transcriptItems
+        .map((item: any) => item.text)
+        .join(' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 12000);
       
       res.json({ transcript });
     } catch (error) {
