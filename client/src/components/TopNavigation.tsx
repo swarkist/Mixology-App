@@ -96,7 +96,7 @@ const TopNavigation = (): JSX.Element => {
         {/* Logo */}
         <Link href="/">
           <h1 className="font-bold text-white text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
-            Mixology
+            Mixi Mixology
           </h1>
         </Link>
 
