@@ -736,17 +736,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/preferred-brands", async (req, res) => {
     try {
+      console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
+      
       const brandData = preferredBrandFormSchema.parse(req.body);
+      console.log("🔥 Parsed brand data:", brandData);
       
       // Handle image upload
       if (req.body.image && typeof req.body.image === 'string') {
         brandData.imageUrl = req.body.image;
+        console.log("🔥 Image URL set from image field");
       }
       
+      console.log("🔥 Final brand data for creation:", brandData);
       const brand = await storage.createPreferredBrand(brandData);
+      console.log("🔥 Brand created successfully:", brand.id);
+      
       res.status(201).json(brand);
     } catch (error) {
-      res.status(400).json({ message: "Invalid preferred brand data", error });
+      console.error("🔥 Preferred brand creation failed:", error);
+      console.error("🔥 Error details:", error instanceof Error ? error.stack : error);
+      res.status(400).json({ 
+        message: "Invalid preferred brand data", 
+        error: error instanceof Error ? error.message : String(error),
+        details: error instanceof Error ? error.stack : undefined
+      });
     }
   });
 

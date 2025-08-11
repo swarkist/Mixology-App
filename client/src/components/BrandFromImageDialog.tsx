@@ -106,11 +106,17 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
         notes: result?.notes || undefined,
       };
       
+      console.log("🔥 Client: Creating brand with payload:", payload);
+      
       const res = await fetch("/api/preferred-brands", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify(payload),
       });
+      
+      console.log("🔥 Client: Create brand response status:", res.status);
       
       if (!res.ok) {
         const errorData = await res.json();
