@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { formatIngredientMeasurement } from "@/lib/fractionUtils";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
@@ -15,8 +16,10 @@ export const CocktailRecipe = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const cocktailId = params?.id ? parseInt(params.id) : null;
+  const isAdmin = user?.role === 'admin';
 
   // Fetch cocktail details
   const { data: cocktailDetails, isLoading, error } = useQuery({
@@ -269,24 +272,26 @@ export const CocktailRecipe = (): JSX.Element => {
             {incrementPopularityMutation.isPending ? 'Starting...' : 'Start Making This Cocktail'}
           </Button>
           
-          {/* Secondary Action Buttons */}
-          <div className="flex gap-3">
-            <Link href={`/edit-cocktail/${cocktail.id}`} className="flex-1">
-              <Button className="w-full bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold h-10 text-sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Recipe
+          {/* Admin-only Edit/Delete Buttons */}
+          {isAdmin && (
+            <div className="flex gap-3">
+              <Link href={`/edit-cocktail/${cocktail.id}`} className="flex-1">
+                <Button className="w-full bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold h-10 text-sm">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Recipe
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
               </Button>
-            </Link>
-            <Button 
-              variant="outline" 
-              onClick={handleDelete}
-              disabled={deleteMutation.isPending}
-              className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete Recipe'}
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       </div>
       <Navigation />
