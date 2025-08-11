@@ -3,7 +3,9 @@ import type { IStorage } from '../storage';
 import type { 
   User, InsertUser, Cocktail, InsertCocktail, Ingredient, InsertIngredient, 
   Tag, InsertTag, CocktailIngredient, CocktailInstruction, CocktailForm, IngredientForm,
-  PreferredBrand, InsertPreferredBrand, PreferredBrandForm
+  PreferredBrand, InsertPreferredBrand, PreferredBrandForm,
+  Session, InsertSession, AuditLog, InsertAuditLog, MyBar, InsertMyBar,
+  PasswordReset, InsertPasswordReset
 } from '@shared/schema';
 
 // Adapter class that implements the existing IStorage interface using Firebase
@@ -14,20 +16,390 @@ export class FirebaseStorageAdapter implements IStorage {
     this.firebase = new FirebaseStorage();
   }
 
-  // Users (stubbed for now - can be implemented later)
-  async getUser(id: number): Promise<User | undefined> {
-    // TODO: Implement user management in Firebase
-    return undefined;
+  // ============= USER MANAGEMENT =============
+  
+  async getUserById(id: number): Promise<User | undefined> {
+    try {
+      const doc = await this.firebase.getDocument('users', id.toString());
+      if (!doc) return undefined;
+      return { id, ...doc } as User;
+    } catch (error) {
+      console.error('Error getting user by id:', error);
+      return undefined;
+    }
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    // TODO: Implement user management in Firebase
-    return undefined;
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    try {
+      const snapshot = await this.firebase.query('users', 'email', '==', email);
+      if (snapshot.empty) return undefined;
+      
+      const doc = snapshot.docs[0];
+      return { id: parseInt(doc.id), ...doc.data() } as User;
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return undefined;
+    }
   }
 
   async createUser(user: InsertUser): Promise<User> {
-    // TODO: Implement user management in Firebase
-    throw new Error('User management not implemented with Firebase yet');
+    try {
+      const id = Date.now(); // Simple ID generation for Firebase
+      const userData = {
+        ...user,
+        created_at: new Date(),
+        updated_at: new Date()
+      };
+      
+      await this.firebase.setDocument('users', id.toString(), userData);
+      return { id, ...userData } as User;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error('Failed to create user');
+    }
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User> {
+    try {
+      const updateData = {
+        ...updates,
+        updated_at: new Date()
+      };
+      
+      await this.firebase.updateDocument('users', id.toString(), updateData);
+      const user = await this.getUserById(id);
+      if (!user) throw new Error('User not found after update');
+      
+      return user;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Failed to update user');
+    }
+  }
+
+  async promoteUserToAdmin(id: number): Promise<User> {
+    return this.updateUserRole(id, 'admin');
+  }
+
+  async updateUserRole(id: number, role: 'basic' | 'admin'): Promise<User> {
+    return this.updateUser(id, { role });
+  }
+
+  async updateUserStatus(id: number, is_active: boolean): Promise<User> {
+    return this.updateUser(id, { is_active });
+  }
+
+  async getAllUsers(options: { 
+    search?: string; 
+    role?: 'basic' | 'admin'; 
+    status?: boolean; 
+    page?: number; 
+    limit?: number; 
+  } = {}): Promise<{ users: User[]; total: number }> {
+    try {
+      const snapshot = await this.firebase.getCollection('users');
+      let users: User[] = snapshot.docs.map(doc => ({
+        id: parseInt(doc.id),
+        ...doc.data()
+      } as User));
+
+      // Apply filters
+      if (options.search) {
+        const searchTerm = options.search.toLowerCase();
+        users = users.filter(user => 
+          user.email.toLowerCase().includes(searchTerm)
+        );
+      }
+
+      if (options.role) {
+        users = users.filter(user => user.role === options.role);
+      }
+
+      if (options.status !== undefined) {
+        users = users.filter(user => user.is_active === options.status);
+      }
+
+      // Sort by created_at desc
+      users.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      const total = users.length;
+
+      // Apply pagination
+      const page = options.page || 1;
+      const limit = options.limit || 20;
+      const startIndex = (page - 1) * limit;
+      const paginatedUsers = users.slice(startIndex, startIndex + limit);
+
+      return { users: paginatedUsers, total };
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return { users: [], total: 0 };
+    }
+  }
+
+  async getLastActiveAdmin(): Promise<User | undefined> {
+    try {
+      const snapshot = await this.firebase.query('users', 'role', '==', 'admin');
+      const admins = snapshot.docs.map(doc => ({
+        id: parseInt(doc.id),
+        ...doc.data()
+      } as User));
+      
+      return admins.find(admin => admin.is_active) || admins[0];
+    } catch (error) {
+      console.error('Error getting last active admin:', error);
+      return undefined;
+    }
+  }
+
+  // ============= SESSION MANAGEMENT =============
+  
+  async createSession(session: InsertSession): Promise<Session> {
+    try {
+      const id = Date.now();
+      const sessionData = {
+        ...session,
+        created_at: new Date()
+      };
+      
+      await this.firebase.setDocument('sessions', id.toString(), sessionData);
+      return { id, ...sessionData } as Session;
+    } catch (error) {
+      console.error('Error creating session:', error);
+      throw new Error('Failed to create session');
+    }
+  }
+
+  async getSessionByRefreshTokenHash(tokenHash: string): Promise<Session | undefined> {
+    try {
+      const snapshot = await this.firebase.query('sessions', 'refresh_token_hash', '==', tokenHash);
+      if (snapshot.empty) return undefined;
+      
+      const doc = snapshot.docs[0];
+      return { id: parseInt(doc.id), ...doc.data() } as Session;
+    } catch (error) {
+      console.error('Error getting session by token hash:', error);
+      return undefined;
+    }
+  }
+
+  async revokeSession(sessionId: number): Promise<void> {
+    try {
+      await this.firebase.deleteDocument('sessions', sessionId.toString());
+    } catch (error) {
+      console.error('Error revoking session:', error);
+      throw new Error('Failed to revoke session');
+    }
+  }
+
+  async revokeAllUserSessions(userId: number): Promise<void> {
+    try {
+      const snapshot = await this.firebase.query('sessions', 'user_id', '==', userId);
+      const batch = this.firebase.firestore.batch();
+      
+      snapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error('Error revoking all user sessions:', error);
+      throw new Error('Failed to revoke user sessions');
+    }
+  }
+
+  async cleanExpiredSessions(): Promise<void> {
+    try {
+      const now = new Date();
+      const snapshot = await this.firebase.getCollection('sessions');
+      const batch = this.firebase.firestore.batch();
+      
+      snapshot.docs.forEach(doc => {
+        const session = doc.data() as Session;
+        if (new Date(session.expires_at) < now) {
+          batch.delete(doc.ref);
+        }
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error('Error cleaning expired sessions:', error);
+    }
+  }
+
+  // ============= PASSWORD RESET =============
+  
+  async createPasswordReset(reset: InsertPasswordReset): Promise<PasswordReset> {
+    try {
+      const id = Date.now();
+      const resetData = {
+        ...reset,
+        created_at: new Date()
+      };
+      
+      await this.firebase.setDocument('password_resets', id.toString(), resetData);
+      return { id, ...resetData } as PasswordReset;
+    } catch (error) {
+      console.error('Error creating password reset:', error);
+      throw new Error('Failed to create password reset');
+    }
+  }
+
+  async getPasswordResetByTokenHash(tokenHash: string): Promise<PasswordReset | undefined> {
+    try {
+      const snapshot = await this.firebase.query('password_resets', 'token_hash', '==', tokenHash);
+      if (snapshot.empty) return undefined;
+      
+      const doc = snapshot.docs[0];
+      return { id: parseInt(doc.id), ...doc.data() } as PasswordReset;
+    } catch (error) {
+      console.error('Error getting password reset by token hash:', error);
+      return undefined;
+    }
+  }
+
+  async markPasswordResetAsUsed(resetId: number): Promise<void> {
+    try {
+      await this.firebase.updateDocument('password_resets', resetId.toString(), {
+        used_at: new Date()
+      });
+    } catch (error) {
+      console.error('Error marking password reset as used:', error);
+      throw new Error('Failed to mark password reset as used');
+    }
+  }
+
+  async cleanExpiredPasswordResets(): Promise<void> {
+    try {
+      const now = new Date();
+      const snapshot = await this.firebase.getCollection('password_resets');
+      const batch = this.firebase.firestore.batch();
+      
+      snapshot.docs.forEach(doc => {
+        const reset = doc.data() as PasswordReset;
+        if (new Date(reset.expires_at) < now) {
+          batch.delete(doc.ref);
+        }
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error('Error cleaning expired password resets:', error);
+    }
+  }
+
+  // ============= MY BAR MANAGEMENT =============
+  
+  async getMyBarItems(userId: number): Promise<MyBar[]> {
+    try {
+      const snapshot = await this.firebase.query('my_bar', 'user_id', '==', userId);
+      return snapshot.docs.map(doc => ({
+        id: parseInt(doc.id),
+        ...doc.data()
+      } as MyBar));
+    } catch (error) {
+      console.error('Error getting my bar items:', error);
+      return [];
+    }
+  }
+
+  async addToMyBar(item: InsertMyBar): Promise<MyBar> {
+    try {
+      const id = Date.now();
+      const itemData = {
+        ...item,
+        created_at: new Date()
+      };
+      
+      await this.firebase.setDocument('my_bar', id.toString(), itemData);
+      return { id, ...itemData } as MyBar;
+    } catch (error) {
+      console.error('Error adding to my bar:', error);
+      throw new Error('Failed to add to my bar');
+    }
+  }
+
+  async removeFromMyBar(userId: number, type: 'ingredient' | 'brand', refId: number): Promise<void> {
+    try {
+      const snapshot = await this.firebase.queryMultiple('my_bar', [
+        ['user_id', '==', userId],
+        ['type', '==', type],
+        ['ref_id', '==', refId]
+      ]);
+      
+      if (!snapshot.empty) {
+        await this.firebase.deleteDocument('my_bar', snapshot.docs[0].id);
+      }
+    } catch (error) {
+      console.error('Error removing from my bar:', error);
+      throw new Error('Failed to remove from my bar');
+    }
+  }
+
+  async getUserMyBarByAdmin(userId: number): Promise<MyBar[]> {
+    return this.getMyBarItems(userId);
+  }
+
+  // ============= AUDIT LOGGING =============
+  
+  async createAuditLog(log: InsertAuditLog): Promise<AuditLog> {
+    try {
+      const id = Date.now();
+      const logData = {
+        ...log,
+        created_at: new Date()
+      };
+      
+      await this.firebase.setDocument('audit_logs', id.toString(), logData);
+      return { id, ...logData } as AuditLog;
+    } catch (error) {
+      console.error('Error creating audit log:', error);
+      throw new Error('Failed to create audit log');
+    }
+  }
+
+  async getAuditLogs(options: { 
+    userId?: number; 
+    action?: string; 
+    resource?: string;
+    limit?: number;
+  } = {}): Promise<AuditLog[]> {
+    try {
+      let snapshot;
+      
+      if (options.userId) {
+        snapshot = await this.firebase.query('audit_logs', 'user_id', '==', options.userId);
+      } else {
+        snapshot = await this.firebase.getCollection('audit_logs');
+      }
+      
+      let logs = snapshot.docs.map(doc => ({
+        id: parseInt(doc.id),
+        ...doc.data()
+      } as AuditLog));
+
+      // Apply additional filters
+      if (options.action) {
+        logs = logs.filter(log => log.action === options.action);
+      }
+
+      if (options.resource) {
+        logs = logs.filter(log => log.resource === options.resource);
+      }
+
+      // Sort by created_at desc
+      logs.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      // Apply limit
+      if (options.limit) {
+        logs = logs.slice(0, options.limit);
+      }
+
+      return logs;
+    } catch (error) {
+      console.error('Error getting audit logs:', error);
+      return [];
+    }
   }
 
   // Tags (basic implementation)

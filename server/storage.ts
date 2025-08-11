@@ -2,7 +2,11 @@
 import { 
   users, cocktails, ingredients, tags, cocktailIngredients, cocktailInstructions, 
   cocktailTags, ingredientTags, preferredBrands, preferredBrandIngredients, preferredBrandTags,
-  type User, type InsertUser, type Cocktail, type InsertCocktail, 
+  sessions, audit_logs, my_bar, password_resets,
+  type User, type InsertUser, type Session, type InsertSession,
+  type AuditLog, type InsertAuditLog, type MyBar, type InsertMyBar,
+  type PasswordReset, type InsertPasswordReset,
+  type Cocktail, type InsertCocktail, 
   type Ingredient, type InsertIngredient, type Tag, type InsertTag,
   type PreferredBrand, type InsertPreferredBrand,
   type CocktailIngredient, type CocktailInstruction, type CocktailForm, type IngredientForm, type PreferredBrandForm
@@ -10,10 +14,50 @@ import {
 
 // Comprehensive storage interface for all MVP features
 export interface IStorage {
-  // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  // Enhanced Users for Authentication
+  getUserById(id: number): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
+  promoteUserToAdmin(id: number): Promise<User>;
+  updateUserRole(id: number, role: 'basic' | 'admin'): Promise<User>;
+  updateUserStatus(id: number, isActive: boolean): Promise<User>;
+  getAllUsers(options?: { 
+    search?: string; 
+    role?: 'basic' | 'admin'; 
+    status?: boolean; 
+    page?: number; 
+    limit?: number; 
+  }): Promise<{ users: User[]; total: number }>;
+  getLastActiveAdmin(): Promise<User | undefined>;
+  
+  // Sessions Management
+  createSession(session: InsertSession): Promise<Session>;
+  getSessionByRefreshTokenHash(tokenHash: string): Promise<Session | undefined>;
+  revokeSession(sessionId: number): Promise<void>;
+  revokeAllUserSessions(userId: number): Promise<void>;
+  cleanExpiredSessions(): Promise<void>;
+  
+  // Password Reset
+  createPasswordReset(reset: InsertPasswordReset): Promise<PasswordReset>;
+  getPasswordResetByTokenHash(tokenHash: string): Promise<PasswordReset | undefined>;
+  markPasswordResetAsUsed(resetId: number): Promise<void>;
+  cleanExpiredPasswordResets(): Promise<void>;
+  
+  // My Bar Management
+  getMyBarItems(userId: number): Promise<MyBar[]>;
+  addToMyBar(item: InsertMyBar): Promise<MyBar>;
+  removeFromMyBar(userId: number, type: 'ingredient' | 'brand', refId: number): Promise<void>;
+  getUserMyBarByAdmin(userId: number): Promise<MyBar[]>;
+  
+  // Audit Logging
+  createAuditLog(log: InsertAuditLog): Promise<AuditLog>;
+  getAuditLogs(options?: { 
+    userId?: number; 
+    action?: string; 
+    resource?: string;
+    limit?: number;
+  }): Promise<AuditLog[]>;
 
   // Tags
   getAllTags(): Promise<Tag[]>;
@@ -45,11 +89,9 @@ export interface IStorage {
   getAllPreferredBrands(): Promise<PreferredBrand[]>;
   getPreferredBrand(id: number): Promise<PreferredBrand | undefined>;
   searchPreferredBrands(query: string): Promise<PreferredBrand[]>;
-  getPreferredBrandsInMyBar(): Promise<PreferredBrand[]>;
   createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand>;
   updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand>;
   deletePreferredBrand(id: number): Promise<boolean>;
-  toggleMyBarBrand(brandId: number): Promise<PreferredBrand>;
   incrementPreferredBrandUsage(brandId: number): Promise<void>;
   recalculatePreferredBrandUsageCounts(): Promise<void>;
   findPreferredBrandByName(name: string): Promise<PreferredBrand | null>;

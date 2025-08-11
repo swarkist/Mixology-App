@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+// Note: storage now passed as parameter
 import { 
   insertTagSchema, insertIngredientSchema, insertCocktailSchema,
   cocktailFormSchema, ingredientFormSchema, insertPreferredBrandSchema, preferredBrandFormSchema,
@@ -9,11 +9,24 @@ import {
 import firebaseTestRoutes from "./routes/firebase-test";
 import { extractBrandFromImage } from "./ai/openrouter";
 
-export async function registerRoutes(app: Express): Promise<Server> {
+import { createAuthRoutes } from './routes/auth';
+import { createMyBarRoutes } from './routes/mybar';
+import { createAdminRoutes } from './routes/admin';
+import type { IStorage } from './storage';
+
+export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
+  // Register authentication routes
+  app.use('/api/auth', createAuthRoutes(storage));
+  
+  // Register my bar routes
+  app.use('/api/mybar', createMyBarRoutes(storage));
+  
+  // Register admin routes  
+  app.use('/api/admin', createAdminRoutes(storage));
   // =================== USERS ===================
   app.get("/api/users/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-    const user = await storage.getUser(id);
+    const user = await storage.getUserById(id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -86,10 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all ingredients first, then filter by My Bar if needed
       ingredients = await storage.getAllIngredients();
       
-      // Filter by My Bar if requested
-      if (mybar === 'true' || inMyBar === 'true') {
-        ingredients = ingredients.filter(ingredient => ingredient.inMyBar === true);
-      }
+      // My Bar filtering now handled by separate API endpoint
       
       // Apply search filter if provided
       if (search && search.toString().trim()) {
@@ -706,7 +716,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (inMyBar === 'true') {
         console.log('🔥 Calling getPreferredBrandsInMyBar...');
-        brands = await storage.getPreferredBrandsInMyBar();
+        // This functionality will be handled by My Bar API
+        brands = [];
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);
@@ -785,12 +796,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/preferred-brands/:id/toggle-mybar", async (req, res) => {
     const id = parseInt(req.params.id);
     
-    try {
-      const updated = await storage.toggleMyBarBrand(id);
-      res.json(updated);
-    } catch (error) {
-      res.status(404).json({ message: "Preferred brand not found", error });
-    }
+    // Toggle My Bar functionality moved to My Bar API
+    res.status(404).json({ message: "This functionality has been moved to the My Bar API" });
   });
 
   app.delete("/api/preferred-brands/:id", async (req, res) => {
@@ -944,7 +951,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 // Register read-only POST endpoints that should bypass admin key requirement
-export function registerReadOnlyRoutes(app: Express) {
+export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
   // Web scraping endpoint
   app.post("/api/scrape-url", async (req, res) => {
     try {

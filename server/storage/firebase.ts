@@ -7,6 +7,9 @@ import type {
 } from '@shared/schema';
 
 export class FirebaseStorage {
+  // Public firestore instance for batch operations
+  public firestore = db;
+  
   private cocktailsCollection = db.collection('cocktails');
   private ingredientsCollection = db.collection('ingredients');
   private preferredBrandsCollection = db.collection('preferred_brands');
@@ -17,6 +20,42 @@ export class FirebaseStorage {
   private ingredientTagsCollection = db.collection('ingredient_tags');
   private preferredBrandIngredientsCollection = db.collection('preferred_brand_ingredients');
   private preferredBrandTagsCollection = db.collection('preferred_brand_tags');
+
+  // Generic collection operations
+  async getCollection(collectionName: string) {
+    return db.collection(collectionName).get();
+  }
+
+  async getDocument(collectionName: string, docId: string) {
+    const doc = await db.collection(collectionName).doc(docId).get();
+    return doc.exists ? doc.data() : null;
+  }
+
+  async setDocument(collectionName: string, docId: string, data: any) {
+    return db.collection(collectionName).doc(docId).set(data);
+  }
+
+  async updateDocument(collectionName: string, docId: string, data: any) {
+    return db.collection(collectionName).doc(docId).update(data);
+  }
+
+  async deleteDocument(collectionName: string, docId: string) {
+    return db.collection(collectionName).doc(docId).delete();
+  }
+
+  async query(collectionName: string, field: string, operator: any, value: any) {
+    return db.collection(collectionName).where(field, operator, value).get();
+  }
+
+  async queryMultiple(collectionName: string, conditions: Array<[string, any, any]>) {
+    let query: any = db.collection(collectionName);
+    
+    for (const [field, operator, value] of conditions) {
+      query = query.where(field, operator, value);
+    }
+    
+    return query.get();
+  }
 
   // Cocktail operations
   async getAllCocktails(): Promise<Cocktail[]> {

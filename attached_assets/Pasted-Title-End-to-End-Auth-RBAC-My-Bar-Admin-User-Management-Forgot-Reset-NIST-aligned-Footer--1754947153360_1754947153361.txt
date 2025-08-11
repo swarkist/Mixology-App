@@ -1,0 +1,197 @@
+Title
+End-to-End Auth + RBAC + My Bar + Admin User Management + Forgot/Reset (NIST-aligned, Footer "Admin" link, Neutral Errors, No Pepper)
+
+Context
+- Project: Mixology web app (React frontend in client/src, Node/Express backend with routes centralized in server/routes.ts).
+- Build secure authentication, two roles ("basic", "admin"), admin-only features, separate My Bar per user, an Admin Users UI (list/promote/demote/deactivate/reactivate/view bars), and a secure Forgot/Reset Password flow.
+- Follow NIST SP 800-63B-friendly practices: strong hashing (bcrypt or argon2), short-lived access token + refresh rotation, neutral responses for auth/registration/reset (no account enumeration), minimal password rules (length ≥ 8), rate limiting, CSRF, audit logs, default-deny on admin endpoints.
+- ADMIN_EMAIL is already set in secrets; on boot, promote that user (if found) to admin.
+
+Where applicable
+- Backend edits under server/*; main route wiring in server/routes.ts (keep structure).
+- Frontend edits under client/src/* (React Query, shadcn/ui, "@/lib/queryClient" helpers).
+- Keep client/src/pages/BulkUpload.tsx intact. Admin Import flow stays admin-only at client/src/pages/Import.tsx.
+- Update existing API endpoints in server/routes.ts with role guards; do not rely solely on hidden UI.
+
+Goals (deliver all)
+1) Authentication: register, login, refresh, logout, forgot, reset, me (profile).
+2) Sessions: httpOnly, secure cookies; SameSite=Lax; access token short-lived (15–60m) + rotating refresh tokens.
+3) RBAC: roles "basic" (default) and "admin" with server-side route guards.
+4) Admin-only protections:
+   - Cocktails: Add/Edit/Delete, Mark Featured
+   - Ingredients: Add/Edit/Delete
+   - Preferred Brands: Add/Edit/Delete
+   - Import Recipe (page + API)
+5) My Bar:
+   - /api/mybar for current user (auth required)
+   - Admin Users page can view any user’s bar (read-only by default)
+6) Admin Users UI:
+   - List/search users, pagination, promote/demote admin, deactivate/reactivate, open “View Bar”
+   - Last-admin protection: can’t demote/deactivate the final active admin
+7) Forgot/Reset Password:
+   - Forgot: neutral 200; create single-use, short-lived token; send email (or log link in dev)
+   - Reset: consume token, set new password, revoke sessions, optional auto-login
+8) Footer “Admin” Link (admin-only):
+   - Global Footer contains an "Admin" link wrapped in <RoleGate role="admin"> routing to /admin/users
+   - Non-admins do not see the link in the DOM
+9) Neutral Errors / No Enumeration:
+   - On register/login/forgot/reset, return a generic message: "The information you provided doesn’t match our records." (use same message on duplicate email at register, bad credentials at login, unknown email at forgot, invalid/expired token at reset)
+   - Log precise reasons server-side only
+10) Documentation: short README section summarizing routes, roles, env vars, and security behavior.
+
+Backend Tasks (server)
+A. Dependencies
+- Add: jsonwebtoken, bcrypt (or argon2), cookie-parser, express-rate-limit, zod, uuid, nodemailer, dayjs (or date-fns).
+
+B. Data Model
+- users: id, email (unique), password_hash, role enum('basic','admin'), is_active boolean default true, email_verified_at datetime|null, created_at, updated_at
+- sessions (optional if storing refresh tokens): id, user_id, refresh_token_hash, expires_at, ip, user_agent, created_at
+- audit_logs: id, user_id, action, resource, resource_id, metadata json, ip, user_agent, created_at
+- my_bar: id, user_id, type enum('ingredient','brand'), ref_id, created_at (UNIQUE on (user_id, type, ref_id))
+- password_resets: id, user_id, token_hash, expires_at, used_at|null, created_at
+
+C. Auth Library (server/lib/auth.ts)
+- hashPassword(), verifyPassword() using bcrypt (cost≈12) or argon2id
+- signAccessToken(user) with short expiry (15–60m), minimal claims { id, role, is_active }
+- signRefreshToken(session or user), verifyAccessToken(), verifyRefreshToken()
+- setAuthCookies(res, access, refresh) and clearAuthCookies(res)
+
+D. Password Reset Helpers (server/lib/passwordReset.ts)
+- createResetToken(userId): random ≥32 bytes; store SHA-256 token_hash; expires_at=now+30m; return raw token
+- verifyAndConsume(token): hash lookup; ensure not expired/used; mark used_at; return user_id
+
+E. Middleware (server/middleware/*)
+- requireAuth: validate access token from cookie; attach req.user; reject if !is_active
+- requireRole('admin'): ensure req.user.role === 'admin'
+- rateLimit: stricter for /api/auth/register, /api/auth/login, /api/auth/forgot, /api/auth/reset
+- audit(action, resource): write to audit_logs after successful state changes
+- csrf: double-submit token pattern; return token via /api/auth/me; require X-CSRF-Token on POST/PUT/PATCH/DELETE
+
+F. Routes (new module server/routes_auth.ts; import from server/routes.ts)
+- POST /api/auth/register  { email, password }
+  * Normalize email (trim + lowercase); enforce UNIQUE index on users.email
+  * On duplicate email, respond 200 with generic: "The information you provided doesn’t match our records."
+  * On success: create user with role='basic', is_active=true; set cookies (optional) and return profile
+- POST /api/auth/login     { email, password }
+  * Normalize email; if invalid creds OR inactive user -> respond 200 with generic message above
+  * On success: set cookies (access+refresh), return profile
+- POST /api/auth/refresh   -> rotate refresh, set cookies, return 200
+- POST /api/auth/logout    -> revoke refresh token(s) + clear cookies
+- GET  /api/auth/me        -> return { id, email, role, is_active, csrfToken }
+- POST /api/auth/forgot    { email }
+  * Always respond 200 with generic message (same text) regardless of existence
+  * If user exists and is_active: create reset token; send email via SMTP if configured; else console.log link
+  * audit('password_reset_request')
+- POST /api/auth/reset     { token, new_password }
+  * Validate length ≥ 8 (no forced complexity)
+  * If token invalid/expired/used -> respond 200 with generic message
+  * On success: set new password, revoke sessions, optionally set new cookies; audit('password_reset')
+
+G. Admin Bootstrapping
+- On server start: if process.env.ADMIN_EMAIL is set, find user by email; if present and not admin, promote to admin. (Do nothing else.)
+- Implement last-admin protection across role/status changes.
+
+H. My Bar Routes (in server/routes.ts or module)
+- All requireAuth
+- GET /api/mybar -> items for req.user.id
+- POST /api/mybar -> { type: 'ingredient'|'brand', ref_id } add for req.user.id; dedupe via unique constraint
+- DELETE /api/mybar/:itemId -> only if item.user_id === req.user.id
+- Audit POST/DELETE
+
+I. Admin Routes (in server/routes.ts or admin module) – all requireRole('admin')
+- GET /api/admin/users?query&status&role&page -> list users (email, role, is_active, created_at), pagination (size=20), search by email
+- PATCH /api/admin/users/:id/role   { role: 'basic'|'admin' } -> last-admin protection; audit('change_role')
+- PATCH /api/admin/users/:id/status { is_active: boolean }     -> block deactivating last active admin; audit('change_status')
+- GET /api/admin/users/:id/mybar -> read-only items for that user; audit('view_user_bar')
+- Guard existing admin-only entities:
+  * POST/PUT/PATCH/DELETE /api/cocktails/*
+  * PATCH /api/cocktails/:id/featured
+  * POST/PUT/PATCH/DELETE /api/ingredients/*
+  * POST/PUT/PATCH/DELETE /api/preferred-brands/*
+  * GET/POST /api/import/*
+
+J. Email (SMTP) (server/lib/mailer.ts)
+- If env SMTP_* present: send reset email
+- Else: console.log reset URL
+- Subject: “Reset your Miximixology password”
+- Body (text): neutral and generic; include https://YOUR_DOMAIN/reset?token=<TOKEN>
+
+K. Security Defaults
+- CORS: use process.env.CORS_ORIGINS (comma-separated), credentials: true
+- Cookies: httpOnly, secure (true in production), SameSite=Lax
+- HTTPS in production; add HSTS header
+- Input validation with zod on all request bodies/params
+- Parameterized DB I/O only; require TLS to remote DBs
+- Secrets via env: JWT_SECRET, REFRESH_SECRET, SMTP_*, ADMIN_EMAIL (no PEPPER needed)
+
+Frontend Tasks (client)
+A. Auth Provider & Utilities
+- client/src/context/AuthProvider.tsx:
+  * State: user { id, email, role, is_active } | null, loading
+  * Methods: login(), logout(), register(), refresh()
+  * On mount: GET /api/auth/me with credentials; store csrfToken
+  * apiRequest wrapper: include credentials; add X-CSRF-Token for state changes
+  * Handle all auth API error responses as neutral (show the same generic toast/message)
+
+B. Pages
+- Auth:
+  * Login.tsx: email/password; links to Register and Forgot; neutral error messages only
+  * Register.tsx: email/password; neutral duplicate flow (UI message must not reveal duplication)
+  * ForgotPassword.tsx: email input; post to /api/auth/forgot; always show the same neutral success message
+  * ResetPassword.tsx: reads ?token= from URL; new password + confirm; POST /api/auth/reset; on invalid/expired token show the same neutral message
+- My Bar:
+  * MyBar.tsx (route: /my-bar): tabs/filters for Ingredients vs Brands; list, add, remove (uses /api/mybar)
+- Admin:
+  * admin/Users.tsx (route: /admin/users):
+    - Search by email, filter by role/status, pagination
+    - Row actions: View Bar, Promote/Demote, Deactivate/Reactivate (confirm modals)
+    - Disable actions with tooltips when last-admin protection blocks them
+  * admin/UserBar.tsx (route: /admin/users/:id/bar):
+    - Read-only listing of that user’s bar via GET /api/admin/users/:id/mybar
+- Navigation & Footer:
+  * “My Bar” visible for all authenticated users
+  * “Users” (admin only) and “Import Recipe” (admin only)
+  * **Global Footer**: add an **“Admin”** link to `/admin/users` inside `<RoleGate role="admin">` so only admins see it
+  * Hide admin-only actions and pages behind <RoleGate role="admin">
+
+C. UI/UX
+- Use shadcn/ui components and @/lib/queryClient
+- Loading states + toasts
+- Disable buttons while pending
+- All auth copy uses the neutral generic message
+
+Env & Secrets (Replit)
+- JWT_SECRET, REFRESH_SECRET (long random strings)
+- ADMIN_EMAIL (already set)
+- CORS_ORIGINS: comma-separated list (no trailing slashes), e.g. miximixology.com,https://miximixology.com,https://<your-replit-dev-url>
+- SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, FROM_EMAIL (optional but recommended)
+
+Acceptance Criteria (manual test)
+1) Auth
+   - Register/Login/Refresh/Logout work with cookies; /api/auth/me returns profile
+   - Duplicate email on register returns the neutral generic message
+   - Invalid login returns the same neutral message
+2) RBAC
+   - Basic user cannot access /api/admin/* or admin-only entity routes (403)
+   - Admin can access all protected admin routes
+3) My Bar
+   - Authenticated users can manage only their own bar
+   - Admin can view any user’s bar via /admin/users/:id/bar (read-only)
+4) Admin Users UI
+   - List/search/paginate users; promote/demote; deactivate/reactivate
+   - Last-admin protection enforced
+5) Forgot/Reset
+   - /forgot always returns the neutral message; reset token single-use and ≤30m expiry
+   - /reset with bad/expired token shows the same neutral message; success rotates sessions
+6) Footer “Admin” link
+   - Only appears for logged-in admins; routes to /admin/users; absent from DOM for others
+7) Security
+   - CSRF required on state changes; rate limiting active on auth endpoints
+   - Audit logs created for role/status changes, reset events, and viewing another user’s bar
+8) Docs
+   - README section describes routes, roles, env vars, and neutral-error behavior
+
+Implementation Notes
+- Normalize emails (trim+lowercase) before comparisons; DB UNIQUE index on users.email
+- Never return password hashes or reveal account existence
+- Maintain consistent code style with current project patterns

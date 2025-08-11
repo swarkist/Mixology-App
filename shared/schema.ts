@@ -1,12 +1,60 @@
-import { pgTable, text, serial, integer, boolean, timestamp, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, real, json, varchar, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Users table
+// Users table - enhanced for auth and RBAC
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  password_hash: text("password_hash").notNull(),
+  role: text("role", { enum: ['basic', 'admin'] }).default('basic').notNull(),
+  is_active: boolean("is_active").default(true).notNull(),
+  email_verified_at: timestamp("email_verified_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Sessions table for refresh token management
+export const sessions = pgTable("sessions", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  refresh_token_hash: text("refresh_token_hash").notNull(),
+  expires_at: timestamp("expires_at").notNull(),
+  ip: text("ip"),
+  user_agent: text("user_agent"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Audit logs table
+export const audit_logs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").references(() => users.id),
+  action: text("action").notNull(),
+  resource: text("resource").notNull(),
+  resource_id: text("resource_id"),
+  metadata: json("metadata"),
+  ip: text("ip"),
+  user_agent: text("user_agent"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+// My Bar table - user-specific ingredient/brand tracking
+export const my_bar = pgTable("my_bar", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  type: text("type", { enum: ['ingredient', 'brand'] }).notNull(),
+  ref_id: integer("ref_id").notNull(), // references ingredients.id or preferred_brands.id
+  created_at: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Password resets table
+export const password_resets = pgTable("password_resets", {
+  id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token_hash: text("token_hash").notNull(),
+  expires_at: timestamp("expires_at").notNull(),
+  used_at: timestamp("used_at"),
+  created_at: timestamp("created_at").defaultNow().notNull(),
 });
 
 // Tags table - reusable tags for cocktails and ingredients
@@ -27,7 +75,7 @@ export const ingredients = pgTable("ingredients", {
   imageUrl: text("image_url"),
   preferredBrand: text("preferred_brand"), // preferred brand for this ingredient
   abv: real("abv"), // alcohol by volume percentage
-  inMyBar: boolean("in_my_bar").default(false).notNull(), // for "My Bar" feature
+  // Removed inMyBar - now handled by my_bar table per user
   usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -39,7 +87,7 @@ export const preferredBrands = pgTable("preferred_brands", {
   name: text("name").notNull(),
   proof: integer("proof"), // proof value (can exceed 100)
   imageUrl: text("image_url"),
-  inMyBar: boolean("in_my_bar").default(false).notNull(), // for "My Bar" feature
+  // Removed inMyBar - now handled by my_bar table per user
   usedInRecipesCount: integer("used_in_recipes_count").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -104,10 +152,33 @@ export const preferredBrandTags = pgTable("preferred_brand_tags", {
   tagId: integer("tag_id").notNull().references(() => tags.id, { onDelete: "cascade" }),
 });
 
-// Zod schemas for validation
+// Zod schemas for validation - Auth schemas
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+  email: true,
+  password_hash: true,
+  role: true,
+  is_active: true,
+});
+
+export const insertSessionSchema = createInsertSchema(sessions).omit({
+  id: true,
+  created_at: true,
+});
+
+export const insertAuditLogSchema = createInsertSchema(audit_logs).omit({
+  id: true,
+  created_at: true,
+});
+
+export const insertMyBarSchema = createInsertSchema(my_bar).omit({
+  id: true,
+  created_at: true,
+});
+
+export const insertPasswordResetSchema = createInsertSchema(password_resets).omit({
+  id: true,
+  used_at: true,
+  created_at: true,
 });
 
 export const insertTagSchema = createInsertSchema(tags).pick({
@@ -180,9 +251,17 @@ export const preferredBrandFormSchema = insertPreferredBrandSchema.extend({
   ingredientIds: z.array(z.number()).optional(),
 });
 
-// Type exports
+// Auth type exports
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+export type InsertSession = z.infer<typeof insertSessionSchema>;
+export type Session = typeof sessions.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
+export type AuditLog = typeof audit_logs.$inferSelect;
+export type InsertMyBar = z.infer<typeof insertMyBarSchema>;
+export type MyBar = typeof my_bar.$inferSelect;
+export type InsertPasswordReset = z.infer<typeof insertPasswordResetSchema>;
+export type PasswordReset = typeof password_resets.$inferSelect;
 
 export type InsertTag = z.infer<typeof insertTagSchema>;
 export type Tag = typeof tags.$inferSelect;

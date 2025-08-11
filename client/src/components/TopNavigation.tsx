@@ -1,8 +1,17 @@
 import React, { useState } from "react";
-import { Search as SearchIcon, Menu, X } from "lucide-react";
+import { Search as SearchIcon, Menu, X, LogOut, LogIn, Shield, User } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/useAuth";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavItem {
   label: string;
@@ -21,6 +30,7 @@ const TopNavigation = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
+  const { user, logout, isLoading } = useAuth();
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -87,6 +97,45 @@ const TopNavigation = (): JSX.Element => {
                 Add Recipe
               </Button>
             </Link>
+            
+            {/* Authentication UI */}
+            {isLoading ? (
+              <div className="h-10 w-10 rounded-full bg-[#383528] animate-pulse"></div>
+            ) : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-10 w-10 rounded-full bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-[#161611] border-[#383528] text-white">
+                  <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-[#383528]" />
+                  {user.role === 'admin' && (
+                    <DropdownMenuItem asChild className="text-white hover:bg-[#383528]">
+                      <Link href="/admin">
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem 
+                    onClick={() => logout()} 
+                    className="text-white hover:bg-[#383528] cursor-pointer"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link href="/login">
+                <Button variant="outline" className="h-10 px-4 border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                  <LogIn className="mr-2 h-4 w-4" />
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </nav>
@@ -154,6 +203,53 @@ const TopNavigation = (): JSX.Element => {
                 Add Recipe
               </Button>
             </Link>
+
+            {/* Authentication UI for Mobile */}
+            <div className="border-t border-[#383528] pt-4 mt-4">
+              {isLoading ? (
+                <div className="h-10 rounded bg-[#383528] animate-pulse"></div>
+              ) : user ? (
+                <>
+                  <div className="text-white text-sm mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                    Signed in as {user.email}
+                  </div>
+                  {user.role === 'admin' && (
+                    <Link href="/admin">
+                      <Button 
+                        variant="outline" 
+                        className="w-full mb-2 h-10 border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Admin Dashboard
+                      </Button>
+                    </Link>
+                  )}
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-10 border-red-500 text-red-500 hover:bg-red-500 hover:text-white [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                    onClick={() => {
+                      logout();
+                      setMobileMenuOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <Link href="/login">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-10 border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <LogIn className="mr-2 h-4 w-4" />
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+            </div>
           </div>
         </div>
       )}

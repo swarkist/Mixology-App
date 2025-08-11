@@ -3,8 +3,12 @@ import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { MemStorage } from "./storage/memory";
+import { FirebaseStorageAdapter } from "./storage/firebase-adapter";
+import type { IStorage } from "./storage";
 
 const app = express();
 
@@ -74,6 +78,9 @@ const apiLimiter = rateLimit({
 });
 app.use("/api", apiLimiter);
 
+// Cookie parser for auth tokens
+app.use(cookieParser());
+
 // Admin API key gate for write methods on /api/*
 const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {
   const method = req.method.toUpperCase();
@@ -108,7 +115,7 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
 // Register read-only POST endpoints before admin key middleware
 (async () => {
   const { registerReadOnlyRoutes } = await import('./routes');
-  registerReadOnlyRoutes(app);
+  registerReadOnlyRoutes(app, undefined);
 })();
 
 // Temporarily disable admin key middleware to test functionality
@@ -144,8 +151,36 @@ app.use((req, res, next) => {
   next();
 });
 
+// Initialize storage and bootstrap admin
+async function initializeStorage(): Promise<IStorage> {
+  console.log("🔥 Storage Backend Selection: Firebase");
+  
+  const storage = new FirebaseStorageAdapter();
+  
+  // Bootstrap admin user if ADMIN_EMAIL is set
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (adminEmail) {
+    try {
+      const existingUser = await storage.getUserByEmail(adminEmail);
+      if (existingUser && existingUser.role !== 'admin') {
+        await storage.promoteUserToAdmin(existingUser.id);
+        console.log(`✓ Promoted ${adminEmail} to admin role`);
+      } else if (existingUser) {
+        console.log(`✓ Admin user ${adminEmail} already exists`);
+      } else {
+        console.log(`⚠️  Admin user ${adminEmail} not found - will need to register first`);
+      }
+    } catch (error) {
+      console.error('Error during admin bootstrap:', error);
+    }
+  }
+  
+  return storage;
+}
+
 (async () => {
-  const server = await registerRoutes(app);
+  const storage = await initializeStorage();
+  const server = await registerRoutes(app, storage);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
