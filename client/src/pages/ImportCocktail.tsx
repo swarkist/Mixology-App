@@ -35,6 +35,15 @@ interface ParsedRecipe {
   tags: string[];
 }
 
+interface IngredientWithCategory {
+  name: string;
+  amount: string;
+  unit?: string;
+  category?: string;
+  subCategory?: string;
+  isNew?: boolean;
+}
+
 const importFormSchema = z.object({
   url: z.string().url("Please enter a valid URL")
 });
@@ -45,6 +54,7 @@ export const ImportCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const [rawContent, setRawContent] = useState<string>("");
   const [parsedRecipe, setParsedRecipe] = useState<ParsedRecipe | null>(null);
+  const [ingredientsWithCategories, setIngredientsWithCategories] = useState<IngredientWithCategory[]>([]);
   const [isExtracting, setIsExtracting] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -88,24 +98,43 @@ export const ImportCocktail = (): JSX.Element => {
     }
   });
 
-  // Fetch existing ingredients and tags for validation
+  // Fetch existing ingredients for checking which ones are new
   const { data: existingIngredients = [] } = useQuery<Ingredient[]>({
     queryKey: ["/api/ingredients"],
-    queryFn: async () => {
-      const response = await fetch("/api/ingredients");
-      if (!response.ok) throw new Error("Failed to fetch ingredients");
-      return response.json();
-    }
   });
 
-  const { data: existingTags = [] } = useQuery<Tag[]>({
-    queryKey: ["/api/tags"],
-    queryFn: async () => {
-      const response = await fetch("/api/tags");
-      if (!response.ok) throw new Error("Failed to fetch tags");
-      return response.json();
-    }
-  });
+  // Helper function to check if an ingredient is new
+  const isIngredientNew = (ingredientName: string): boolean => {
+    return !existingIngredients.some(existing => 
+      existing.name.toLowerCase().trim() === ingredientName.toLowerCase().trim()
+    );
+  };
+
+  // Helper function to initialize ingredients with categories
+  const processIngredientsWithCategories = (parsedIngredients: ParsedRecipe['ingredients']): IngredientWithCategory[] => {
+    return parsedIngredients.map(ing => ({
+      ...ing,
+      isNew: isIngredientNew(ing.name),
+      category: '',
+      subCategory: ''
+    }));
+  };
+
+  // Categories for new ingredient selection
+  const categories = [
+    'spirits', 'mixers', 'juices', 'syrups', 'bitters', 'garnishes', 'other'
+  ];
+
+  const spiritSubcategories = [
+    'Tequila', 'Whiskey', 'Rum', 'Vodka', 'Gin', 'Scotch', 'Moonshine', 'Brandy'
+  ];
+
+  // Function to update ingredient category
+  const updateIngredientCategory = (index: number, category: string, subCategory?: string) => {
+    setIngredientsWithCategories(prev => prev.map((ing, idx) => 
+      idx === index ? { ...ing, category, subCategory: subCategory || '' } : ing
+    ));
+  };
 
   const createCocktailMutation = useMutation({
     mutationFn: async (cocktailData: any) => {
@@ -227,6 +256,10 @@ Do not include any explanation or additional text - return only the JSON object.
       console.log("Parsed recipe data:", parsed);
       setParsedRecipe(parsed);
       
+      // Process ingredients to identify new ones
+      const processedIngredients = processIngredientsWithCategories(parsed.ingredients);
+      setIngredientsWithCategories(processedIngredients);
+      
       // Populate the form with parsed data
       cocktailForm.reset({
         name: parsed.name,
@@ -262,7 +295,69 @@ Do not include any explanation or additional text - return only the JSON object.
     setSaveStatus("idle");
     
     try {
+      // Validate that all new ingredients have categories
+      const newIngredients = ingredientsWithCategories.filter(ing => ing.isNew);
+      const missingCategories = newIngredients.filter(ing => !ing.category || (ing.category === 'spirits' && !ing.subCategory));
+      
+      if (missingCategories.length > 0) {
+        toast({
+          title: "Missing Categories",
+          description: `Please select categories for all new ingredients (${missingCategories.length} remaining)`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Create ingredients for new ones first
+      const createdIngredients: any[] = [];
+      for (const ing of newIngredients) {
+        const ingredientData = {
+          name: ing.name,
+          category: ing.category,
+          subCategory: ing.subCategory || undefined,
+          description: `Imported ingredient: ${ing.name}`,
+          abv: ing.category === 'spirits' ? 40 : 0, // Default ABV
+          preferredBrand: '',
+          imageUrl: null,
+          tags: [],
+          inMyBar: false
+        };
+
+        const response = await fetch("/api/ingredients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(typeof window !== 'undefined' ? {} : { "x-admin-key": process.env.ADMIN_API_KEY || "" })
+          },
+          body: JSON.stringify(ingredientData)
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to create ingredient: ${ing.name}`);
+        }
+
+        const createdIngredient = await response.json();
+        createdIngredients.push(createdIngredient);
+      }
+
+      // Invalidate ingredients cache to refresh the list
+      queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
+
+      // Now save the cocktail
       await createCocktailMutation.mutateAsync(data);
+      
+      if (createdIngredients.length > 0) {
+        toast({
+          title: "Ingredients Created",
+          description: `Created ${createdIngredients.length} new ingredient${createdIngredients.length !== 1 ? 's' : ''}`
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to save cocktail",
+        variant: "destructive"
+      });
     } finally {
       setIsSaving(false);
     }
@@ -533,18 +628,114 @@ SAMPLE RECIPE
 
 
 
-                      {/* Show parsed ingredients and instructions */}
-                      {parsedRecipe?.ingredients && parsedRecipe.ingredients.length > 0 && (
-                        <div className="space-y-2">
-                          <Label className="text-white">Parsed Ingredients ({parsedRecipe.ingredients.length})</Label>
-                          <div className="bg-[#383529] border-[#544f3a] rounded p-3 text-white text-sm">
-                            {parsedRecipe.ingredients.map((ing, idx) => (
-                              <div key={idx} className="flex justify-between items-center py-1">
-                                <span className="font-medium">{ing.name}</span>
-                                <span className="text-[#bab59b]">{formatIngredientMeasurement(ing.amount || '', ing.unit || '')}</span>
+                      {/* Show parsed ingredients with NEW indicators and category selection */}
+                      {ingredientsWithCategories.length > 0 && (
+                        <div className="space-y-4">
+                          <Label className="text-white">Parsed Ingredients ({ingredientsWithCategories.length})</Label>
+                          <div className="space-y-3">
+                            {ingredientsWithCategories.map((ing, idx) => (
+                              <div key={idx} className="bg-[#383529] border-[#544f3a] rounded p-3">
+                                <div className="flex justify-between items-center mb-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-white">{ing.name}</span>
+                                    {ing.isNew && (
+                                      <Badge className="bg-[#f2c40c] text-[#161611] text-xs font-bold">
+                                        NEW
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <span className="text-[#bab59b]">
+                                    {formatIngredientMeasurement(ing.amount || '', ing.unit || '')}
+                                  </span>
+                                </div>
+                                
+                                {/* Category selection for new ingredients */}
+                                {ing.isNew && (
+                                  <div className="mt-3 space-y-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                      <div>
+                                        <Label className="text-white text-xs">Category *</Label>
+                                        <Select
+                                          value={ing.category}
+                                          onValueChange={(value) => {
+                                            updateIngredientCategory(idx, value);
+                                            if (value !== "spirits") {
+                                              updateIngredientCategory(idx, value, "");
+                                            }
+                                          }}
+                                        >
+                                          <SelectTrigger className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs">
+                                            <SelectValue placeholder="Select category" />
+                                          </SelectTrigger>
+                                          <SelectContent className="bg-[#383629] border-[#544f3b]">
+                                            {categories.map((category) => (
+                                              <SelectItem 
+                                                key={category} 
+                                                value={category}
+                                                className="text-white capitalize"
+                                              >
+                                                {category}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      </div>
+                                      
+                                      {/* Sub-category for spirits */}
+                                      {ing.category === "spirits" && (
+                                        <div>
+                                          <Label className="text-white text-xs">Sub-Category *</Label>
+                                          <Select
+                                            value={ing.subCategory}
+                                            onValueChange={(value) => updateIngredientCategory(idx, ing.category, value)}
+                                          >
+                                            <SelectTrigger className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs">
+                                              <SelectValue placeholder="Select sub-category" />
+                                            </SelectTrigger>
+                                            <SelectContent className="bg-[#383629] border-[#544f3b]">
+                                              {spiritSubcategories.map((subcategory) => (
+                                                <SelectItem 
+                                                  key={subcategory.toLowerCase()} 
+                                                  value={subcategory.toLowerCase()}
+                                                  className="text-white"
+                                                >
+                                                  {subcategory}
+                                                </SelectItem>
+                                              ))}
+                                            </SelectContent>
+                                          </Select>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             ))}
                           </div>
+                          
+                          {/* Summary of new ingredients requiring categories */}
+                          {(() => {
+                            const newIngredients = ingredientsWithCategories.filter(ing => ing.isNew);
+                            const missingCategories = newIngredients.filter(ing => !ing.category);
+                            
+                            if (newIngredients.length > 0) {
+                              return (
+                                <div className="bg-[#2a2920] border border-[#4a4735] rounded p-3">
+                                  <div className="text-sm text-[#bab59b]">
+                                    <span className="text-[#f2c40c] font-medium">
+                                      {newIngredients.length} new ingredient{newIngredients.length !== 1 ? 's' : ''} detected
+                                    </span>
+                                    {missingCategories.length > 0 && (
+                                      <span className="text-red-400 ml-2">
+                                        ({missingCategories.length} need{missingCategories.length === 1 ? 's' : ''} category selection)
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
                         </div>
                       )}
 
@@ -563,7 +754,20 @@ SAMPLE RECIPE
                       )}
 
                       <div className="text-sm text-[#bab59b]">
-                        AI-parsed ingredients and instructions are shown above. Click "Save Cocktail" to finalize import.
+                        AI-parsed ingredients and instructions are shown above. 
+                        {(() => {
+                          const newIngredients = ingredientsWithCategories.filter(ing => ing.isNew);
+                          const missingCategories = newIngredients.filter(ing => !ing.category || (ing.category === 'spirits' && !ing.subCategory));
+                          
+                          if (missingCategories.length > 0) {
+                            return (
+                              <span className="text-red-400 block mt-1">
+                                Please select categories for new ingredients before saving.
+                              </span>
+                            );
+                          }
+                          return " Click \"Save Cocktail\" to finalize import.";
+                        })()}
                       </div>
 
                       {saveStatus === "success" && (
