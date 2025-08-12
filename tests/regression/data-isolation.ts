@@ -75,14 +75,40 @@ export class TestDataManager {
     }
   }
 
-  // Helper function for API requests
-  async apiRequest(endpoint: string, options: RequestInit = {}) {
+  // Authentication tokens for test users
+  private adminToken?: string;
+  private basicToken?: string;
+  
+  // Test user credentials
+  private readonly ADMIN_EMAIL = `test_admin_${Date.now()}@mixology.test`;
+  private readonly BASIC_EMAIL = `test_basic_${Date.now()}@mixology.test`;
+  private readonly TEST_PASSWORD = 'TestPassword123!';
+
+  // Helper function for API requests with authentication
+  async apiRequest(endpoint: string, options: RequestInit = {}, useAdminAuth = true) {
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers as Record<string, string>,
+    };
+
+    // Add authentication for write operations
+    if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method)) {
+      if (useAdminAuth && this.adminToken) {
+        headers['Authorization'] = `Bearer ${this.adminToken}`;
+      } else if (!useAdminAuth && this.basicToken) {
+        headers['Authorization'] = `Bearer ${this.basicToken}`;
+      } else {
+        // Try to create admin user if we don't have token
+        await this.ensureTestUsersExist();
+        if (useAdminAuth && this.adminToken) {
+          headers['Authorization'] = `Bearer ${this.adminToken}`;
+        }
+      }
+    }
+
     const response = await fetch(`${API_BASE}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
       ...options,
+      headers,
     });
     
     if (!response.ok) {
@@ -90,6 +116,96 @@ export class TestDataManager {
     }
     
     return response.json();
+  }
+
+  // Ensure test users exist and are authenticated
+  async ensureTestUsersExist() {
+    if (!this.adminToken) {
+      try {
+        // Try to create admin user
+        await this.createTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD, 'admin');
+        this.adminToken = await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
+      } catch (error) {
+        console.log(`⚠️ Admin user may already exist, trying login...`);
+        try {
+          this.adminToken = await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
+        } catch (loginError) {
+          console.error('Failed to authenticate admin user:', loginError);
+        }
+      }
+    }
+    
+    if (!this.basicToken) {
+      try {
+        // Try to create basic user
+        await this.createTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD, 'basic');
+        this.basicToken = await this.loginTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD);
+      } catch (error) {
+        console.log(`⚠️ Basic user may already exist, trying login...`);
+        try {
+          this.basicToken = await this.loginTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD);
+        } catch (loginError) {
+          console.error('Failed to authenticate basic user:', loginError);
+        }
+      }
+    }
+  }
+
+  // Create a test user
+  async createTestUser(email: string, password: string, role: 'admin' | 'basic' = 'basic') {
+    const response = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok && response.status !== 409) { // 409 = user already exists
+      throw new Error(`Failed to create user ${email}: ${response.status}`);
+    }
+
+    if (role === 'admin') {
+      console.log(`Note: User ${email} created as basic, would need promotion to admin`);
+    }
+
+    return response.ok ? await response.json() : null;
+  }
+
+  // Login a test user and return token
+  async loginTestUser(email: string, password: string): Promise<string> {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to login user ${email}: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.token || data.accessToken || ''; // Handle different token response formats
+  }
+
+  // Delete test user (for cleanup)
+  async deleteTestUser(email: string, password: string) {
+    try {
+      const token = await this.loginTestUser(email, password);
+      const response = await fetch(`${API_BASE}/auth/delete-account`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      return response.ok;
+    } catch (error) {
+      console.log(`⚠️ Could not delete test user ${email}:`, error.message);
+      return false;
+    }
   }
 
   // Generate unique test names to avoid conflicts
@@ -106,6 +222,8 @@ export class TestDataManager {
 
   // Enhanced protection: only allow operations on test data
   async protectedApiRequest(endpoint: string, options: RequestInit = {}) {
+    await this.ensureTestUsersExist();
+    
     // For write operations, ensure we're only touching test data
     if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method)) {
       const body = options.body ? JSON.parse(options.body as string) : {};
@@ -129,10 +247,10 @@ export class TestDataManager {
           try {
             let item;
             if (endpoint.includes('/cocktails/')) {
-              item = await this.apiRequest(`/cocktails/${id}`);
+              item = await this.apiRequest(`/cocktails/${id}`, {}, false); // Use GET without auth
               item = item.cocktail || item;
             } else if (endpoint.includes('/ingredients/')) {
-              item = await this.apiRequest(`/ingredients/${id}`);
+              item = await this.apiRequest(`/ingredients/${id}`, {}, false); // Use GET without auth
             }
             
             if (item && !item.name.includes(this.testPrefix)) {
@@ -146,11 +264,13 @@ export class TestDataManager {
       }
     }
     
-    return this.apiRequest(endpoint, options);
+    return this.apiRequest(endpoint, options, true); // Use admin auth
   }
 
   // Create test cocktail and track for cleanup
   async createTestCocktail(cocktailData: any) {
+    await this.ensureTestUsersExist();
+    
     const testName = this.getTestName(cocktailData.name);
     this.validateNotProductionData(testName, 'cocktail');
     
@@ -167,10 +287,10 @@ export class TestDataManager {
       tags: cocktailData.tags?.map((tag: string) => this.getTestName(tag)) || []
     };
 
-    const result = await this.protectedApiRequest('/cocktails', {
+    const result = await this.apiRequest('/cocktails', {
       method: 'POST',
       body: JSON.stringify(testData),
-    });
+    }, true); // Use admin auth
 
     this.createdCocktails.push(result.id);
     console.log(`✅ Created test cocktail: ${result.name} (ID: ${result.id})`);
@@ -185,6 +305,8 @@ export class TestDataManager {
 
   // Create test ingredient and track for cleanup
   async createTestIngredient(ingredientData: any) {
+    await this.ensureTestUsersExist();
+    
     const testName = this.getTestName(ingredientData.name);
     this.validateNotProductionData(testName, 'ingredient');
     
@@ -194,10 +316,10 @@ export class TestDataManager {
       description: ingredientData.description ? `[REGRESSION TEST] ${ingredientData.description}` : '[REGRESSION TEST] Test ingredient'
     };
 
-    const result = await this.protectedApiRequest('/ingredients', {
+    const result = await this.apiRequest('/ingredients', {
       method: 'POST',
       body: JSON.stringify(testData),
-    });
+    }, true); // Use admin auth
 
     this.createdIngredients.push(result.id);
     console.log(`✅ Created test ingredient: ${result.name} (ID: ${result.id}) - inMyBar: ${result.inMyBar}`);
