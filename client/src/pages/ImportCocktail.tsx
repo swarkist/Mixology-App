@@ -192,16 +192,7 @@ export const ImportCocktail = (): JSX.Element => {
 
   const createCocktailMutation = useMutation({
     mutationFn: async (cocktailData: any) => {
-      const response = await fetch("/api/cocktails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(typeof window !== 'undefined' ? {} : { "x-admin-key": process.env.ADMIN_API_KEY || "" })
-        },
-        body: JSON.stringify(cocktailData)
-      });
-      if (!response.ok) throw new Error("Failed to create cocktail");
-      return response.json();
+      return await apiRequest("/api/cocktails", { method: "POST", body: cocktailData });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/cocktails"] });
@@ -378,20 +369,7 @@ Do not include any explanation or additional text - return only the JSON object.
           inMyBar: false
         };
 
-        const response = await fetch("/api/ingredients", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(typeof window !== 'undefined' ? {} : { "x-admin-key": process.env.ADMIN_API_KEY || "" })
-          },
-          body: JSON.stringify(ingredientData)
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to create ingredient: ${ing.name}`);
-        }
-
-        const createdIngredient = await response.json();
+        const createdIngredient = await apiRequest("/api/ingredients", { method: "POST", body: ingredientData });
         createdIngredients.push(createdIngredient);
       }
 
