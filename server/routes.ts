@@ -13,8 +13,12 @@ import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
 import type { IStorage } from './storage';
+import { createAuthMiddleware } from './middleware/auth';
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
+  // Create auth middleware
+  const { requireAuth, requireAdmin } = createAuthMiddleware(storage);
+  
   // Register authentication routes
   app.use('/api/auth', createAuthRoutes(storage));
   
@@ -79,7 +83,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(tags);
   });
 
-  app.post("/api/tags", async (req, res) => {
+  app.post("/api/tags", requireAdmin, async (req, res) => {
     try {
       const tagData = insertTagSchema.parse(req.body);
       const tag = await storage.createTag(tagData);
@@ -143,7 +147,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/ingredients", async (req, res) => {
+  app.post("/api/ingredients", requireAdmin, async (req, res) => {
     try {
       console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
       
@@ -185,7 +189,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id", async (req, res) => {
+  app.patch("/api/ingredients/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
@@ -216,7 +220,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id/toggle-mybar", async (req, res) => {
+  app.patch("/api/ingredients/:id/toggle-mybar", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -232,7 +236,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/ingredients/:id", async (req, res) => {
+  app.delete("/api/ingredients/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -289,7 +293,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(cocktailWithDetails);
   });
 
-  app.post("/api/cocktails", async (req, res) => {
+  app.post("/api/cocktails", requireAdmin, async (req, res) => {
     try {
       console.log('\n=== POST /api/cocktails ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -362,7 +366,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id", async (req, res) => {
+  app.patch("/api/cocktails/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id} ===`);
@@ -462,7 +466,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/featured", async (req, res) => {
+  app.patch("/api/cocktails/:id/featured", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     const { featured } = req.body;
     
@@ -482,7 +486,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/toggle-featured", async (req, res) => {
+  app.patch("/api/cocktails/:id/toggle-featured", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -527,7 +531,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/cocktails/:id", async (req, res) => {
+  app.delete("/api/cocktails/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -744,7 +748,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(brandWithDetails);
   });
 
-  app.post("/api/preferred-brands", async (req, res) => {
+  app.post("/api/preferred-brands", requireAdmin, async (req, res) => {
     try {
       console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
       
@@ -773,7 +777,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id", async (req, res) => {
+  app.patch("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -792,7 +796,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id/toggle-mybar", async (req, res) => {
+  app.patch("/api/preferred-brands/:id/toggle-mybar", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -812,7 +816,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/preferred-brands/:id", async (req, res) => {
+  app.delete("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
