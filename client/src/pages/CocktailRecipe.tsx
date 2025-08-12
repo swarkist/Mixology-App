@@ -25,7 +25,7 @@ export const CocktailRecipe = (): JSX.Element => {
   const { data: cocktailDetails, isLoading, error } = useQuery({
     queryKey: ['/api/cocktails', cocktailId],
     queryFn: async () => {
-      return await apiRequest(`/api/cocktails/${cocktailId}`, { method: 'GET' });
+      return await apiRequest(`/api/cocktails/${cocktailId}`);
     },
     enabled: !!cocktailId,
     retry: false, // Don't retry for 404s on deleted cocktails

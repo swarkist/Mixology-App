@@ -94,7 +94,7 @@ export const EditIngredient = (): JSX.Element => {
   // Update ingredient mutation
   const updateMutation = useMutation({
     mutationFn: async (data: IngredientForm & { image?: string; tags?: string[] }) => {
-      return apiRequest("PATCH", `/api/ingredients/${id}`, data);
+      return apiRequest(`/api/ingredients/${id}`, { method: "PATCH", body: data });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });
@@ -106,7 +106,7 @@ export const EditIngredient = (): JSX.Element => {
   // Delete ingredient mutation
   const deleteMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest("DELETE", `/api/ingredients/${id}`);
+      return apiRequest(`/api/ingredients/${id}`, { method: "DELETE" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/ingredients"] });

@@ -47,7 +47,7 @@ export default function PreferredBrands() {
 
   const toggleMyBarMutation = useMutation({
     mutationFn: async (brandId: number) => {
-      return apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`);
+      return apiRequest(`/api/preferred-brands/${brandId}/toggle-mybar`, { method: "PATCH" });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });

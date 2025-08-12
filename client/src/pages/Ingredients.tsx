@@ -43,7 +43,7 @@ export const Ingredients = (): JSX.Element => {
   // Toggle "My Bar" status mutation
   const toggleMyBarMutation = useMutation({
     mutationFn: async ({ id, inMyBar }: { id: string; inMyBar: boolean }) => {
-      return apiRequest("PATCH", `/api/ingredients/${id}/toggle-mybar`, { inMyBar });
+      return apiRequest(`/api/ingredients/${id}/toggle-mybar`, { method: "PATCH", body: { inMyBar } });
     },
     onSuccess: () => {
       // Invalidate all ingredient queries to ensure proper cache updates across all views

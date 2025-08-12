@@ -86,7 +86,7 @@ export const CocktailList = (): JSX.Element => {
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
     mutationFn: async ({ id, featured }: { id: string; featured: boolean }) => {
-      return apiRequest("PATCH", `/api/cocktails/${id}/featured`, { featured });
+      return apiRequest(`/api/cocktails/${id}/toggle-featured`, { method: "PATCH", body: { featured } });
     },
     onSuccess: () => {
       // Invalidate all cocktail queries to ensure UI updates
@@ -97,7 +97,7 @@ export const CocktailList = (): JSX.Element => {
   // Increment popularity mutation
   const incrementPopularityMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("POST", `/api/cocktails/${id}/popularity`);
+      return apiRequest(`/api/cocktails/${id}/increment-popularity`, { method: "PATCH" });
     },
     onSuccess: () => {
       // Invalidate all cocktail queries to ensure UI updates

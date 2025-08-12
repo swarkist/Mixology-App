@@ -57,7 +57,7 @@ export default function EditPreferredBrand() {
 
   const updateMutation = useMutation({
     mutationFn: (data: PreferredBrandForm) => 
-      apiRequest("PATCH", `/api/preferred-brands/${brandId}`, data),
+      apiRequest(`/api/preferred-brands/${brandId}`, { method: "PATCH", body: data }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
       setLocation("/preferred-brands");
@@ -66,7 +66,7 @@ export default function EditPreferredBrand() {
 
   const deleteMutation = useMutation({
     mutationFn: () => 
-      apiRequest("DELETE", `/api/preferred-brands/${brandId}`),
+      apiRequest(`/api/preferred-brands/${brandId}`, { method: "DELETE" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
       setLocation("/preferred-brands");

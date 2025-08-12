@@ -238,13 +238,11 @@ export const AddCocktail = (): JSX.Element => {
       console.log('Data being sent:', cocktailData);
       
       if (isEditMode && cocktailId) {
-        const response = await apiRequest("PATCH", `/api/cocktails/${cocktailId}`, cocktailData);
-        const result = await response.json();
+        const result = await apiRequest(`/api/cocktails/${cocktailId}`, { method: "PATCH", body: cocktailData });
         console.log('PATCH response:', result);
         return result;
       } else {
-        const response = await apiRequest("POST", "/api/cocktails", cocktailData);
-        const result = await response.json();
+        const result = await apiRequest("/api/cocktails", { method: "POST", body: cocktailData });
         console.log('POST response:', result);
         return result;
       }
