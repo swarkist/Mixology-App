@@ -8,11 +8,11 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## Recent Changes (August 12, 2025)
-- **Fixed Critical Admin Operations**: Resolved authentication middleware issues preventing all admin CRUD operations
-- **Unified Authentication System**: Migrated from session-based to JWT-based authentication across all routes
-- **Fixed My Bar Data Query**: Corrected hardcoded empty array issue in getPreferredBrandsInMyBar that was breaking My Bar functionality
-- **Added Admin Protection**: Applied requireAdmin middleware to all write operations (POST, PATCH, DELETE) for cocktails, ingredients, and brands
-- **Authentication Middleware Refactor**: Updated custom middleware to use JWT tokens from cookies instead of session-based authentication
+- **RESOLVED: Critical Authentication & Admin Operations**: Fixed systematic failure where all admin operations were broken due to incorrect apiRequest parameter order throughout frontend
+- **Fixed AI Importer**: Resolved silent save failures by correcting apiRequest calls and adding missing import in ImportCocktail.tsx - now fully functional
+- **Comprehensive API Request Fix**: Updated apiRequest function calls across entire codebase (PreferredBrands, MyBar, Ingredients, CocktailList, CocktailRecipe, AddCocktail, EditIngredient, EditPreferredBrand, AddPreferredBrand, IngredientAssociation, PreferredBrandAssociation)
+- **Root Cause Resolution**: Frontend was calling apiRequest(method, endpoint) instead of apiRequest(endpoint, {method}) causing HTML responses instead of JSON
+- **All Admin Operations Confirmed Working**: Toggle featured status, edit/save recipes, delete items, toggle My Bar status, add new items, AI Importer cocktail saving
 
 ## Previous Changes (August 11, 2025)
 - **Enhanced AI Import with Full Editing**: Implemented comprehensive editing for AI-parsed ingredients and instructions with NEW indicators and category assignment
