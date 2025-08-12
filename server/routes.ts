@@ -239,15 +239,21 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.delete("/api/ingredients/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== DELETE /api/ingredients/${id} ===`);
+    console.log(`Deleting ingredient ID: ${id}`);
+    console.log(`User making request:`, req.user);
+    
     try {
+      console.log(`Calling storage.deleteIngredient(${id})...`);
       const deleted = await storage.deleteIngredient(id);
+      console.log(`Delete ingredient result:`, deleted);
       if (deleted) {
         res.json({ message: "Ingredient deleted successfully" });
       } else {
         res.status(404).json({ message: "Ingredient not found" });
       }
     } catch (error) {
-      console.error('Error deleting ingredient:', error);
+      console.error(`Error deleting ingredient ${id}:`, error);
       res.status(500).json({ message: "Error deleting ingredient", error });
     }
   });
@@ -489,10 +495,17 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.patch("/api/cocktails/:id/toggle-featured", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== PATCH /api/cocktails/${id}/toggle-featured ===`);
+    console.log(`Toggling featured status for cocktail ID: ${id}`);
+    console.log(`User making request:`, req.user);
+    
     try {
+      console.log(`Calling storage.toggleFeatured(${id})...`);
       const updated = await storage.toggleFeatured(id);
+      console.log(`Toggle featured result:`, JSON.stringify(updated, null, 2));
       res.json(updated);
     } catch (error) {
+      console.error(`Toggle featured error for cocktail ${id}:`, error);
       res.status(404).json({ message: "Cocktail not found", error });
     }
   });
@@ -780,18 +793,27 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.patch("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== PATCH /api/preferred-brands/${id} ===`);
+    console.log(`Request body:`, JSON.stringify(req.body, null, 2));
+    console.log(`User making request:`, req.user);
+    
     try {
       const updateData = { ...req.body };
       
       // Handle image upload
       if (req.body.image && typeof req.body.image === 'string') {
+        console.log('Processing image upload for brand update...');
         updateData.imageUrl = req.body.image;
         delete updateData.image;
       }
       
+      console.log(`Final update data for brand ${id}:`, JSON.stringify(updateData, null, 2));
+      console.log(`Calling storage.updatePreferredBrand(${id}, updateData)...`);
       const updated = await storage.updatePreferredBrand(id, updateData);
+      console.log(`Update brand result:`, JSON.stringify(updated, null, 2));
       res.json(updated);
     } catch (error) {
+      console.error(`Error updating preferred brand ${id}:`, error);
       res.status(404).json({ message: "Preferred brand not found", error });
     }
   });
@@ -799,19 +821,28 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.patch("/api/preferred-brands/:id/toggle-mybar", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== PATCH /api/preferred-brands/${id}/toggle-mybar ===`);
+    console.log(`Toggling My Bar status for brand ID: ${id}`);
+    console.log(`User making request:`, req.user);
+    
     try {
+      console.log(`Getting existing brand ${id}...`);
       const brand = await storage.getPreferredBrand(id);
       if (!brand) {
+        console.log(`Brand ${id} not found`);
         return res.status(404).json({ message: "Brand not found" });
       }
       
+      console.log(`Current brand inMyBar status: ${brand.inMyBar}, toggling to: ${!brand.inMyBar}`);
+      console.log(`Calling storage.updatePreferredBrand(${id}, { inMyBar: ${!brand.inMyBar} })...`);
       const updated = await storage.updatePreferredBrand(id, {
         inMyBar: !brand.inMyBar
       });
       
+      console.log(`Toggle My Bar result:`, JSON.stringify(updated, null, 2));
       res.json(updated);
     } catch (error) {
-      console.error('Error toggling brand in My Bar:', error);
+      console.error(`Error toggling brand ${id} in My Bar:`, error);
       res.status(500).json({ message: "Error updating brand", error });
     }
   });
@@ -819,15 +850,21 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.delete("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     
+    console.log(`\n=== DELETE /api/preferred-brands/${id} ===`);
+    console.log(`Deleting preferred brand ID: ${id}`);
+    console.log(`User making request:`, req.user);
+    
     try {
+      console.log(`Calling storage.deletePreferredBrand(${id})...`);
       const deleted = await storage.deletePreferredBrand(id);
+      console.log(`Delete preferred brand result:`, deleted);
       if (deleted) {
         res.json({ message: "Preferred brand deleted successfully" });
       } else {
         res.status(404).json({ message: "Preferred brand not found" });
       }
     } catch (error) {
-      console.error('Error deleting preferred brand:', error);
+      console.error(`Error deleting preferred brand ${id}:`, error);
       res.status(500).json({ message: "Error deleting preferred brand", error });
     }
   });
