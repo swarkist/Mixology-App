@@ -716,8 +716,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       
       if (inMyBar === 'true') {
         console.log('🔥 Calling getPreferredBrandsInMyBar...');
-        // This functionality will be handled by My Bar API
-        brands = [];
+        brands = await storage.getPreferredBrandsInMyBar();
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);

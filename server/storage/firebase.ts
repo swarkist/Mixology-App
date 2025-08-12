@@ -1070,9 +1070,13 @@ export class FirebaseStorage {
 
   async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
     try {
+      console.log('🔥 Querying Firestore for brands with inMyBar=true...');
       const snapshot = await this.preferredBrandsCollection.where('inMyBar', '==', true).get();
-      return snapshot.docs.map((doc: any) => {
+      console.log('🔥 Query returned', snapshot.size, 'documents');
+      
+      const brands = snapshot.docs.map((doc: any) => {
         const data = doc.data();
+        console.log('🔥 Document', doc.id, 'data:', { inMyBar: data.inMyBar, name: data.name });
         return {
           id: parseInt(doc.id),
           name: data.name || 'Untitled Brand',
@@ -1084,6 +1088,9 @@ export class FirebaseStorage {
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
         } as PreferredBrand;
       });
+      
+      console.log('🔥 Returning', brands.length, 'brands for My Bar');
+      return brands;
     } catch (error) {
       console.error('Error fetching My Bar preferred brands:', error);
       return [];
