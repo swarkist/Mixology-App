@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { isYouTubeURL, extractYouTubeTranscript } from "@/lib/extractYouTubeTranscript";
 import { scrapeWebContent } from "@/lib/scrapeURL";
 import { callOpenRouter } from "@/lib/aiRequest";
