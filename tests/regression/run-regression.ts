@@ -10,6 +10,7 @@ console.log('=' .repeat(60));
 // Test configuration
 const testFiles = [
   'tests/regression/data-isolation-verification.test.ts',
+  'tests/regression/auth-scenarios.test.ts',
   'tests/regression/api.test.ts',
   'tests/regression/firebase-persistence.test.ts', 
   'tests/regression/edge-cases.test.ts',
@@ -19,6 +20,7 @@ const testFiles = [
 
 const testDescriptions = {
   'data-isolation-verification.test.ts': 'Data isolation and production data protection verification',
+  'auth-scenarios.test.ts': 'Authentication, authorization, RBAC, and user management testing',
   'api.test.ts': 'Core API functionality (CRUD operations, search, filtering)',
   'firebase-persistence.test.ts': 'Firebase data persistence and synchronization',
   'edge-cases.test.ts': 'Error handling and edge case scenarios',

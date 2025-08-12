@@ -18,6 +18,8 @@ export class TestDataManager {
   private createdIngredients: number[] = [];
   private createdTags: string[] = [];
   private createdPreferredBrands: number[] = [];
+  private createdUsers: number[] = [];
+  private createdSessions: number[] = [];
   private testPrefix = `REGRESSION_TEST_${Date.now()}_`;
   private databaseSnapshot: DatabaseSnapshot | null = null;
 
@@ -294,6 +296,16 @@ export class TestDataManager {
         errors.push(`Failed to delete preferred brand ${brandId}: ${error.message}`);
       }
     }
+
+    // Clean up tracked test users
+    for (const userId of this.createdUsers) {
+      try {
+        await this.deleteTestUser(userId);
+        console.log(`✅ Deleted tracked test user ID: ${userId}`);
+      } catch (error: any) {
+        errors.push(`Failed to delete test user ${userId}: ${error.message}`);
+      }
+    }
   }
 
   private async scanAndCleanRemainingTestData(errors: string[]) {
@@ -410,6 +422,8 @@ export class TestDataManager {
     this.createdIngredients = [];
     this.createdTags = [];
     this.createdPreferredBrands = [];
+    this.createdUsers = [];
+    this.createdSessions = [];
   }
 
   // Emergency cleanup - finds and removes ANY test data by prefix
@@ -441,12 +455,69 @@ export class TestDataManager {
     console.log(`🧹 Emergency cleanup completed: removed ${testCocktails.length} cocktails, ${testIngredients.length} ingredients`);
   }
 
+  // ============ USER MANAGEMENT METHODS ============
+  async createTestUser(userTemplate: any) {
+    const testUser = {
+      ...userTemplate,
+      email: `${this.testPrefix}${userTemplate.email}`,
+    };
+
+    console.log(`🧪 Creating test user: ${testUser.email}`);
+    
+    const response = await this.apiRequest('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(testUser),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response && response.user) {
+      this.createdUsers.push(response.user.id);
+      console.log(`✅ Test user created: ${testUser.email} (ID: ${response.user.id})`);
+      return response;
+    } else {
+      throw new Error(`Failed to create test user: ${testUser.email}`);
+    }
+  }
+
+  async loginTestUser(email: string, password: string) {
+    const prefixedEmail = email.startsWith(this.testPrefix) ? email : `${this.testPrefix}${email}`;
+    
+    console.log(`🔑 Logging in test user: ${prefixedEmail}`);
+    
+    const response = await this.apiRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email: prefixedEmail, password }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
+    if (response && response.success) {
+      console.log(`✅ Test user logged in: ${prefixedEmail}`);
+      return response;
+    } else {
+      throw new Error(`Failed to login test user: ${prefixedEmail}`);
+    }
+  }
+
+  async deleteTestUser(userId: number) {
+    try {
+      console.log(`🗑️ Deleting test user: ${userId}`);
+      await this.apiRequest(`/admin/users/${userId}`, {
+        method: 'DELETE',
+        headers: { 'x-admin-key': process.env.ADMIN_API_KEY || '' }
+      });
+      console.log(`✅ Test user deleted: ${userId}`);
+    } catch (error) {
+      console.warn(`⚠️ Could not delete test user ${userId}:`, error.message);
+    }
+  }
+
   // Get summary of tracked test data
   getTestDataSummary() {
     return {
       cocktails: this.createdCocktails.length,
       ingredients: this.createdIngredients.length,
       tags: this.createdTags.length,
+      users: this.createdUsers.length,
       testPrefix: this.testPrefix
     };
   }

@@ -13,6 +13,9 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Comprehensive API Request Fix**: Updated apiRequest function calls across entire codebase (PreferredBrands, MyBar, Ingredients, CocktailList, CocktailRecipe, AddCocktail, EditIngredient, EditPreferredBrand, AddPreferredBrand, IngredientAssociation, PreferredBrandAssociation)
 - **Root Cause Resolution**: Frontend was calling apiRequest(method, endpoint) instead of apiRequest(endpoint, {method}) causing HTML responses instead of JSON
 - **All Admin Operations Confirmed Working**: Toggle featured status, edit/save recipes, delete items, toggle My Bar status, add new items, AI Importer cocktail saving
+- **Fixed External Image Loading Error**: Replaced via.placeholder.com URL with local no-photo image in AddPreferredBrand.tsx to eliminate network errors
+- **Enhanced Authentication Testing Infrastructure**: Created comprehensive auth-scenarios.test.ts with admin/basic user RBAC testing, session management validation, and user data isolation verification
+- **Upgraded TestDataManager**: Added user management methods (createTestUser, loginTestUser, deleteTestUser) with proper cleanup and tracking for authentication regression tests
 
 ## Previous Changes (August 11, 2025)
 - **Enhanced AI Import with Full Editing**: Implemented comprehensive editing for AI-parsed ingredients and instructions with NEW indicators and category assignment
