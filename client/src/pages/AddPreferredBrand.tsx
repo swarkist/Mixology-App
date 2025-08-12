@@ -14,6 +14,7 @@ import { Navigation } from "@/components/Navigation";
 import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
+import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export default function AddPreferredBrand() {
   const [, setLocation] = useLocation();
@@ -195,7 +196,7 @@ export default function AddPreferredBrand() {
               </div>
               <div className="relative">
                 <img
-                  src={imagePreview || "https://via.placeholder.com/96x96?text=No+Image"}
+                  src={imagePreview || noPhotoImage}
                   alt={imagePreview ? "Brand preview" : "No photo placeholder"}
                   className="w-24 h-24 object-cover rounded-lg"
                 />
