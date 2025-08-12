@@ -796,8 +796,21 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.patch("/api/preferred-brands/:id/toggle-mybar", async (req, res) => {
     const id = parseInt(req.params.id);
     
-    // Toggle My Bar functionality moved to My Bar API
-    res.status(404).json({ message: "This functionality has been moved to the My Bar API" });
+    try {
+      const brand = await storage.getPreferredBrand(id);
+      if (!brand) {
+        return res.status(404).json({ message: "Brand not found" });
+      }
+      
+      const updated = await storage.updatePreferredBrand(id, {
+        inMyBar: !brand.inMyBar
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Error toggling brand in My Bar:', error);
+      res.status(500).json({ message: "Error updating brand", error });
+    }
   });
 
   app.delete("/api/preferred-brands/:id", async (req, res) => {

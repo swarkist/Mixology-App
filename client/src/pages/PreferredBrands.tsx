@@ -31,7 +31,7 @@ export default function PreferredBrands() {
         if (searchTerm.trim()) {
           params.append("search", searchTerm);
         }
-        const response = await apiRequest("GET", `/api/preferred-brands?${params}`);
+        const response = await fetch(`/api/preferred-brands?${params}`);
         if (!response.ok) {
           throw new Error(`Failed to fetch brands: ${response.status}`);
         }
@@ -46,8 +46,9 @@ export default function PreferredBrands() {
   });
 
   const toggleMyBarMutation = useMutation({
-    mutationFn: (brandId: number) => 
-      apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`),
+    mutationFn: async (brandId: number) => {
+      return apiRequest("PATCH", `/api/preferred-brands/${brandId}/toggle-mybar`);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
     },
