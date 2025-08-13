@@ -161,7 +161,7 @@ const TopNavigation = (): JSX.Element => {
               </DropdownMenu>
             ) : (
               <Link href="/login">
-                <Button variant="outline" className="h-10 px-4 border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                <Button variant="outline" className="h-10 px-4 border-[#f2c40c] bg-[#f2c40c]/10 text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]">
                   <LogIn className="mr-2 h-4 w-4" />
                   Sign In
                 </Button>
@@ -299,7 +299,7 @@ const TopNavigation = (): JSX.Element => {
                 <Link href="/login">
                   <Button 
                     variant="outline" 
-                    className="w-full h-10 border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                    className="w-full h-10 border-[#f2c40c] bg-[#f2c40c]/10 text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] [font-family:'Plus_Jakarta_Sans',Helvetica]"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     <LogIn className="mr-2 h-4 w-4" />
