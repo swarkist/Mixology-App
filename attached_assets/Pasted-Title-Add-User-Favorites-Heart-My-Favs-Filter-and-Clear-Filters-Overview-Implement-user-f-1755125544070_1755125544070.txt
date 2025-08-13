@@ -1,0 +1,343 @@
+Title
+Add User Favorites (Heart), “My Favs” Filter, and Clear Filters
+
+Overview
+Implement user favorites so a logged-in user can tap a heart on the Cocktail Detail page to mark/unmark a cocktail as a favorite. Add a “My Favs” filter (with a heart icon) to the Cocktail List page positioned immediately to the right of the “Popular” filter. When “My Favs” is active and the user is logged in, show only their favorited cocktails. If the user is logged out, clicking the heart shows a mini overlay “Login to fav me” and the “My Favs” list view shows a friendly empty state “Login to view your favorite recipes”. Add a “Clear Filters” control that resets all Cocktail List filters (search, tags, Featured, Popular, My Favs, etc).
+
+Key Constraints & Notes
+- These are user-owned writes. Do NOT require x-admin-key for favorites endpoints.
+- Use existing session authentication (passport-local). If unauthenticated:
+  - POST /api/user/favorites/:cocktailId → 401
+  - GET /api/user/favorites → 401
+  - GET /api/cocktails?favoriteOnly=true → 401
+- Keep to our current stack: Express + Firebase Admin SDK (server-only Firestore), React 18 + TypeScript, TanStack Query, Wouter, shadcn/ui, Tailwind, Lucide icons.
+- Frontend requests must use apiRequest(endpoint, { method, body }) — NOTE: endpoint first, then options (we fixed this globally).
+
+Backend Tasks
+1) Create server/storage/favorites.ts with helpers:
+- getUserFavoriteIds(userId: string): Promise<string[]>
+- toggleFavorite(userId: string, cocktailId: string): Promise<boolean> // returns current favorited state after toggle
+
+Implementation detail:
+- Use a “favorites” collection with docs shaped like: { userId, cocktailId, createdAt } unique by userId+cocktailId (composite index enforced by code).
+- Use a deterministic doc id: `${userId}_${cocktailId}` so toggle is idempotent.
+
+2) Add new routes file: server/routes/favorites.ts
+- GET /api/user/favorites → returns { ids: string[] } for the session user
+- POST /api/user/favorites/:cocktailId → toggles and returns { favorited: boolean }
+- Ensure requireAuth middleware protects these routes; DO NOT check x-admin-key here.
+
+3) Update cocktails GET route (server/routes/cocktails.ts)
+- If req.query.favoriteOnly === 'true':
+  - requireAuth
+  - get user favorite IDs
+  - fetch those cocktails by IDs (batched get)
+  - return the same shape as normal list
+
+4) Wire routes in server/routes.ts
+- import './routes/favorites' and use app.use('/api', favoritesRouter) (or similar consistent with current pattern)
+
+5) Add basic regression tests (tests/regression/api.test.ts):
+- Create a test user, login, create 1–2 test cocktails (or use existing if tests already scaffold that)
+- Toggle favorite on one cocktail
+- Assert GET /api/user/favorites includes it
+- Assert GET /api/cocktails?favoriteOnly=true returns only that cocktail
+- Cleanup
+
+Frontend Tasks
+1) Create client/src/lib/favorites.ts
+- useQuery: ['/api/user/favorites'] → fetch list of IDs; if 401, return [] and set a flag isAuthed=false
+- useMutation: toggleFavorite(cocktailId) → POST /api/user/favorites/:cocktailId
+- Export helper isFavorited(ids, cocktailId)
+
+2) Update CocktailRecipe page (client/src/pages/CocktailRecipe.tsx or similar)
+- Import Heart from lucide-react and Tooltip from shadcn/ui
+- Show heart button in the header or action row:
+  - If isAuthed and isFavorited → show filled heart (use Tailwind to fill via text-rose-500 and apply [data-state] or conditional class)
+  - If isAuthed and NOT favorited → outline heart
+  - On click:
+    - If NOT isAuthed → show Tooltip/Popover on the heart: “Login to fav me”
+    - Else → mutate toggleFavorite with optimistic update to ['/api/user/favorites']
+
+3) Update CocktailList page (client/src/pages/CocktailList.tsx)
+- Add a filter pill component “My Favs” with a Heart icon, positioned immediately to the right of “Popular” pill (keep styling consistent with Featured/Popular).
+- Filter behavior:
+  - If NOT isAuthed AND My Favs is active: do NOT fetch list; instead show empty state: “Login to view your favorite recipes”
+  - If isAuthed AND My Favs is active: fetch with query key ['/api/cocktails', { favoriteOnly: true }]
+- Add a “Clear Filters” pill/button visible when any filter is active (Featured/Popular/My Favs/search/tags). Clicking it resets all filter states and refetches the default list.
+
+4) Visual polish
+- Tooltip for heart when logged out: small, anchored to the heart button, auto-hide after ~2–3 seconds.
+- Empty state for My Favs logged out: same card area replaced with centered message.
+- Accessibility: ensure the heart button has aria-pressed state and an accessible label (“Add to favorites” / “Remove from favorites”).
+
+Code Changes (create/replace)
+
+A) server/storage/favorites.ts
+--------------------------------
+import { db } from '../storage/firebase'; // match your firebase admin init path
+import { Timestamp } from 'firebase-admin/firestore';
+
+const COLL = 'favorites';
+
+function docId(userId: string, cocktailId: string) {
+  return `${userId}_${cocktailId}`;
+}
+
+export async function getUserFavoriteIds(userId: string): Promise<string[]> {
+  const snap = await db.collection(COLL).where('userId', '==', userId).get();
+  return snap.docs.map(d => d.get('cocktailId') as string);
+}
+
+export async function toggleFavorite(userId: string, cocktailId: string): Promise<boolean> {
+  const id = docId(userId, cocktailId);
+  const ref = db.collection(COLL).doc(id);
+  const doc = await ref.get();
+
+  if (doc.exists) {
+    await ref.delete();
+    return false;
+  } else {
+    await ref.set({
+      userId,
+      cocktailId,
+      createdAt: Timestamp.now(),
+    });
+    return true;
+  }
+}
+
+B) server/routes/favorites.ts
+--------------------------------
+import { Router } from 'express';
+import { getUserFavoriteIds, toggleFavorite } from '../storage/favorites';
+import { requireAuth } from '../middleware/requireAuth'; // use your actual auth middleware
+
+export const favoritesRouter = Router();
+
+favoritesRouter.get('/user/favorites', requireAuth, async (req: any, res) => {
+  const userId = req.user?.id || req.user?._id || req.user?.uid;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const ids = await getUserFavoriteIds(userId);
+  res.json({ ids });
+});
+
+favoritesRouter.post('/user/favorites/:cocktailId', requireAuth, async (req: any, res) => {
+  const userId = req.user?.id || req.user?._id || req.user?.uid;
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const { cocktailId } = req.params;
+  const favorited = await toggleFavorite(userId, cocktailId);
+  res.json({ favorited });
+});
+
+export default favoritesRouter;
+
+C) server/routes/cocktails.ts (augment existing GET list)
+--------------------------------
+// Inside your GET /api/cocktails handler, before returning:
+if (req.query.favoriteOnly === 'true') {
+  if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+  const userId = req.user?.id || req.user?._id || req.user?.uid;
+  const ids = await getUserFavoriteIds(userId);
+  if (!ids.length) return res.json([]); // or the expected shape
+  // Batched fetch by IDs (adjust to your storage adapter)
+  const snaps = await Promise.all(ids.map(id => db.collection('cocktails').doc(id).get()));
+  const items = snaps.filter(s => s.exists).map(s => ({ id: s.id, ...s.data() }));
+  return res.json(items);
+}
+
+D) server/routes.ts (wire the router)
+--------------------------------
+import favoritesRouter from './routes/favorites';
+// ...
+app.use('/api', favoritesRouter);
+
+E) client/src/lib/favorites.ts
+--------------------------------
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+export function useFavoriteIds() {
+  return useQuery({
+    queryKey: ['/api/user/favorites'],
+    queryFn: async () => {
+      try {
+        const res = await apiRequest('/api/user/favorites', { method: 'GET' });
+        return { ids: (res?.ids ?? []) as string[], isAuthed: true };
+      } catch (err: any) {
+        // Treat 401 as logged-out
+        return { ids: [] as string[], isAuthed: false };
+      }
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useToggleFavorite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (cocktailId: string) => {
+      const res = await apiRequest(`/api/user/favorites/${cocktailId}`, { method: 'POST' });
+      return res as { favorited: boolean };
+    },
+    onMutate: async (cocktailId) => {
+      await qc.cancelQueries({ queryKey: ['/api/user/favorites'] });
+      const prev = qc.getQueryData(['/api/user/favorites']) as { ids: string[], isAuthed: boolean } | undefined;
+      if (prev?.isAuthed) {
+        const next = prev.ids.includes(cocktailId)
+          ? prev.ids.filter(id => id !== cocktailId)
+          : [...prev.ids, cocktailId];
+        qc.setQueryData(['/api/user/favorites'], { ids: next, isAuthed: true });
+      }
+      return { prev };
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev) {
+        qc.setQueryData(['/api/user/favorites'], ctx.prev);
+      }
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['/api/user/favorites'] });
+    }
+  });
+}
+
+export function isFavorited(ids: string[], cocktailId: string) {
+  return ids.includes(cocktailId);
+}
+
+F) Cocktail Detail heart (client/src/pages/CocktailRecipe.tsx) — show only the changed block
+--------------------------------
+// imports at top
+import { Heart } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFavoriteIds, useToggleFavorite, isFavorited } from '@/lib/favorites';
+
+// inside component
+const { data: favData } = useFavoriteIds();
+const { mutate: toggleFav } = useToggleFavorite();
+const isAuthed = !!favData?.isAuthed;
+const favIds = favData?.ids ?? [];
+const favOn = isFavorited(favIds, cocktail.id);
+
+// in the action bar / header area:
+<TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        aria-label={favOn ? 'Remove from favorites' : 'Add to favorites'}
+        aria-pressed={favOn}
+        onClick={(e) => {
+          e.preventDefault();
+          if (!isAuthed) {
+            // show tooltip via programmatic open by focusing; Tooltip handles hover/focus
+            // Optionally trigger a toast instead if you prefer
+            return; // Tooltip message will guide
+          }
+          toggleFav(cocktail.id);
+        }}
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-border
+          hover:scale-105 transition active:scale-95
+          ${favOn ? 'text-rose-500' : 'text-foreground'}`}
+      >
+        <Heart className={favOn ? 'fill-current' : ''} />
+      </button>
+    </TooltipTrigger>
+    <TooltipContent side="top" align="center">
+      {!isAuthed ? 'Login to fav me' : (favOn ? 'Remove from favorites' : 'Add to favorites')}
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+
+G) “My Favs” filter + Clear Filters (client/src/pages/CocktailList.tsx) — only the changed blocks
+--------------------------------
+// imports at top
+import { Heart } from 'lucide-react';
+import { useFavoriteIds } from '@/lib/favorites';
+
+// inside component state
+const [isFeatured, setIsFeatured] = useState(false);
+const [isPopular, setIsPopular] = useState(false);
+const [isMyFavs, setIsMyFavs] = useState(false);
+const [search, setSearch] = useState('');
+const [activeTags, setActiveTags] = useState<string[]>([]);
+
+// favorites auth info
+const { data: favData } = useFavoriteIds();
+const isAuthed = !!favData?.isAuthed;
+
+// clear filters helper
+const hasAnyFilter = isFeatured || isPopular || isMyFavs || search.trim() !== '' || activeTags.length > 0;
+const clearAll = () => {
+  setIsFeatured(false);
+  setIsPopular(false);
+  setIsMyFavs(false);
+  setSearch('');
+  setActiveTags([]);
+  // If you sync URL params, also reset them here.
+};
+
+// fetch logic (simplified idea)
+const queryKey = isMyFavs && isAuthed
+  ? ['/api/cocktails', { favoriteOnly: true }]
+  : ['/api/cocktails', { featured: isFeatured, popular: isPopular, search, tags: activeTags }];
+
+// ... useQuery with queryKey above …
+
+// filter pills UI — insert “My Favs” immediately after “Popular”
+<div className="flex flex-wrap gap-2">
+  <button className={`pill ${isFeatured ? 'pill-active' : ''}`} onClick={() => setIsFeatured(v => !v)}>
+    ★ Featured
+  </button>
+  <button className={`pill ${isPopular ? 'pill-active' : ''}`} onClick={() => setIsPopular(v => !v)}>
+    ⬆ Popular
+  </button>
+
+  <button
+    className={`pill ${isMyFavs ? 'pill-active' : ''} flex items-center gap-1`}
+    onClick={() => setIsMyFavs(v => !v)}
+  >
+    <Heart className={isMyFavs ? 'fill-current' : ''} size={16} />
+    My Favs
+  </button>
+
+  {hasAnyFilter && (
+    <button className="pill-outline" onClick={clearAll}>
+      Clear filters
+    </button>
+  )}
+</div>
+
+// Empty state when My Favs is selected but user is logged out
+{isMyFavs && !isAuthed ? (
+  <div className="py-24 text-center text-muted-foreground">
+    Login to view your favorite recipes
+  </div>
+) : (
+  // render cards as usual
+)}
+
+Styling Helpers (optional)
+- Define .pill, .pill-active, .pill-outline in your Tailwind layer if not already:
+.pill { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40 transition; }
+.pill-active { @apply bg-primary text-primary-foreground border-transparent; }
+.pill-outline { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40; }
+
+Validation & Tests
+- Add regression tests:
+  - Toggle favorite unauthenticated → expect 401
+  - Toggle favorite authenticated → success + list reflects
+  - GET /api/cocktails?favoriteOnly=true unauthenticated → 401; authenticated → list equals user favorites
+- Lighthouse/axe: verify the heart button has aria-pressed and descriptive labels.
+
+Deliverables
+- New: server/storage/favorites.ts
+- New: server/routes/favorites.ts
+- Modified: server/routes/cocktails.ts (favoriteOnly handling)
+- Modified: server/routes.ts (wire favoritesRouter)
+- New: client/src/lib/favorites.ts
+- Modified: client/src/pages/CocktailRecipe.tsx (heart)
+- Modified: client/src/pages/CocktailList.tsx (My Favs + Clear Filters)
+- Tests updated in tests/regression/api.test.ts
+
+Please implement precisely as above and keep code style consistent with the repo. Make sure all apiRequest calls use the corrected signature (endpoint first). Run the regression tests afterwards.

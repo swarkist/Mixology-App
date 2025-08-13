@@ -12,6 +12,7 @@ import { extractBrandFromImage } from "./ai/openrouter";
 import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
+import favoritesRouter from './routes/favorites';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 
@@ -27,6 +28,9 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   
   // Register admin routes  
   app.use('/api/admin', createAdminRoutes(storage));
+  
+  // Register favorites routes
+  app.use('/api', favoritesRouter);
   // =================== USERS ===================
   app.get("/api/users/:id", async (req, res) => {
     const id = parseInt(req.params.id);
@@ -260,12 +264,28 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   // =================== COCKTAILS ===================
   app.get("/api/cocktails", async (req, res) => {
-    const { search, featured, popular, ingredients, matchAll } = req.query;
+    const { search, featured, popular, ingredients, matchAll, favoriteOnly } = req.query;
     
     try {
       let cocktails;
       
-      if (search) {
+      // Handle favorite-only requests
+      if (favoriteOnly === 'true') {
+        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
+        const userId = req.user?.id?.toString();
+        const { getUserFavoriteIds } = await import('./storage/favorites');
+        const favoriteIds = await getUserFavoriteIds(userId);
+        if (!favoriteIds.length) return res.json([]);
+        
+        // Get cocktails by favorite IDs
+        cocktails = await Promise.all(
+          favoriteIds.map(async (id: string) => {
+            return await storage.getCocktailById(parseInt(id));
+          })
+        );
+        // Filter out any null results
+        cocktails = cocktails.filter(Boolean);
+      } else if (search) {
         cocktails = await storage.searchCocktails(search as string);
       } else if (featured === 'true') {
         cocktails = await storage.getFeaturedCocktails();
