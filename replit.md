@@ -1,7 +1,7 @@
 # Mixology Web Application
 
 ## Overview
-This is a full-stack web application for cocktail recipes and mixology, featuring a React frontend, Express.js backend, and PostgreSQL database with Drizzle ORM. The application provides comprehensive features for browsing, searching, and managing cocktail recipes and ingredients, including detailed recipe pages, ingredient filtering, and a "My Bar" functionality for personalizing ingredient tracking. The project aims to provide a modern, accessible, and user-friendly platform for mixology enthusiasts.
+This is a full-stack web application for cocktail recipes and mixology, featuring a React frontend, Express.js backend, and Firebase Firestore database. The application provides comprehensive features for browsing, searching, and managing cocktail recipes and ingredients, including detailed recipe pages, ingredient filtering, and a "My Bar" functionality for personalizing ingredient tracking. The project features enterprise-grade security, AI-powered recipe importing, photo OCR capabilities, and comprehensive authentication with role-based access control. The platform serves mixology enthusiasts with a modern, accessible, and secure user experience.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -16,6 +16,9 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Fixed External Image Loading Error**: Replaced via.placeholder.com URL with local no-photo image in AddPreferredBrand.tsx to eliminate network errors
 - **Enhanced Authentication Testing Infrastructure**: Created comprehensive auth-scenarios.test.ts with admin/basic user RBAC testing, session management validation, and user data isolation verification
 - **Upgraded TestDataManager**: Added user management methods (createTestUser, loginTestUser, deleteTestUser) with proper cleanup and tracking for authentication regression tests
+- **Comprehensive Regression Testing Complete**: Full test suite validates all core systems working correctly - authentication, database protection, API endpoints, and security measures
+- **Authentication System Validated**: Confirmed public read access, write protection (401 errors), user registration/login, and session management all functional
+- **Database State Verified**: Production data fully protected (6 cocktails, 22 ingredients, 6 tags, 5 preferred brands) with proper isolation mechanisms
 
 ## Previous Changes (August 11, 2025)
 - **Enhanced AI Import with Full Editing**: Implemented comprehensive editing for AI-parsed ingredients and instructions with NEW indicators and category assignment
@@ -67,20 +70,22 @@ Documentation updates: Only update replit.md when running regression tests, not 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
 - **Database**: Firebase Firestore with server-only access via Admin SDK.
-- **Security**: Helmet, CORS allowlist, rate limiting, admin API key authentication.
-- **API Design**: RESTful API with `/api` prefix, centralized route registration, write protection.
-- **Storage**: Abstract storage interface with Firebase Firestore implementation using Admin SDK.
+- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection.
+- **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations.
+- **Storage**: Firebase Firestore implementation using Admin SDK with strict server-only access rules.
+- **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
 - **AI Integration**: OpenRouter API proxy with model routing for recipe parsing, OCR, and content analysis.
 - **YouTube Processing**: Transcript extraction and AI-powered recipe parsing from video content.
+- **Testing Infrastructure**: Comprehensive regression test suite with database snapshots, data isolation, and authentication testing.
 
 ### Key Features & Design Decisions
 - **Multi-page Application**: Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages.
 - **Navigation**: Responsive navigation system (desktop header + mobile bottom nav).
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
-- **Authentication**: Session-based authentication with PostgreSQL storage.
+- **Authentication**: Session-based authentication with user registration, login, and role-based access control.
 - **Accessibility**: Comprehensive button accessibility, horizontal scrolling fixes for mobile.
-- **Data Persistence**: File-based storage (`data/storage.json`) and Firebase Firestore for robust data persistence across sessions.
+- **Data Persistence**: Firebase Firestore with server-only access for secure data persistence across sessions.
 - **My Bar Functionality**: Dedicated section and filtering for tracking user's personal ingredient collection, with dynamic cocktail count. Search functionality filters both ingredient names and brand names in real-time.
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion.
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
@@ -92,17 +97,69 @@ Documentation updates: Only update replit.md when running regression tests, not 
 ## External Dependencies
 
 ### Core Dependencies
-- **UI Framework**: Radix UI primitives, Tailwind CSS.
-- **Database**: Neon Database (PostgreSQL), Firebase Firestore.
-- **Validation**: Zod.
-- **Date Handling**: `date-fns`.
-- **Icons**: Lucide React.
-- **Session Management**: `connect-pg-simple`.
+- **Frontend**: React 18, TypeScript, Vite, Wouter (routing), TanStack Query (state management)
+- **UI Framework**: shadcn/ui, Radix UI primitives, Tailwind CSS, Lucide React icons
+- **Backend**: Express.js, Node.js, TypeScript, Firebase Admin SDK
+- **Database**: Firebase Firestore with server-only access
+- **Authentication**: Express sessions, bcrypt, passport-local
+- **Validation**: Zod, React Hook Form with zodResolver
+- **Security**: Helmet, CORS, express-rate-limit, morgan logging
+- **AI Integration**: OpenRouter API, YouTube transcript extraction, Cheerio web scraping
+- **Image Processing**: Custom compression utilities (imageCompression.ts)
 
 ### Development Dependencies
-- **Build Tools**: Vite, esbuild, TypeScript compiler.
-- **Database Tools**: Drizzle Kit.
-- **Testing**: Vitest.
-- **Development Utilities**: tsx.
-- **Replit Integration**: Cartographer, error overlay plugins.
-- **AI Services**: OpenRouter API integration, YouTube transcript processing, Cheerio for web scraping.
+- **Build Tools**: Vite, esbuild, TypeScript compiler
+- **Testing**: Vitest with comprehensive regression test suite
+- **Development Utilities**: tsx, morgan logging
+- **Replit Integration**: Cartographer, error overlay plugins
+
+### Testing Infrastructure
+- **Regression Testing**: Comprehensive test suite covering authentication, API functionality, data isolation
+- **Authentication Testing**: Admin/basic user scenarios, RBAC validation, session management
+- **Database Protection**: Production data snapshots, test data isolation with unique prefixes
+- **Performance Testing**: API response time validation, load testing capabilities
+- **Security Testing**: Authentication requirements, rate limiting, write operation protection
+
+## Project File Structure
+
+### Frontend (client/)
+- **src/pages/**: Main application pages (Home, CocktailList, CocktailRecipe, Ingredients, MyBar, PreferredBrands)
+- **src/components/**: Reusable UI components and feature-specific components
+- **src/components/ui/**: shadcn/ui components (forms, buttons, dialogs, etc.)
+- **src/lib/**: Utility libraries (queryClient, imageCompression, aiRequest, modelRouter)
+- **src/hooks/**: Custom React hooks (use-toast)
+
+### Backend (server/)
+- **routes/**: API route definitions organized by feature
+- **middleware/**: Authentication, CORS, security middleware
+- **storage/**: Firebase Firestore integration and data adapters
+- **lib/**: Utility functions and helpers
+
+### Testing (tests/)
+- **regression/**: Comprehensive regression test suite
+  - **auth-scenarios.test.ts**: Authentication and RBAC testing
+  - **api.test.ts**: Core API functionality testing
+  - **data-isolation.ts**: Test data management and isolation
+  - **performance.test.ts**: API performance benchmarking
+  - **firebase-persistence.test.ts**: Database persistence testing
+
+### Configuration
+- **vite.config.ts**: Frontend build configuration
+- **tailwind.config.ts**: Styling and theme configuration
+- **tsconfig.json**: TypeScript compilation settings
+- **components.json**: shadcn/ui component configuration
+- **firebase.json**: Firebase deployment and security rules
+- **firestore.rules**: Database security rules (server-only access)
+
+### Assets & Data
+- **attached_assets/**: User-uploaded images and documents
+- **public/**: Static assets (hero images, icons)
+- **shared/**: Shared types and schemas between frontend/backend
+
+## Current System Status
+- **Application Status**: Fully operational with all core features working
+- **Security Status**: Enterprise-grade security with authentication, rate limiting, and write protection
+- **Database Status**: 6 cocktails, 22 ingredients, 6 tags, 5 preferred brands maintained
+- **Testing Status**: Comprehensive regression suite validates all systems
+- **Performance Status**: All API endpoints responding within acceptable thresholds
+- **Authentication Status**: User registration, login, and session management fully functional
