@@ -26,6 +26,7 @@ import {
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useFavoriteIds, useToggleFavorite, isFavorited } from "@/lib/favorites";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -238,25 +239,34 @@ export const CocktailList = (): JSX.Element => {
               Popular
             </Button>
 
-            <Button
-              variant={showMyFavs ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                if (!isAuthed) return; // Silently do nothing if not authenticated
-                setShowMyFavs(!showMyFavs);
-              }}
-              disabled={!isAuthed}
-              className={`h-8 px-3 rounded-lg text-xs ${
-                showMyFavs 
-                  ? "bg-[#f2c40c] text-[#161611]" 
-                  : isAuthed 
-                    ? "bg-[#383629] border-0 text-white hover:bg-[#444133]" 
-                    : "bg-[#383629] border-0 text-gray-500 opacity-50 cursor-not-allowed"
-              }`}
-            >
-              <Heart className={`h-3 w-3 mr-1 ${showMyFavs ? 'fill-current' : ''}`} />
-              My Favs
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={showMyFavs ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => {
+                      if (!isAuthed) return; // Silently do nothing if not authenticated
+                      setShowMyFavs(!showMyFavs);
+                    }}
+                    disabled={!isAuthed}
+                    className={`h-8 px-3 rounded-lg text-xs ${
+                      showMyFavs 
+                        ? "bg-[#f2c40c] text-[#161611]" 
+                        : isAuthed 
+                          ? "bg-[#383629] border-0 text-white hover:bg-[#444133]" 
+                          : "bg-[#383629] border-0 text-gray-500 opacity-50 cursor-not-allowed"
+                    }`}
+                  >
+                    <Heart className={`h-3 w-3 mr-1 ${showMyFavs ? 'fill-current' : ''}`} />
+                    My Favs
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center">
+                  {!isAuthed ? 'Login to view your favs' : 'Filter to show only your favorite cocktails'}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             {hasAnyFilter && (
               <Button
