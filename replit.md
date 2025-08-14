@@ -6,6 +6,7 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
+Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
 
 ## Recent Changes (August 14, 2025)
 - **Comprehensive Regression Testing**: Executed full test suite covering backend/frontend, UI accessibility, and all user roles with 87.5% pass rate on accessibility tests and comprehensive security validation
