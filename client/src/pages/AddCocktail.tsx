@@ -494,19 +494,36 @@ export const AddCocktail = (): JSX.Element => {
                       <SelectTrigger className="bg-[#26261c] border-[#544f3a] text-white focus:ring-[#f2c40c] focus:border-[#f2c40c]">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#26261c] border-[#544f3a]">
-                        <SelectItem value="oz">oz</SelectItem>
-                        <SelectItem value="ml">ml</SelectItem>
-                        <SelectItem value="dashes">dashes</SelectItem>
-                        <SelectItem value="drops">drops</SelectItem>
-                        <SelectItem value="parts">parts</SelectItem>
-                        <SelectItem value="tsp">tsp</SelectItem>
-                        <SelectItem value="tbsp">tbsp</SelectItem>
-                        <SelectItem value="cups">cups</SelectItem>
-                        <SelectItem value="shots">shots</SelectItem>
-                        <SelectItem value="splash">splash</SelectItem>
-                        <SelectItem value="pinch">pinch</SelectItem>
-                        <SelectItem value="whole">whole</SelectItem>
+                      <SelectContent className="bg-[#26261c] border-[#544f3a] max-h-48">
+                        <SelectItem value="oz" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">oz</SelectItem>
+                        <SelectItem value="ml" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">ml</SelectItem>
+                        <SelectItem value="cl" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">cl</SelectItem>
+                        <SelectItem value="tsp" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">tsp</SelectItem>
+                        <SelectItem value="tbsp" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">tbsp</SelectItem>
+                        <SelectItem value="cup" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">cup</SelectItem>
+                        <SelectItem value="pint" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">pint</SelectItem>
+                        <SelectItem value="qt" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">qt</SelectItem>
+                        <SelectItem value="gal" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">gal</SelectItem>
+                        <SelectItem value="L" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">L</SelectItem>
+                        <SelectItem value="dash" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">dash</SelectItem>
+                        <SelectItem value="dashes" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">dashes</SelectItem>
+                        <SelectItem value="splash" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">splash</SelectItem>
+                        <SelectItem value="part" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">part</SelectItem>
+                        <SelectItem value="parts" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">parts</SelectItem>
+                        <SelectItem value="drop" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">drop</SelectItem>
+                        <SelectItem value="drops" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">drops</SelectItem>
+                        <SelectItem value="pinch" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">pinch</SelectItem>
+                        <SelectItem value="slice" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">slice</SelectItem>
+                        <SelectItem value="slices" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">slices</SelectItem>
+                        <SelectItem value="wedge" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">wedge</SelectItem>
+                        <SelectItem value="wedges" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">wedges</SelectItem>
+                        <SelectItem value="sprig" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">sprig</SelectItem>
+                        <SelectItem value="sprigs" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">sprigs</SelectItem>
+                        <SelectItem value="leaf" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">leaf</SelectItem>
+                        <SelectItem value="leaves" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">leaves</SelectItem>
+                        <SelectItem value="piece" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">piece</SelectItem>
+                        <SelectItem value="pieces" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">pieces</SelectItem>
+                        <SelectItem value="whole" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">whole</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

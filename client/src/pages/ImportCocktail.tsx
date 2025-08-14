@@ -728,7 +728,7 @@ SAMPLE RECIPE
                                           <SelectItem 
                                             key={unit} 
                                             value={unit}
-                                            className="text-white text-xs"
+                                            className="text-white text-xs hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white"
                                           >
                                             {unit}
                                           </SelectItem>
