@@ -249,57 +249,52 @@ export default function MyBar() {
 
         {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">
-          {/* Category Filter Pills */}
-          <div className="flex gap-2 flex-wrap">
-            {BRAND_CATEGORIES.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  if (selectedCategory === category) {
-                    setSelectedCategory("");
-                  } else {
-                    setSelectedCategory(category);
-                  }
-                }}
-                className={`h-8 px-3 rounded-lg text-xs capitalize ${
-                  selectedCategory === category
-                    ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]"
-                    : "bg-[#383629] border-0 text-white hover:bg-[#444133]"
-                }`}
-              >
-                {category}
-              </Button>
-            ))}
-
-            {hasCategoryFilters && (
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => {
-                  setSelectedCategory("");
-                  // Clear URL params for filters
-                  const url = new URL(window.location.href);
-                  url.searchParams.delete("category");
-                  window.history.replaceState({}, "", url);
-                }}
-                className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
-                aria-label="Clear category filters"
-              >
-                <X className="h-3 w-3" aria-hidden="true" />
-                Clear filters
-              </Button>
-            )}
-          </div>
-
-          {/* Action Buttons */}
           <div className="flex gap-2 flex-wrap justify-between">
-            <div className="flex gap-2">
-              <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
-                My Collection
-              </Badge>
+            {/* Category Filter Pills */}
+            <div className="flex gap-2 flex-wrap">
+              {BRAND_CATEGORIES.map((category) => (
+                <Button
+                  key={category}
+                  variant={selectedCategory === category ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => {
+                    if (selectedCategory === category) {
+                      setSelectedCategory("");
+                    } else {
+                      setSelectedCategory(category);
+                    }
+                  }}
+                  className={`h-8 px-3 rounded-lg text-xs capitalize ${
+                    selectedCategory === category
+                      ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]"
+                      : "bg-[#383629] border-0 text-white hover:bg-[#444133]"
+                  }`}
+                >
+                  {category}
+                </Button>
+              ))}
+
+              {hasCategoryFilters && (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategory("");
+                    // Clear URL params for filters
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete("category");
+                    window.history.replaceState({}, "", url);
+                  }}
+                  className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
+                  aria-label="Clear category filters"
+                >
+                  <X className="h-3 w-3" aria-hidden="true" />
+                  Clear filters
+                </Button>
+              )}
             </div>
+
+            {/* Action Buttons */}
             <div className="flex gap-2">
               <Link href="/preferred-brands">
                 <Button
