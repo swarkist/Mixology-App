@@ -11,6 +11,7 @@ import { Frame } from "@/pages/Frame";
 import { CocktailRecipe } from "@/pages/CocktailRecipe";
 import { CocktailList } from "@/pages/CocktailList";
 import { Ingredients } from "@/pages/Ingredients";
+import { IngredientDetail } from "@/pages/IngredientDetail";
 import { AddCocktail } from "@/pages/AddCocktail";
 import { AddIngredient } from "@/pages/AddIngredient";
 import { EditIngredient } from "@/pages/EditIngredient";
@@ -99,6 +100,7 @@ function Router() {
       
       {/* Public routes */}
       <Route path="/ingredients" component={Ingredients} />
+      <Route path="/ingredient/:ingredientId" component={IngredientDetail} />
       <Route path="/preferred-brands" component={PreferredBrands} />
       <Route path="/my-bar" component={MyBar} />
       <Route path="/recipe/:id?" component={CocktailRecipe} />

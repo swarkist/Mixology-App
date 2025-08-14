@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2, X } from "lucide-react";
+import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2, X, Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -294,15 +294,15 @@ export const Ingredients = (): JSX.Element => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-auto">
-                      <Button
-                        size="sm"
-                        onClick={() => handleToggleMyBar(ingredient)}
-                        className="flex-1 bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
-                        disabled
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        My Bar
-                      </Button>
+                      <Link href={`/ingredient/${ingredient.id}`} className="flex-1">
+                        <Button
+                          size="sm"
+                          className="w-full bg-transparent border border-[#544f3b] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c]"
+                        >
+                          <Eye className="h-3 w-3 mr-1" />
+                          View Ingredient
+                        </Button>
+                      </Link>
                       {isAdmin && (
                         <Link href={`/edit-ingredient/${ingredient.id}`}>
                           <Button
