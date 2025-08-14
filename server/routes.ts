@@ -12,6 +12,7 @@ import { extractBrandFromImage } from "./ai/openrouter";
 import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
+import favoritesRouter from './routes/favorites';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 
@@ -27,6 +28,9 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   
   // Register admin routes  
   app.use('/api/admin', createAdminRoutes(storage));
+  
+  // Register favorites routes
+  app.use('/api', favoritesRouter);
   // =================== USERS ===================
   app.get("/api/users/:id", async (req, res) => {
     const id = parseInt(req.params.id);
@@ -260,10 +264,25 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   // =================== COCKTAILS ===================
   app.get("/api/cocktails", async (req, res) => {
-    const { search, featured, popular, ingredients, matchAll } = req.query;
+    const { search, featured, popular, ingredients, matchAll, ids } = req.query;
     
     try {
       let cocktails;
+      
+      // If client passes a comma-separated ids list, return only those (PUBLIC READ)
+      if (ids && typeof ids === 'string') {
+        const idList = ids.split(',').map(s => s.trim()).filter(Boolean);
+        if (idList.length === 0) return res.json([]);
+
+        // Use storage layer instead of direct Firebase access for consistency
+        // Get all cocktails and filter by the requested IDs
+        const allCocktails = await storage.getAllCocktails();
+        const requestedCocktails = allCocktails.filter(cocktail => 
+          idList.includes(String(cocktail.id))
+        );
+
+        return res.json(requestedCocktails);
+      }
       
       if (search) {
         cocktails = await storage.searchCocktails(search as string);

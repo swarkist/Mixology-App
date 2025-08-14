@@ -9,6 +9,7 @@ import {
   List,
   Filter,
   StarIcon,
+  Heart,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
+import { useFavoriteIds } from "@/lib/favorites";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -38,8 +40,24 @@ export const CocktailList = (): JSX.Element => {
   const [spiritFilter, setSpiritFilter] = useState<string>("all");
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
+  const [showMyFavs, setShowMyFavs] = useState(false);
   
   const isAdmin = user?.role === 'admin';
+
+  // Favorites functionality
+  const { data: favData } = useFavoriteIds();
+  const isAuthed = favData?.isAuthed === true;
+  const favIds = favData?.ids ?? [];
+
+  // Check if any filter is active
+  const hasAnyFilter = showOnlyFeatured || showOnlyPopular || showMyFavs || searchQuery.trim() !== '';
+  const clearAllFilters = () => {
+    setShowOnlyFeatured(false);
+    setShowOnlyPopular(false);
+    setShowMyFavs(false);
+    setSearchQuery('');
+    setLocation('/cocktails');
+  };
 
   // Parse URL params
   useEffect(() => {
@@ -53,7 +71,7 @@ export const CocktailList = (): JSX.Element => {
     if (popular === "true") setShowOnlyPopular(true);
   }, []);
 
-  // Build query string
+  // Build query string for regular queries (not My Favs)
   const buildQueryString = () => {
     const params = new URLSearchParams();
     if (searchQuery.trim()) params.set("search", searchQuery.trim());
@@ -62,12 +80,8 @@ export const CocktailList = (): JSX.Element => {
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Fetch cocktails with filters
-  const {
-    data: cocktails,
-    isLoading,
-    error,
-  } = useQuery<Cocktail[]>({
+  // Default cocktails query (when not showing My Favs)
+  const defaultCocktailsQuery = useQuery<Cocktail[]>({
     queryKey: [
       "/api/cocktails",
       {
@@ -81,7 +95,25 @@ export const CocktailList = (): JSX.Element => {
       if (!response.ok) throw new Error("Failed to fetch cocktails");
       return response.json();
     },
+    enabled: !showMyFavs,
   });
+
+  // My Favs cocktails query (public read via ids=, but only if authed and we have IDs)
+  const favIdsParam = favIds.join(',');
+  const favsCocktailsQuery = useQuery<Cocktail[]>({
+    queryKey: ['/api/cocktails', { ids: favIdsParam }],
+    queryFn: async () => {
+      const response = await fetch(`/api/cocktails?ids=${encodeURIComponent(favIdsParam)}`);
+      if (!response.ok) throw new Error('Failed to fetch favorite cocktails');
+      return response.json();
+    },
+    enabled: showMyFavs && isAuthed && favIds.length > 0,
+    retry: false,
+  });
+
+  // Pick the appropriate query data
+  const cocktailsData = showMyFavs ? favsCocktailsQuery : defaultCocktailsQuery;
+  const { data: cocktails, isLoading, error } = cocktailsData;
 
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
@@ -157,6 +189,29 @@ export const CocktailList = (): JSX.Element => {
     );
   }
 
+  // Special handling for My Favs empty states
+  if (showMyFavs && !isAuthed) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="py-24 text-center text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+          Login to view your favorite recipes
+        </div>
+      </div>
+    );
+  }
+
+  if (showMyFavs && isAuthed && favIds.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="py-24 text-center text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+          You haven't favorited anything yet.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
       <TopNavigation />
@@ -214,6 +269,27 @@ export const CocktailList = (): JSX.Element => {
               <TrendingUp className="h-3 w-3 mr-1" />
               Popular
             </Button>
+
+            <Button
+              variant={showMyFavs ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowMyFavs(!showMyFavs)}
+              className={`h-8 px-3 rounded-lg text-xs flex items-center gap-1 ${showMyFavs ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+            >
+              <Heart className={`h-3 w-3 ${showMyFavs ? 'fill-current' : ''}`} />
+              My Favs
+            </Button>
+
+            {hasAnyFilter && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-8 px-3 rounded-lg text-xs bg-[#383629] border-0 text-white hover:bg-[#444133]"
+              >
+                Clear filters
+              </Button>
+            )}
 
             {isAdmin && (
               <Link href="/add-cocktail">

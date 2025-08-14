@@ -1,0 +1,310 @@
+Title
+Add Favorites safely (no auth/CORS changes): heart toggle, “My Favs” filter, cocktails-by-IDs support, clear filters
+
+Overview
+Implement Favorites end-to-end while leaving existing auth/CORS/session code untouched. We will:
+- Add small favorites storage + routes (session required), but do not change any session/CORS/helmet settings.
+- On Cocktail Detail: heart toggle (logged-in toggles; logged-out shows “Login to fav me” tooltip).
+- On Cocktail List: a “My Favs” pill (to the right of “Popular”). When ON and logged-in, fetch favorite IDs first, then load cocktails by IDs via a public read filter (/api/cocktails?ids=id1,id2,...). When logged-out, show the friendly message and do not fire any protected requests.
+- Add a “Clear filters” pill that resets all filters.
+- Add regression tests for fav endpoints and cocktails-by-IDs.
+
+DO NOT modify existing auth/session/CORS/helmet configuration.
+
+Backend Tasks
+
+1) server/storage/favorites.ts  (NEW)
+------------------------------------
+import { db } from '../storage/firebase';
+import { Timestamp } from 'firebase-admin/firestore';
+
+const COLL = 'favorites';
+const key = (userId: string, cocktailId: string) => `${String(userId)}_${String(cocktailId)}`;
+
+export async function getUserFavoriteIds(userId: string): Promise<string[]> {
+  const snap = await db.collection(COLL).where('userId', '==', String(userId)).get();
+  return snap.docs.map(d => String(d.get('cocktailId')));
+}
+
+export async function toggleFavorite(userId: string, cocktailId: string): Promise<boolean> {
+  const id = key(String(userId), String(cocktailId));
+  const ref = db.collection(COLL).doc(id);
+  const doc = await ref.get();
+  if (doc.exists) {
+    await ref.delete();
+    return false;
+  } else {
+    await ref.set({
+      userId: String(userId),
+      cocktailId: String(cocktailId),
+      createdAt: Timestamp.now(),
+    });
+    return true;
+  }
+}
+
+2) server/routes/favorites.ts  (NEW)
+------------------------------------
+import { Router } from 'express';
+import { getUserFavoriteIds, toggleFavorite } from '../storage/favorites';
+
+export const favoritesRouter = Router();
+
+function requireAuth(req: any, res: any, next: any) {
+  if (req.user) return next();
+  return res.status(401).json({ error: 'Unauthorized' });
+}
+
+favoritesRouter.get('/user/favorites', requireAuth, async (req: any, res) => {
+  const userId = String(req.user?.id ?? req.user?._id ?? req.user?.uid ?? '');
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const ids = await getUserFavoriteIds(userId);
+  res.json({ ids });
+});
+
+favoritesRouter.post('/user/favorites/:cocktailId', requireAuth, async (req: any, res) => {
+  const userId = String(req.user?.id ?? req.user?._id ?? req.user?.uid ?? '');
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const { cocktailId } = req.params;
+  const favorited = await toggleFavorite(userId, String(cocktailId));
+  res.json({ favorited });
+});
+
+export default favoritesRouter;
+
+3) server/routes/cocktails.ts  (MODIFY list GET to support ids=)
+----------------------------------------------------------------
+// Inside GET /api/cocktails, before returning the list, add this at the top of the handler:
+
+// If client passes a comma-separated ids list, return only those (PUBLIC READ)
+const idsParam = typeof req.query.ids === 'string' ? (req.query.ids as string) : '';
+if (idsParam) {
+  const ids = idsParam.split(',').map(s => s.trim()).filter(Boolean);
+  if (ids.length === 0) return res.json([]);
+
+  // First try document IDs
+  const snaps = await Promise.all(ids.map(id => db.collection('cocktails').doc(id).get()));
+  const docIdHits = snaps.filter(s => s.exists).map(s => ({ id: s.id, ...s.data() }));
+
+  // If not all found, also try field "id" (string or number) with chunked "in" queries (10 max)
+  const missing = ids.filter(id => !docIdHits.some(x => x.id === id));
+  let fieldHits: any[] = [];
+  if (missing.length > 0) {
+    const chunk = <T,>(arr: T[], size: number) =>
+      Array.from({ length: Math.ceil(arr.length / size) }, (_, i) => arr.slice(i * size, i * size + size));
+    const chunks = chunk(missing, 10);
+
+    // try string match first
+    for (const c of chunks) {
+      const snap = await db.collection('cocktails').where('id', 'in', c).get();
+      fieldHits.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }
+    if (fieldHits.length === 0) {
+      // try numeric fallback
+      const numChunks = chunk(
+        missing.map(v => Number(v)).filter(v => !Number.isNaN(v)),
+        10
+      );
+      for (const c of numChunks) {
+        const snap = await db.collection('cocktails').where('id', 'in', c).get();
+        fieldHits.push(...snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }
+    }
+  }
+
+  return res.json([...docIdHits, ...fieldHits]);
+}
+
+4) server/routes.ts  (WIRE router)
+----------------------------------
+import favoritesRouter from './routes/favorites';
+// ...
+app.use('/api', favoritesRouter);
+
+Frontend Tasks
+
+5) client/src/lib/favorites.ts  (NEW)
+-------------------------------------
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+export function useFavoriteIds() {
+  return useQuery({
+    queryKey: ['/api/user/favorites'],
+    queryFn: async () => {
+      try {
+        const res = await apiRequest('/api/user/favorites', { method: 'GET' });
+        return { ids: (res?.ids ?? []) as string[], isAuthed: true };
+      } catch {
+        // 401 → logged out
+        return { ids: [] as string[], isAuthed: false };
+      }
+    },
+    staleTime: 60_000,
+  });
+}
+
+export function useToggleFavorite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (cocktailId: string) =>
+      apiRequest(`/api/user/favorites/${cocktailId}`, { method: 'POST' }),
+    onMutate: async (cocktailId) => {
+      await qc.cancelQueries({ queryKey: ['/api/user/favorites'] });
+      const prev = qc.getQueryData(['/api/user/favorites']) as { ids: string[]; isAuthed: boolean } | undefined;
+      if (prev?.isAuthed) {
+        const next = prev.ids.includes(cocktailId)
+          ? prev.ids.filter((id) => id !== cocktailId)
+          : [...prev.ids, cocktailId];
+        qc.setQueryData(['/api/user/favorites'], { ids: next, isAuthed: true });
+      }
+      return { prev };
+    },
+    onError: (_e, _id, ctx) => {
+      if (ctx?.prev) qc.setQueryData(['/api/user/favorites'], ctx.prev);
+    },
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['/api/user/favorites'] });
+    },
+  });
+}
+
+export const isFavorited = (ids: string[], cocktailId: string) => ids.includes(cocktailId);
+
+6) client/src/pages/CocktailRecipe.tsx  (MODIFY: heart behavior only)
+---------------------------------------------------------------------
+// imports
+import { Heart } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useFavoriteIds, useToggleFavorite, isFavorited } from '@/lib/favorites';
+
+// inside component
+const { data: favData } = useFavoriteIds();
+const { mutate: toggleFav } = useToggleFavorite();
+const isAuthed = favData?.isAuthed === true;
+const favIds = favData?.ids ?? [];
+const favOn = isFavorited(favIds, cocktail.id);
+
+// render button
+<TooltipProvider>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        aria-label={favOn ? 'Remove from favorites' : 'Add to favorites'}
+        aria-pressed={favOn}
+        onClick={(e) => {
+          e.preventDefault();
+          if (!isAuthed) return; // tooltip will show
+          toggleFav(cocktail.id);
+        }}
+        className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-border transition
+        ${favOn ? 'text-rose-500' : 'text-foreground'} hover:scale-105 active:scale-95`}
+      >
+        <Heart className={favOn ? 'fill-current' : ''} />
+      </button>
+    </TooltipTrigger>
+    <TooltipContent side="top" align="center">
+      {!isAuthed ? 'Login to fav me' : (favOn ? 'Remove from favorites' : 'Add to favorites')}
+    </TooltipContent>
+  </Tooltip>
+</TooltipProvider>
+
+7) client/src/pages/CocktailList.tsx  (MODIFY: “My Favs” + Clear Filters)
+--------------------------------------------------------------------------
+// imports
+import { Heart } from 'lucide-react';
+import { useFavoriteIds } from '@/lib/favorites';
+import { useQuery } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+
+// state
+const [isFeatured, setIsFeatured] = useState(false);
+const [isPopular, setIsPopular] = useState(false);
+const [isMyFavs, setIsMyFavs] = useState(false);
+const [search, setSearch] = useState('');
+const [activeTags, setActiveTags] = useState<string[]>([]);
+
+const { data: favData } = useFavoriteIds();
+const isAuthed = favData?.isAuthed === true;
+const favIds = favData?.ids ?? [];
+
+const hasAnyFilter = isFeatured || isPopular || isMyFavs || search.trim() !== '' || activeTags.length > 0;
+const clearAll = () => {
+  setIsFeatured(false);
+  setIsPopular(false);
+  setIsMyFavs(false);
+  setSearch('');
+  setActiveTags([]);
+};
+
+// Default cocktails (public)
+const defaultQuery = useQuery({
+  queryKey: ['/api/cocktails', { featured: isFeatured, popular: isPopular, search, tags: activeTags }],
+  queryFn: () => {
+    const params: Record<string, any> = { /* add your existing filters here */ };
+    // build qs...
+    return apiRequest('/api/cocktails', { method: 'GET' });
+  },
+  enabled: !isMyFavs,
+});
+
+// My Favs cocktails (public read via ids=, but only if authed and we have IDs)
+const favIdsParam = favIds.join(',');
+const favsQuery = useQuery({
+  queryKey: ['/api/cocktails', { ids: favIdsParam }],
+  queryFn: () => apiRequest(`/api/cocktails?ids=${encodeURIComponent(favIdsParam)}`, { method: 'GET' }),
+  enabled: isMyFavs && isAuthed && favIds.length > 0,
+  retry: false,
+});
+
+// Empty states / guards
+if (isMyFavs && !isAuthed) {
+  return <div className="py-24 text-center text-muted-foreground">Login to view your favorite recipes</div>;
+}
+if (isMyFavs && isAuthed && favIds.length === 0) {
+  return <div className="py-24 text-center text-muted-foreground">You haven’t favorited anything yet.</div>;
+}
+
+// Pick list
+const cocktails = isMyFavs ? (favsQuery.data ?? []) : (defaultQuery.data ?? []);
+
+// Filter pills UI (insert My Favs after Popular)
+<div className="flex flex-wrap gap-2">
+  <button className={`pill ${isFeatured ? 'pill-active' : ''}`} onClick={() => setIsFeatured(v => !v)}>★ Featured</button>
+  <button className={`pill ${isPopular ? 'pill-active' : ''}`} onClick={() => setIsPopular(v => !v)}>⬆ Popular</button>
+  <button className={`pill ${isMyFavs ? 'pill-active' : ''} flex items-center gap-1`} onClick={() => setIsMyFavs(v => !v)}>
+    <Heart className={isMyFavs ? 'fill-current' : ''} size={16} />
+    My Favs
+  </button>
+  {hasAnyFilter && (
+    <button className="pill-outline" onClick={clearAll}>Clear filters</button>
+  )}
+</div>
+
+// (render cocktails as usual below)
+ 
+8) Styling helpers (optional)
+-----------------------------
+/* Tailwind layer */
+.pill { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40 transition; }
+.pill-active { @apply bg-primary text-primary-foreground border-transparent; }
+.pill-outline { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40; }
+
+Tests
+
+9) tests/regression/api.test.ts  (ADD cases)
+--------------------------------------------
+- Authenticated user:
+  - POST /api/user/favorites/:id → 200 { favorited: true/false }
+  - GET /api/user/favorites → returns the toggled id
+  - GET /api/cocktails?ids=<that-id> → returns the cocktail
+- Unauthenticated user:
+  - GET /api/user/favorites → 401
+  - POST /api/user/favorites/:id → 401
+- Public read:
+  - GET /api/cocktails?ids=<nonexistent> → []
+
+Notes
+- Do NOT modify session/CORS/helmet configuration.
+- Keep apiRequest signature: apiRequest(endpoint, options).
+- Favorites are stored as strings; we handle both docId and field "id" matches in cocktails route.
