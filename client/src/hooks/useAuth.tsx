@@ -5,7 +5,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 interface User {
   id: number;
   email: string;
-  role: 'basic' | 'admin';
+  role: 'basic' | 'reviewer' | 'admin';
   is_active: boolean;
 }
 

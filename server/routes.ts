@@ -14,10 +14,17 @@ import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
+import { allowRoles, rejectWritesForReviewer } from './middleware/roles';
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
   // Create auth middleware
   const { requireAuth, requireAdmin } = createAuthMiddleware(storage);
+  
+  // Apply write rejection middleware to protected routes
+  app.use('/api/cocktails', rejectWritesForReviewer);
+  app.use('/api/ingredients', rejectWritesForReviewer);  
+  app.use('/api/preferred-brands', rejectWritesForReviewer);
+  app.use('/api/mybar', rejectWritesForReviewer);
   
   // Register authentication routes
   app.use('/api/auth', createAuthRoutes(storage));
@@ -147,7 +154,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/ingredients", requireAdmin, async (req, res) => {
+  app.post("/api/ingredients", allowRoles('admin'), async (req, res) => {
     try {
       console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
       
@@ -189,7 +196,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/ingredients/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
@@ -253,7 +260,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/ingredients/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/ingredients/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== DELETE /api/ingredients/${id} ===`);
@@ -316,7 +323,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(cocktailWithDetails);
   });
 
-  app.post("/api/cocktails", requireAdmin, async (req, res) => {
+  app.post("/api/cocktails", allowRoles('admin'), async (req, res) => {
     try {
       console.log('\n=== POST /api/cocktails ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -389,7 +396,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/cocktails/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id} ===`);
@@ -489,7 +496,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/featured", requireAdmin, async (req, res) => {
+  app.patch("/api/cocktails/:id/featured", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     const { featured } = req.body;
     
@@ -509,7 +516,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/toggle-featured", requireAdmin, async (req, res) => {
+  app.patch("/api/cocktails/:id/toggle-featured", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id}/toggle-featured ===`);
@@ -561,7 +568,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/cocktails/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/cocktails/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -750,7 +757,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       
       if (inMyBar === 'true') {
         console.log('🔥 Calling getPreferredBrandsInMyBar...');
-        brands = await storage.getPreferredBrandsInMyBar();
+        brands = await storage.getAllPreferredBrands();
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);
@@ -778,7 +785,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(brandWithDetails);
   });
 
-  app.post("/api/preferred-brands", requireAdmin, async (req, res) => {
+  app.post("/api/preferred-brands", allowRoles('admin'), async (req, res) => {
     try {
       console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
       
@@ -807,7 +814,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
+  app.patch("/api/preferred-brands/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id} ===`);
@@ -835,7 +842,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id/toggle-mybar", requireAdmin, async (req, res) => {
+  app.patch("/api/preferred-brands/:id/toggle-mybar", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id}/toggle-mybar ===`);
@@ -850,10 +857,11 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         return res.status(404).json({ message: "Brand not found" });
       }
       
-      console.log(`Current brand inMyBar status: ${brand.inMyBar}, toggling to: ${!brand.inMyBar}`);
-      console.log(`Calling storage.updatePreferredBrand(${id}, { inMyBar: ${!brand.inMyBar} })...`);
+      const currentInMyBar = (brand as any).inMyBar;
+      console.log(`Current brand inMyBar status: ${currentInMyBar}, toggling to: ${!currentInMyBar}`);
+      console.log(`Calling storage.updatePreferredBrand(${id}, { inMyBar: ${!currentInMyBar} })...`);
       const updated = await storage.updatePreferredBrand(id, {
-        inMyBar: !brand.inMyBar
+        inMyBar: !currentInMyBar
       });
       
       console.log(`Toggle My Bar result:`, JSON.stringify(updated, null, 2));
@@ -864,7 +872,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/preferred-brands/:id", requireAdmin, async (req, res) => {
+  app.delete("/api/preferred-brands/:id", allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== DELETE /api/preferred-brands/${id} ===`);
@@ -914,47 +922,9 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // =================== AI IMPORT ROUTES ===================
-  app.post("/api/openrouter", async (req, res) => {
-    try {
-      const { model, systemPrompt, userContent } = req.body;
-      
-      if (!process.env.OPENROUTER_API_KEY) {
-        return res.status(500).json({ error: "OpenRouter API key not configured" });
-      }
-      
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userContent }
-          ]
-        })
-      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`OpenRouter API error: ${response.status} ${response.statusText}`, errorText);
-        return res.status(response.status).json({ 
-          error: `OpenRouter API error: ${response.statusText}` 
-        });
-      }
-
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error("OpenRouter request failed:", error);
-      res.status(500).json({ error: "Failed to process OpenRouter request" });
-    }
-  });
-
-  // Photo → Preferred Brand OCR endpoint
-  app.post("/api/ai/brands/from-image", async (req, res) => {
+  // Photo → Preferred Brand OCR endpoint - allow admin and reviewer for parsing
+  app.post("/api/ai/brands/from-image", allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       console.log("🔥 OCR request received");
       
@@ -1014,7 +984,167 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  // YouTube transcript route moved to registerReadOnlyRoutes to avoid duplication
+  // =================== AI IMPORT PARSE/COMMIT ROUTES ===================
+  
+  // Parse content (reviewers and admins can parse)
+  app.post("/api/import/parse", allowRoles('admin', 'reviewer'), async (req, res) => {
+    try {
+      const { content, source } = req.body;
+      
+      if (!content) {
+        return res.status(400).json({ error: "Content is required" });
+      }
+      
+      // Parse the content using AI without creating database records
+      // This allows reviewers to see what would be created
+      
+      const systemPrompt = `You are a cocktail recipe parser. Extract cocktail recipes from the provided content and return them in structured JSON format. 
+
+For each recipe, return:
+{
+  "name": "Recipe Name",
+  "description": "Brief description", 
+  "ingredients": [
+    {
+      "name": "Ingredient Name",
+      "amount": "2",
+      "unit": "oz"
+    }
+  ],
+  "instructions": ["Step 1", "Step 2"],
+  "tags": ["tag1", "tag2"]
+}
+
+Return an array of recipes. Only include complete recipes with clear ingredient lists and instructions.`;
+
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "anthropic/claude-3.5-sonnet",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: content }
+          ]
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error("OpenRouter API error:", errorData);
+        return res.status(response.status).json({ 
+          error: `AI parsing failed: ${response.statusText}` 
+        });
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices?.[0]?.message?.content || "";
+      
+      try {
+        // Try to parse the AI response as JSON
+        const recipes = JSON.parse(aiResponse);
+        
+        res.json({
+          source: source || "manual",
+          parsed: Array.isArray(recipes) ? recipes : [recipes],
+          timestamp: new Date().toISOString()
+        });
+        
+      } catch (parseError) {
+        console.error("Failed to parse AI response as JSON:", parseError);
+        res.status(500).json({ 
+          error: "Failed to parse AI response",
+          rawResponse: aiResponse 
+        });
+      }
+      
+    } catch (error) {
+      console.error("Parse error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to parse content" 
+      });
+    }
+  });
+  
+  // Commit parsed recipes (only admins can commit to database)
+  app.post("/api/import/commit", allowRoles('admin'), async (req, res) => {
+    try {
+      const { recipes } = req.body;
+      
+      if (!recipes || !Array.isArray(recipes)) {
+        return res.status(400).json({ error: "Recipes array is required" });
+      }
+      
+      const createdRecipes = [];
+      
+      for (const recipe of recipes) {
+        try {
+          // Transform the recipe data to match our schema
+          const transformedData = { ...recipe };
+          
+          // Transform ingredients from {name, amount, unit} to {ingredientId, amount, unit}
+          if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+            transformedData.ingredients = await Promise.all(
+              recipe.ingredients.map(async (ingredient: any) => {
+                // Find or create ingredient by name
+                let existingIngredient = await storage.findIngredientByName(ingredient.name);
+                if (!existingIngredient) {
+                  existingIngredient = await storage.createIngredient({
+                    name: ingredient.name,
+                    category: 'spirits', // Default category
+                    subCategory: null,
+                    description: null,
+                    imageUrl: null
+                  });
+                }
+                return {
+                  ingredientId: existingIngredient.id,
+                  amount: ingredient.amount.toString(),
+                  unit: ingredient.unit
+                };
+              })
+            );
+          }
+          
+          // Transform tags from string array to tag IDs
+          if (recipe.tags && Array.isArray(recipe.tags)) {
+            transformedData.tagIds = await Promise.all(
+              recipe.tags.map(async (tagName: string) => {
+                let existingTag = await storage.findTagByName(tagName);
+                if (!existingTag) {
+                  existingTag = await storage.createTag({ name: tagName });
+                }
+                return existingTag.id;
+              })
+            );
+            delete transformedData.tags;
+          }
+          
+          const cocktail = await storage.createCocktail(transformedData);
+          createdRecipes.push(cocktail);
+          
+        } catch (recipeError) {
+          console.error(`Failed to create recipe ${recipe.name}:`, recipeError);
+          // Continue with other recipes
+        }
+      }
+      
+      res.json({
+        success: true,
+        created: createdRecipes.length,
+        recipes: createdRecipes
+      });
+      
+    } catch (error) {
+      console.error("Commit error:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to commit recipes" 
+      });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
@@ -1081,8 +1211,8 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
     }
   });
 
-  // OpenRouter proxy endpoint  
-  app.post("/api/openrouter", async (req, res) => {
+  // OpenRouter proxy endpoint - allow admin and reviewer for parsing  
+  app.post("/api/openrouter", allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       const { model, systemPrompt, userContent } = req.body;
       
@@ -1123,8 +1253,8 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
     }
   });
 
-  // YouTube transcript endpoint with multiple language attempts
-  app.post("/api/youtube-transcript", async (req, res) => {
+  // YouTube transcript endpoint - allow admin and reviewer for parsing
+  app.post("/api/youtube-transcript", allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       const { videoId } = req.body;
       

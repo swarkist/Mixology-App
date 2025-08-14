@@ -16,6 +16,8 @@ import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 import { isYouTubeURL, extractYouTubeTranscript } from "@/lib/extractYouTubeTranscript";
 import { scrapeWebContent } from "@/lib/scrapeURL";
 import { callOpenRouter } from "@/lib/aiRequest";
@@ -60,6 +62,7 @@ const measurementUnits = [
 
 export const ImportCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
   const [rawContent, setRawContent] = useState<string>("");
   const [parsedRecipe, setParsedRecipe] = useState<ParsedRecipe | null>(null);
   const [ingredientsWithCategories, setIngredientsWithCategories] = useState<IngredientWithCategory[]>([]);
@@ -291,7 +294,7 @@ Rules:
 
 Do not include any explanation or additional text - return only the JSON object.`;
 
-      const response = await callOpenRouter(getModelForTask("parse" as any), rawContent, systemPrompt);
+      const response = await callOpenRouter(getModelForTask("parse"), rawContent, systemPrompt);
       
       // Clean and parse the JSON response
       const cleanedResponse = response.trim();
@@ -423,7 +426,7 @@ Do not include any explanation or additional text - return only the JSON object.
           {parsedRecipe && (
             <Button 
               onClick={cocktailForm.handleSubmit(saveCocktail)}
-              disabled={isSaving || saveStatus === "success"}
+              disabled={isSaving || saveStatus === "success" || user?.role === 'reviewer'}
               className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
             >
               {isSaving ? (
@@ -448,6 +451,8 @@ Do not include any explanation or additional text - return only the JSON object.
       </div>
 
       <div className="max-w-6xl mx-auto p-4 space-y-6">
+        <ReviewBanner />
+        
         {/* URL Input */}
         <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardHeader>

@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
 import { useForm } from "react-hook-form";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 import type { Ingredient as DBIngredient, Tag } from "@shared/schema";
 
 interface Ingredient {
@@ -32,6 +34,7 @@ export const AddCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute("/edit-cocktail/:id");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   // Determine if we're in edit mode
   const isEditMode = !!match && !!params?.id;
@@ -53,8 +56,8 @@ export const AddCocktail = (): JSX.Element => {
   const { data: cocktailData, isLoading: isLoadingCocktail } = useQuery({
     queryKey: ['/api/cocktails', cocktailId],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/cocktails/${cocktailId}`);
-      return response.json();
+      const response = await apiRequest(`/api/cocktails/${cocktailId}`);
+      return response;
     },
     enabled: isEditMode && !!cocktailId,
   });
@@ -305,7 +308,7 @@ export const AddCocktail = (): JSX.Element => {
           <Button 
             form="cocktail-form"
             type="submit"
-            disabled={saveCocktailMutation.isPending}
+            disabled={saveCocktailMutation.isPending || user?.role === 'reviewer'}
             className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 h-10 px-4 text-sm md:text-base flex-shrink-0"
           >
             {saveCocktailMutation.isPending ? "Saving..." : (
@@ -323,6 +326,7 @@ export const AddCocktail = (): JSX.Element => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <ReviewBanner />
         <form id="cocktail-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <Card className="bg-[#2a2920] border-[#4a4735]">

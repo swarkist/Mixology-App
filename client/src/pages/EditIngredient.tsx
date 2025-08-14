@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 import { Link, useLocation, useParams } from "wouter";
 import { ArrowLeft, Upload, X, Trash2, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +32,8 @@ export const EditIngredient = (): JSX.Element => {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
@@ -218,8 +223,8 @@ export const EditIngredient = (): JSX.Element => {
           <Button 
             form="ingredient-form"
             type="submit"
-            disabled={updateMutation.isPending}
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
+            disabled={updateMutation.isPending || user?.role === 'reviewer'}
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 h-10 px-4 text-sm md:text-base flex-shrink-0"
           >
             <span className="hidden sm:inline">
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -233,6 +238,7 @@ export const EditIngredient = (): JSX.Element => {
 
       {/* Form */}
       <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <ReviewBanner />
         <form id="ingredient-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <Card className="bg-[#2a2920] border-[#4a4735]">
@@ -428,8 +434,8 @@ export const EditIngredient = (): JSX.Element => {
             <Button 
               form="ingredient-form"
               type="submit"
-              disabled={updateMutation.isPending}
-              className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12"
+              disabled={updateMutation.isPending || user?.role === 'reviewer'}
+              className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 font-bold h-12"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
@@ -446,9 +452,9 @@ export const EditIngredient = (): JSX.Element => {
               </Link>
               <Button 
                 onClick={handleDelete}
-                disabled={deleteMutation.isPending}
+                disabled={deleteMutation.isPending || user?.role === 'reviewer'}
                 variant="outline"
-                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
+                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 disabled:opacity-50 h-10 text-sm"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}

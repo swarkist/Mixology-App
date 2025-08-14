@@ -7,7 +7,7 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   email: text("email").notNull().unique(),
   password_hash: text("password_hash").notNull(),
-  role: text("role", { enum: ['basic', 'admin'] }).default('basic').notNull(),
+  role: text("role", { enum: ['basic', 'reviewer', 'admin'] }).default('basic').notNull(),
   is_active: boolean("is_active").default(true).notNull(),
   email_verified_at: timestamp("email_verified_at"),
   created_at: timestamp("created_at").defaultNow().notNull(),

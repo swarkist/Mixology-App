@@ -24,6 +24,7 @@ import {
   UserCheck, 
   UserX, 
   Crown,
+  Eye,
   Calendar,
   Mail,
   X,
@@ -31,11 +32,12 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 
 interface User {
   id: number;
   email: string;
-  role: 'basic' | 'admin';
+  role: 'basic' | 'reviewer' | 'admin';
   is_active: boolean;
   email_verified_at: string | null;
   created_at: string;
@@ -143,7 +145,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user || user.role !== 'admin') {
+  if (!user || !['admin', 'reviewer'].includes(user.role)) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <Card className="bg-neutral-900 border-neutral-800">
@@ -175,6 +177,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-7xl mx-auto">
+        <ReviewBanner />
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
@@ -290,6 +293,7 @@ export default function AdminDashboard() {
                   <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
                     <SelectItem value="basic">Basic</SelectItem>
+                    <SelectItem value="reviewer">Reviewer</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
@@ -347,12 +351,21 @@ export default function AdminDashboard() {
                           <TableCell>
                             <Badge
                               variant={user.role === 'admin' ? 'default' : 'secondary'}
-                              className={user.role === 'admin' ? 'bg-yellow-600 text-black' : 'bg-neutral-700 text-neutral-300'}
+                              className={
+                                user.role === 'admin' ? 'bg-yellow-600 text-black' : 
+                                user.role === 'reviewer' ? 'bg-blue-600 text-white' :
+                                'bg-neutral-700 text-neutral-300'
+                              }
                             >
                               {user.role === 'admin' ? (
                                 <>
                                   <Crown className="w-3 h-3 mr-1" />
                                   Admin
+                                </>
+                              ) : user.role === 'reviewer' ? (
+                                <>
+                                  <Eye className="w-3 h-3 mr-1" />
+                                  Reviewer
                                 </>
                               ) : (
                                 'Basic'
@@ -377,15 +390,17 @@ export default function AdminDashboard() {
                             <div className="flex items-center gap-2">
                               <Select
                                 value={user.role}
-                                onValueChange={(role: 'basic' | 'admin') => {
+                                onValueChange={(role: 'basic' | 'reviewer' | 'admin') => {
                                   updateRoleMutation.mutate({ userId: user.id, role });
                                 }}
+                                disabled={user?.role !== 'admin'} // Only admins can change roles
                               >
-                                <SelectTrigger className="w-24 h-8 bg-neutral-800 border-neutral-700 text-white text-xs">
+                                <SelectTrigger className="w-28 h-8 bg-neutral-800 border-neutral-700 text-white text-xs">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="basic">Basic</SelectItem>
+                                  <SelectItem value="reviewer">Reviewer</SelectItem>
                                   <SelectItem value="admin">Admin</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -400,6 +415,7 @@ export default function AdminDashboard() {
                                   });
                                 }}
                                 className="h-8"
+                                disabled={user?.role !== 'admin'} // Only admins can activate/deactivate users
                               >
                                 {user.is_active ? (
                                   <>

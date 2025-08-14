@@ -1,0 +1,130 @@
+TITLE
+Add “Reviewer” Role (Read‑Only Admin Views, Zero Writes) — RBAC, UI Gating, API Enforcement
+
+OVERVIEW
+Add a third user role, "reviewer", that can see most admin-style pages and flows (including Add/Edit and the AI Importer parse view) but can NEVER write data. Reviewers may open forms and make local edits in the UI, but all save/commit/delete/feature-toggle actions are disabled client‑side and blocked server‑side. The Admin Console (Users management) remains admin‑only. No new user seeding is needed; I will change an existing user’s role to "reviewer" after this lands.
+
+CODEBASE ASSUMPTIONS
+- Frontend: React in client/src using React Query, shadcn/ui, "@/lib/queryClient", wouter.
+- Backend: Node/Express with routing centralized in server/routes.ts; auth middleware and RBAC already exist (basic/admin), CSRF + cookies in place.
+- AI Importer exists (admin-only today).
+- Admin Console (Users) exists and is admin‑only.
+- Neutral error copy is already used: "The information you provided doesn’t match our records."
+
+SCOPE
+- Extend RBAC to include: 'basic' | 'reviewer' | 'admin'
+- Allow reviewers to open Add/Edit forms and AI Importer parse flow but disallow all writes.
+- Keep Admin Console strictly admin-only (no reviewer access).
+- My Bar for reviewers: view-only (no add/remove).
+
+NON-GOALS
+- No database seeding or auto-promotion logic for reviewer.
+- Do not change the admin footer link behavior (remains admin‑only).
+- Do not redesign pages; keep existing styles and layout.
+
+IMPLEMENTATION PLAN (DO THIS)
+Backend
+1) Roles & Types
+   - Update role enum/types to include 'reviewer' everywhere (JWT claims, Zod schemas, TS types).
+
+2) Middleware
+   - Create allowRoles(...roles) middleware to share GET endpoints between 'admin' and 'reviewer'.
+   - Create rejectWritesForReviewer middleware:
+     * If req.user.role === 'reviewer' AND req.method is POST/PUT/PATCH/DELETE → return 403 with the existing neutral message.
+     * Otherwise next().
+
+3) Route Policy
+   - READ (GET) endpoints for admin resources (cocktails, ingredients, preferred brands): switch from requireRole('admin') to allowRoles('admin','reviewer') for GET only.
+   - WRITE (POST/PUT/PATCH/DELETE) endpoints across those resources remain admin‑only AND are also protected by rejectWritesForReviewer.
+   - AI Importer:
+     * Ensure split endpoints:
+       - POST /api/import/parse  → admin + reviewer (no DB writes)
+       - POST /api/import/commit → admin only (persists)
+     * Add allowRoles('admin','reviewer') to /parse, keep requireRole('admin') on /commit.
+   - My Bar:
+     * GET /api/mybar → requireAuth (all roles), returns current user’s items.
+     * POST /api/mybar, DELETE /api/mybar/:id → block reviewers via rejectWritesForReviewer (server) and leave requireAuth in place.
+   - Admin Console (Users):
+     * Keep requireRole('admin') on all /api/admin/* endpoints. No reviewer access.
+
+4) Mount Order
+   - Ensure rejectWritesForReviewer is mounted AFTER requireAuth and BEFORE protected route handlers for these prefixes:
+     /api/cocktails, /api/ingredients, /api/preferred-brands, /api/mybar, /api/import/commit
+   - Do NOT mount it globally for /api/auth endpoints.
+
+5) Auditing
+   - Where we already log admin reads/actions, add reviewer read entries with action like 'review_view' or 'review_parse'. Do not log field values.
+
+Frontend
+6) Role Handling
+   - Update AuthProvider types to include 'reviewer'.
+   - Extend RoleGate to accept an array OR add RoleGateMulti (either is fine).
+     * Example: <RoleGate roles={['admin','reviewer']}> for shared read pages.
+
+7) UI Gating
+   - On pages visible to reviewer (Add/Edit for cocktails/ingredients/brands; AI Importer):
+     * Show a small persistent banner, e.g., “Review mode: you can make local changes but saving is disabled.”
+     * Disable these in reviewer mode:
+       - Save/Update/Commit buttons (and Feature toggle button)
+       - Delete buttons
+     * Tooltip for disabled controls: “Disabled in Review mode.”
+     * Local form state can change, but no write mutation hooks should fire when reviewer.
+
+8) Routing & Visibility
+   - Admin Console (/admin/users) remains admin‑only in the UI and routing (no link for reviewer).
+   - AI Importer route is visible to admin + reviewer; reviewer can use Parse but not Commit.
+   - Add/Edit pages for cocktails/ingredients/preferred brands visible to admin + reviewer; reviewer cannot save.
+
+9) My Bar UI
+   - For reviewers, keep the page readable but disable add/remove controls and mutations.
+   - Add small inline note: “Read‑only in Review mode.”
+
+FILE MAP (CREATE/UPDATE THESE)
+Backend
+- server/middleware/roles.ts (NEW): export allowRoles(...roles) and rejectWritesForReviewer
+- server/routes.ts (UPDATE): 
+  * Swap GET admin-only resources to allowRoles('admin','reviewer')
+  * Keep writes as admin-only and ensure rejectWritesForReviewer is applied to listed prefixes
+- server/routes_import.ts or equivalent (UPDATE/ADD):
+  * POST /api/import/parse → allowRoles('admin','reviewer'), no DB writes
+  * POST /api/import/commit → requireRole('admin'), persists
+- server/lib/auth types (UPDATE): include 'reviewer' in role types and JWT claims
+
+Frontend
+- client/src/context/AuthProvider.tsx (UPDATE): role union adds 'reviewer'
+- client/src/components/RoleGate.tsx (UPDATE) OR client/src/components/RoleGateMulti.tsx (NEW)
+- client/src/components/ReviewBanner.tsx (NEW)
+- client/src/pages/**/Edit*.tsx (UPDATE): disable Save/Delete for reviewer
+- client/src/pages/**/New*.tsx  (UPDATE): disable Save for reviewer
+- client/src/pages/Import.tsx   (UPDATE): allow Parse; disable Commit for reviewer
+- client/src/pages/MyBar.tsx    (UPDATE): show read-only mode for reviewer
+
+CODING GUIDELINES
+- Reuse existing query/mutation helpers. Do not break current CSRF/cookie flows.
+- Keep neutral error copy: "The information you provided doesn’t match our records."
+- Do not alter Admin footer link logic (admin‑only).
+- Do not expose reviewer capability in Admin Console.
+
+ACCEPTANCE TESTS (MANUAL)
+1) Reviewer Role Access
+   - As reviewer: can open /cocktails/new and /cocktails/:id/edit (and same for ingredients, preferred brands); buttons for Save/Delete/Feature are disabled with tooltip.
+   - As reviewer: can open /import, run Parse successfully; Commit is disabled.
+   - As reviewer: cannot access /admin/users (UI hidden; direct URL → 403).
+   - As reviewer: can open /my-bar but cannot add/remove items (controls disabled); POST/DELETE calls would 403 if forced.
+
+2) Server Enforcement
+   - Any POST/PUT/PATCH/DELETE by reviewer to cocktails/ingredients/brands/mybar/import/commit returns 403 with the neutral message.
+   - GET endpoints above succeed for reviewer.
+
+3) Admin & Basic Regression
+   - Admin retains full control across all pages.
+   - Basic user behavior unchanged.
+
+NOTES
+- No reviewer seeding. I will change an existing user’s role to "reviewer" through our existing user management.
+- Do not modify unrelated routes or data models.
+
+OUTPUT FORMAT
+- Provide a concise list of changed files with unified diffs or complete file contents for NEW files.
+- Call out any new environment variables (none expected for this task).
+- Include brief testing steps mirroring Acceptance Tests.

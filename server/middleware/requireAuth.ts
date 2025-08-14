@@ -8,7 +8,7 @@ declare global {
     interface Request {
       user?: {
         id: number;
-        role: 'basic' | 'admin';
+        role: 'basic' | 'reviewer' | 'admin';
         is_active: boolean;
       };
       csrfToken?: string;
@@ -53,7 +53,7 @@ export function requireAuth(storage: IStorage) {
 }
 
 // Middleware to require specific role
-export function requireRole(role: 'admin' | 'basic') {
+export function requireRole(role: 'admin' | 'basic' | 'reviewer') {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
       return res.status(401).json({ error: 'Authentication required' });

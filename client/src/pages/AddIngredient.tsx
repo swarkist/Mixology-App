@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "@/components/Navigation";
 import { useForm } from "react-hook-form";
+import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 import type { Tag } from "@shared/schema";
 
 interface IngredientForm {
@@ -26,6 +28,7 @@ interface IngredientForm {
 export const AddIngredient = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [tags, setTags] = useState<string[]>([]);
@@ -159,7 +162,8 @@ export const AddIngredient = (): JSX.Element => {
           <Button 
             form="ingredient-form"
             type="submit"
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
+            disabled={user?.role === 'reviewer'}
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 h-10 px-4 text-sm md:text-base flex-shrink-0"
           >
             <span className="hidden sm:inline">Save Ingredient</span>
             <span className="sm:hidden">Save</span>
@@ -168,6 +172,7 @@ export const AddIngredient = (): JSX.Element => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <ReviewBanner />
         <form id="ingredient-form" onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Basic Information */}
           <Card className="bg-[#2a2920] border-[#4a4735]">
