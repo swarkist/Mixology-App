@@ -101,12 +101,16 @@ export const CocktailList = (): JSX.Element => {
           },
         ],
     queryFn: async () => {
-      const url = `/api/cocktails${buildQueryString()}`;
-      const response = await fetch(url, {
-        credentials: 'include' // Include cookies for authentication
-      });
-      if (!response.ok) throw new Error("Failed to fetch cocktails");
-      return response.json();
+      const queryString = buildQueryString();
+      if (showMyFavs && isAuthed) {
+        // Use apiRequest for authenticated requests
+        return apiRequest(`/api/cocktails${queryString}`, { method: 'GET' });
+      } else {
+        // Use regular fetch for public requests
+        const response = await fetch(`/api/cocktails${queryString}`);
+        if (!response.ok) throw new Error("Failed to fetch cocktails");
+        return response.json();
+      }
     },
   });
 
