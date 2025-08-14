@@ -249,13 +249,12 @@ export const CocktailList = (): JSX.Element => {
                       if (!isAuthed) return; // Silently do nothing if not authenticated
                       setShowMyFavs(!showMyFavs);
                     }}
-                    disabled={!isAuthed}
                     className={`h-8 px-3 rounded-lg text-xs ${
                       showMyFavs 
                         ? "bg-[#f2c40c] text-[#161611]" 
                         : isAuthed 
                           ? "bg-[#383629] border-0 text-white hover:bg-[#444133]" 
-                          : "bg-[#383629] border-0 text-gray-500 opacity-50 cursor-not-allowed"
+                          : "bg-[#383629] border-0 text-gray-500 opacity-50 cursor-pointer"
                     }`}
                   >
                     <Heart className={`h-3 w-3 mr-1 ${showMyFavs ? 'fill-current' : ''}`} />
