@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocation, Link } from "wouter";
 import {
@@ -28,13 +28,18 @@ import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailList = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [term, setTerm] = useState(() => getQueryParam("q"));
+  const debounced = useDebounce(term, 250);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [spiritFilter, setSpiritFilter] = useState<string>("all");
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
@@ -42,17 +47,22 @@ export const CocktailList = (): JSX.Element => {
   
   const isAdmin = user?.role === 'admin';
 
+  // Update URL when debounced search term changes
+  useEffect(() => { 
+    setQueryParamReplace("q", debounced); 
+  }, [debounced]);
+
   // Check if any filters are active
   const hasAnyFilter =
     showOnlyFeatured ||
     showOnlyPopular ||
-    searchQuery.trim() !== '';
+    term.trim() !== '';
 
   // Clear all filters function
   const clearAllFilters = () => {
     setShowOnlyFeatured(false);
     setShowOnlyPopular(false);
-    setSearchQuery('');
+    setTerm('');
     setSpiritFilter('all');
     
     // Clear URL params
@@ -62,37 +72,33 @@ export const CocktailList = (): JSX.Element => {
     }
   };
 
-  // Parse URL params
+  // Parse URL params for non-search filters
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const search = urlParams.get("search");
     const featured = urlParams.get("featured");
     const popular = urlParams.get("popular");
 
-    if (search) setSearchQuery(search);
     if (featured === "true") setShowOnlyFeatured(true);
     if (popular === "true") setShowOnlyPopular(true);
   }, []);
 
-  // Build query string
+  // Build query string for backend filters (not search)
   const buildQueryString = () => {
     const params = new URLSearchParams();
-    if (searchQuery.trim()) params.set("search", searchQuery.trim());
     if (showOnlyFeatured) params.set("featured", "true");
     if (showOnlyPopular) params.set("popular", "true");
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Fetch cocktails with filters
+  // Fetch cocktails with filters (but not search - that's client-side)
   const {
-    data: cocktails,
+    data: allCocktails,
     isLoading,
     error,
   } = useQuery<Cocktail[]>({
     queryKey: [
       "/api/cocktails",
       {
-        search: searchQuery,
         featured: showOnlyFeatured,
         popular: showOnlyPopular,
       },
@@ -103,6 +109,18 @@ export const CocktailList = (): JSX.Element => {
       return response.json();
     },
   });
+
+  // Client-side filtering for search
+  const visibleCocktails = useMemo(() => {
+    if (!allCocktails) return [];
+    if (!debounced) return allCocktails;
+    
+    const q = debounced.toLowerCase();
+    return allCocktails.filter((cocktail: Cocktail) =>
+      cocktail.name?.toLowerCase().includes(q) ||
+      cocktail.description?.toLowerCase().includes(q)
+    );
+  }, [allCocktails, debounced]);
 
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
@@ -126,10 +144,7 @@ export const CocktailList = (): JSX.Element => {
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setLocation(`/cocktails${buildQueryString()}`);
-  };
+
 
   const handleToggleFeatured = (cocktail: Cocktail) => {
     toggleFeaturedMutation.mutate({
@@ -194,22 +209,15 @@ export const CocktailList = (): JSX.Element => {
           </p>
         </div>
 
-        {/* Search Form */}
+        {/* Search Bar */}
         <div className="px-4 py-3">
-          <form onSubmit={handleSearch} className="h-12">
-            <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
-              <div className="pl-4 flex items-center">
-                <SearchIcon className="h-5 w-5 text-[#bab59c]" />
-              </div>
-              <Input
-                type="text"
-                placeholder="Search cocktails"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
-              />
-            </div>
-          </form>
+          <SearchBar
+            value={term}
+            onChange={setTerm}
+            placeholder="Search cocktails..."
+            autoFocus
+            className="mb-3"
+          />
         </div>
 
         {/* Filter and Action Buttons */}
@@ -286,7 +294,9 @@ export const CocktailList = (): JSX.Element => {
 
         {/* Cocktail Grid */}
         <div className="px-4 py-6">
-          {cocktails && cocktails.length > 0 ? (
+          {visibleCocktails.length === 0 ? (
+            <EmptyState term={term} onClear={() => setTerm("")} />
+          ) : (
             <div
               className={
                 viewMode === "grid"
@@ -294,7 +304,7 @@ export const CocktailList = (): JSX.Element => {
                   : "space-y-4"
               }
             >
-              {cocktails.map((cocktail: Cocktail) => (
+              {visibleCocktails.map((cocktail: Cocktail) => (
                 <Card
                   key={cocktail.id}
                   className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col"
@@ -375,17 +385,6 @@ export const CocktailList = (): JSX.Element => {
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-[#bab59c] text-lg [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                No cocktails found. Try adjusting your filters or search terms.
-              </p>
-              <Link href="/add-cocktail">
-                <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 font-bold">
-                  Add Your First Cocktail
-                </Button>
-              </Link>
             </div>
           )}
         </div>

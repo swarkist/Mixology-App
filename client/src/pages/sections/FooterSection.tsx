@@ -83,11 +83,12 @@ export const FooterSection = (): JSX.Element => {
               © 2025 Mixi Mixology. All rights reserved.
             </p>
             <RoleGate role="admin">
+              {/* Hide Admin Link 
               <Link href="/admin">
                 <span className="font-normal text-[#f2c40c] text-base [font-family:'Plus_Jakarta_Sans',Helvetica] hover:underline cursor-pointer">
                   Admin
                 </span>
-              </Link>
+              </Link> */}
             </RoleGate>
           </div>
         </div>

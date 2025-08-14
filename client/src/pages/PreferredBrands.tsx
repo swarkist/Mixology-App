@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,26 +12,37 @@ import type { PreferredBrand } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
 import BrandFromImageDialog from "@/components/BrandFromImageDialog";
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { setQueryParamReplace, getQueryParam } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export default function PreferredBrands() {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState("");
+  const [term, setTerm] = useState(() => getQueryParam("search") || "");
   const [ocrOpen, setOcrOpen] = useState(false);
   const [draftBrand, setDraftBrand] = useState<{ name?: string; proof?: number | null } | null>(null);
   const queryClient = useQueryClient();
   
   const isLoggedIn = !!user;
+  const debounced = useDebounce(term, 300);
 
-  const { data: brands = [], isLoading, error } = useQuery({
-    queryKey: ["/api/preferred-brands", searchTerm],
+  // Handle URL state synchronization
+  useEffect(() => {
+    if (debounced.trim()) {
+      setQueryParamReplace("search", debounced.trim());
+    } else {
+      setQueryParamReplace("search", "");
+    }
+  }, [debounced]);
+
+  // Fetch all brands first
+  const { data: allBrands = [], isLoading, error } = useQuery({
+    queryKey: ["/api/preferred-brands"],
     queryFn: async () => {
       try {
-        const params = new URLSearchParams();
-        if (searchTerm.trim()) {
-          params.append("search", searchTerm);
-        }
-        const response = await fetch(`/api/preferred-brands?${params}`);
+        const response = await fetch(`/api/preferred-brands`);
         if (!response.ok) {
           throw new Error(`Failed to fetch brands: ${response.status}`);
         }
@@ -44,6 +55,18 @@ export default function PreferredBrands() {
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Filter brands based on search
+  const visibleBrands = useMemo(() => {
+    if (!allBrands) return [];
+    
+    if (!debounced.trim()) return allBrands;
+    
+    const q = debounced.toLowerCase();
+    return allBrands.filter((brand: PreferredBrand) =>
+      brand.name?.toLowerCase().includes(q)
+    );
+  }, [allBrands, debounced]);
 
   const toggleMyBarMutation = useMutation({
     mutationFn: async (brandId: number) => {

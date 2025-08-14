@@ -1,0 +1,295 @@
+Title
+Unify real‑time search + standardized empty states across Cocktails, Ingredients, My Bar, Preferred Brands
+
+Overview
+Apply a consistent search UX across /cocktails, /ingredients, /my-bar, /preferred-brands:
+
+Local input state, 250ms debounce, no form submit, no route remount.
+
+Sync ?q= via history.replaceState (back‑button friendly, no navigation).
+
+Standard Empty State: “No results for ‘term’” with a one‑click Clear search.
+
+Keep focus in the input. Pressing Enter does nothing.
+
+Do not update replit.md (only updated during regression runs).
+
+Tasks
+1) Shared helpers (new files)
+
+client/src/lib/url.ts
+
+export function getQueryParam(name: string): string {
+  const sp = new URLSearchParams(window.location.search);
+  return sp.get(name) ?? "";
+}
+export function setQueryParamReplace(name: string, value: string) {
+  const url = new URL(window.location.href);
+  if (value) url.searchParams.set(name, value);
+  else url.searchParams.delete(name);
+  window.history.replaceState({}, "", url);
+}
+
+
+client/src/lib/useDebounce.ts
+
+import { useEffect, useState } from "react";
+export function useDebounce<T>(value: T, delay = 250) {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
+  }, [value, delay]);
+  return debounced;
+}
+
+
+client/src/components/SearchBar.tsx
+
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { FormEvent } from "react";
+
+type Props = {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  className?: string;
+  autoFocus?: boolean;
+};
+
+export default function SearchBar({
+  value,
+  onChange,
+  placeholder = "Search...",
+  className,
+  autoFocus,
+}: Props) {
+  const stopSubmit = (e: FormEvent) => e.preventDefault();
+  return (
+    <form onSubmit={stopSubmit} className={cn("flex items-center gap-2", className)} role="search">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        autoComplete="off"
+        onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
+        aria-label={placeholder}
+      />
+      {value && (
+        <Button type="button" variant="ghost" onClick={() => onChange("")} aria-label="Clear search">
+          <X size={16} />
+        </Button>
+      )}
+    </form>
+  );
+}
+
+
+client/src/components/EmptyState.tsx (new, shared)
+
+import { Button } from "@/components/ui/button";
+
+type Props = {
+  term: string;
+  onClear: () => void;
+  message?: string; // optional override
+};
+
+export default function EmptyState({ term, onClear, message }: Props) {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12 gap-3">
+      <div className="text-xl font-semibold">No results{term ? ` for “${term}”` : ""}</div>
+      <p className="text-sm opacity-80">
+        {message ?? "Try a different keyword or clear your search to see everything."}
+      </p>
+      <Button type="button" onClick={onClear} className="mt-2" aria-label="Clear search">
+        Clear search
+      </Button>
+    </div>
+  );
+}
+
+2) Patch Cocktails page (e.g., client/src/pages/CocktailList.tsx)
+
+Replace the existing search UI with SearchBar.
+
+Initialize from ?q=, debounce, update URL with replaceState.
+
+Filter in memory (or plug debounced into your react‑query key with keepPreviousData: true).
+
+Show EmptyState if nothing matches.
+
+// imports
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
+import { useEffect, useMemo, useState } from "react";
+
+// inside component
+const [term, setTerm] = useState(() => getQueryParam("q"));
+const debounced = useDebounce(term, 250);
+
+useEffect(() => { setQueryParamReplace("q", debounced); }, [debounced]);
+
+// if cocktails already fetched client-side:
+const visibleCocktails = useMemo(() => {
+  if (!debounced) return cocktails;
+  const q = debounced.toLowerCase();
+  return cocktails.filter((c: any) =>
+    c.name?.toLowerCase().includes(q) ||
+    c.description?.toLowerCase().includes(q) ||
+    c.tags?.some((t: string) => t?.toLowerCase().includes(q))
+  );
+}, [cocktails, debounced]);
+
+// UI
+<SearchBar
+  value={term}
+  onChange={setTerm}
+  placeholder="Search cocktails…"
+  autoFocus
+  className="mb-3"
+/>
+
+{visibleCocktails.length === 0 ? (
+  <EmptyState term={term} onClear={() => setTerm("")} />
+) : (
+  // render visibleCocktails cards
+)}
+
+
+If you require server search: change your useQuery to key on { q: debounced }, fetch /api/cocktails?q=..., and set keepPreviousData: true.
+
+3) Patch Ingredients page (client/src/pages/Ingredients.tsx)
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
+import { useEffect, useMemo, useState } from "react";
+
+const [term, setTerm] = useState(() => getQueryParam("q"));
+const debounced = useDebounce(term, 250);
+useEffect(() => { setQueryParamReplace("q", debounced); }, [debounced]);
+
+const visibleIngredients = useMemo(() => {
+  if (!debounced) return ingredients;
+  const q = debounced.toLowerCase();
+  return ingredients.filter((ing: any) =>
+    ing.name?.toLowerCase().includes(q) ||
+    ing.category?.toLowerCase().includes(q) ||
+    ing.subCategory?.toLowerCase().includes(q) ||
+    (Array.isArray(ing.preferredBrands) &&
+      ing.preferredBrands.some((b: any) => b?.name?.toLowerCase().includes(q)))
+  );
+}, [ingredients, debounced]);
+
+<SearchBar value={term} onChange={setTerm} placeholder="Search ingredients…" className="mb-3" />
+
+{visibleIngredients.length === 0 ? (
+  <EmptyState term={term} onClear={() => setTerm("")} />
+) : (
+  // render visibleIngredients
+)}
+
+4) Patch My Bar page (client/src/pages/MyBar.tsx)
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
+import { useEffect, useMemo, useState } from "react";
+
+const [term, setTerm] = useState(() => getQueryParam("q"));
+const debounced = useDebounce(term, 250);
+useEffect(() => { setQueryParamReplace("q", debounced); }, [debounced]);
+
+const visibleMyBar = useMemo(() => {
+  if (!debounced) return myBarItems;
+  const q = debounced.toLowerCase();
+  return myBarItems.filter((ing: any) => {
+    const nameHit =
+      ing.name?.toLowerCase().includes(q) ||
+      ing.category?.toLowerCase().includes(q) ||
+      ing.subCategory?.toLowerCase().includes(q);
+    const brandHit = Array.isArray(ing.preferredBrands)
+      ? ing.preferredBrands.some((b: any) => (b?.name ?? "").toLowerCase().includes(q))
+      : false;
+    return nameHit || brandHit;
+  });
+}, [myBarItems, debounced]);
+
+<SearchBar value={term} onChange={setTerm} placeholder="Search my bar…" autoFocus className="mb-3" />
+
+{visibleMyBar.length === 0 ? (
+  <EmptyState term={term} onClear={() => setTerm("")} />
+) : (
+  // render visibleMyBar
+)}
+
+5) Patch Preferred Brands page (client/src/pages/PreferredBrands.tsx)
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
+import { useEffect, useMemo, useState } from "react";
+
+const [term, setTerm] = useState(() => getQueryParam("q"));
+const debounced = useDebounce(term, 250);
+useEffect(() => { setQueryParamReplace("q", debounced); }, [debounced]);
+
+const visibleBrands = useMemo(() => {
+  if (!debounced) return brands;
+  const q = debounced.toLowerCase();
+  return brands.filter((b: any) =>
+    b.name?.toLowerCase().includes(q) ||
+    b.notes?.toLowerCase().includes(q) ||
+    (b.proof ? String(b.proof).toLowerCase().includes(q) : false) ||
+    b.ingredientName?.toLowerCase().includes(q) // if present
+  );
+}, [brands, debounced]);
+
+<SearchBar value={term} onChange={setTerm} placeholder="Search preferred brands…" className="mb-3" />
+
+{visibleBrands.length === 0 ? (
+  <EmptyState term={term} onClear={() => setTerm("")} />
+) : (
+  // render visibleBrands
+)}
+
+6) Safety sweep (all four pages)
+
+Any nearby “Search” buttons must be type="button" (not submit).
+
+Inputs must not be wrapped in <Link> or components that navigate.
+
+Keep autoFocus only on one page at a time (local page input).
+
+If a global header search exists, apply the same pattern there.
+
+Acceptance Criteria
+
+Typing in search never blurs the input or remounts the page.
+
+Results update ~250ms after you pause typing.
+
+URL ?q= updates via replaceState without navigation.
+
+Pressing Enter in the input does nothing.
+
+Empty states show a clear message and “Clear search” resets to full list.
+
+Manual Test Plan
+
+On each of the four pages, type: marg → results filter live; focus stays.
+
+Press Enter → nothing navigates.
+
+Click Clear search → full list returns, focus remains in the input.
+
+Refresh with ?q=... in the URL → input initializes from URL, list filtered immediately.
+
+Try edge characters (emoji, quotes, hyphens) → no crashes, still filters.

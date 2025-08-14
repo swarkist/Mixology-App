@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
@@ -13,30 +13,68 @@ import type { Ingredient } from "@shared/schema";
 import { INGREDIENT_CATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import { useDebounce } from "@/lib/useDebounce";
+import { getQueryParam, setQueryParamReplace } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>("all");
+  const [term, setTerm] = useState(() => getQueryParam("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => getQueryParam("category") || "all");
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>(() => getQueryParam("subcategory") || "all");
   
   const isAdmin = user?.role === 'admin';
+  const debounced = useDebounce(term, 300);
 
-  // Build query string
-  const buildQueryString = () => {
+  // Fetch all ingredients first 
+  const { data: allIngredients, isLoading, error } = useQuery<Ingredient[]>({
+    queryKey: ["/api/ingredients"],
+  });
+
+  // Handle URL state synchronization
+  useEffect(() => {
     const params = new URLSearchParams();
-    if (searchQuery.trim()) params.set("search", searchQuery.trim());
+    if (debounced.trim()) params.set("search", debounced.trim());
     if (selectedCategory !== "all") params.set("category", selectedCategory);
     if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
-    return params.toString() ? `?${params.toString()}` : "";
-  };
+    
+    setQueryParamReplace(params.toString());
+  }, [debounced, selectedCategory, selectedSubcategory]);
 
-  // Fetch ingredients with filters
-  const { data: ingredients, isLoading, error } = useQuery<Ingredient[]>({
-    queryKey: [`/api/ingredients${buildQueryString()}`],
-  });
+  // Filter ingredients based on search and filters
+  const visibleIngredients = useMemo(() => {
+    if (!allIngredients) return [];
+    
+    let filtered = [...allIngredients];
+    
+    // Apply search filter
+    if (debounced.trim()) {
+      const q = debounced.toLowerCase();
+      filtered = filtered.filter((ingredient: Ingredient) =>
+        ingredient.name?.toLowerCase().includes(q) ||
+        ingredient.description?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Apply category filter
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter((ingredient: Ingredient) => 
+        ingredient.category === selectedCategory
+      );
+    }
+    
+    // Apply subcategory filter
+    if (selectedSubcategory !== "all") {
+      filtered = filtered.filter((ingredient: Ingredient) => 
+        ingredient.subcategory === selectedSubcategory
+      );
+    }
+    
+    return filtered;
+  }, [allIngredients, debounced, selectedCategory, selectedSubcategory]);
 
 
 
@@ -55,9 +93,7 @@ export const Ingredients = (): JSX.Element => {
     },
   });
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+
 
   const handleToggleMyBar = (ingredient: Ingredient) => {
     // My Bar functionality has been moved to preferred brands system
@@ -116,26 +152,17 @@ export const Ingredients = (): JSX.Element => {
             Ingredients
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Manage your bar and explore {ingredients?.length || 0} ingredients. Build your perfect home bar collection.
+            Manage your bar and explore {allIngredients?.length || 0} ingredients. Build your perfect home bar collection.
           </p>
         </div>
 
-        {/* Search Form */}
+        {/* Search Bar */}
         <div className="px-4 py-3">
-          <form onSubmit={handleSearch} className="h-12">
-            <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
-              <div className="pl-4 flex items-center">
-                <SearchIcon className="h-5 w-5 text-[#bab59c]" />
-              </div>
-              <Input
-                type="text"
-                placeholder="Search ingredients..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
-              />
-            </div>
-          </form>
+          <SearchBar 
+            value={term}
+            onChange={setTerm}
+            placeholder="Search ingredients..."
+          />
         </div>
 
         {/* Filters and Controls */}
@@ -207,12 +234,12 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Stats Bar */}
-        {ingredients && (
+        {visibleIngredients && (
           <div className="py-3 border-b border-[#544f3b] mb-3">
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span>Total: {ingredients.length}</span>
+                <span>Total: {visibleIngredients.length}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-[#f2c40c]" />
@@ -228,9 +255,11 @@ export const Ingredients = (): JSX.Element => {
 
         {/* Content */}
         <div className="px-4 py-6">
-          {ingredients && ingredients.length > 0 ? (
+          {visibleIngredients.length === 0 ? (
+            <EmptyState term={term} onClear={() => setTerm("")} />
+          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ingredients.map((ingredient: Ingredient) => (
+              {visibleIngredients.map((ingredient: Ingredient) => (
                 <Card key={ingredient.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
                   {/* Image Section */}
                   <div
@@ -299,22 +328,6 @@ export const Ingredients = (): JSX.Element => {
                 </Card>
               ))}
             </div>
-          ) : (
-            <Card className="bg-[#383629] border-[#544f3b]">
-              <CardContent className="p-8 text-center">
-                <SearchIcon className="h-12 w-12 text-[#544f3b] mx-auto mb-4" />
-                <p className="text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                  No ingredients found. Try adjusting your search or filters.
-                </p>
-                {isAdmin && (
-                  <Link href="/add-ingredient">
-                    <Button className="mt-4 bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90">
-                      Add Your First Ingredient
-                    </Button>
-                  </Link>
-                )}
-              </CardContent>
-            </Card>
           )}
         </div>
       </div>
