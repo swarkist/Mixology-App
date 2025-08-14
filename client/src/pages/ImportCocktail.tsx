@@ -51,6 +51,13 @@ const importFormSchema = z.object({
 
 type ImportFormData = z.infer<typeof importFormSchema>;
 
+// Standard measurement units for cocktail ingredients
+const measurementUnits = [
+  "oz", "ml", "cl", "tsp", "tbsp", "cup", "pint", "qt", "gal", "L",
+  "dash", "splash", "part", "parts", "drop", "drops", "pinch", "slice", "slices",
+  "wedge", "wedges", "sprig", "sprigs", "leaf", "leaves", "piece", "pieces"
+];
+
 export const ImportCocktail = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const [rawContent, setRawContent] = useState<string>("");
@@ -709,12 +716,25 @@ SAMPLE RECIPE
                                   </div>
                                   <div className="md:col-span-3">
                                     <Label className="text-white text-xs">Unit</Label>
-                                    <Input
+                                    <Select
                                       value={ing.unit || ''}
-                                      onChange={(e) => updateIngredientField(idx, 'unit', e.target.value)}
-                                      className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs"
-                                      placeholder="oz"
-                                    />
+                                      onValueChange={(value) => updateIngredientField(idx, 'unit', value)}
+                                    >
+                                      <SelectTrigger className="h-8 bg-[#2a2920] border-[#4a4735] text-white text-xs">
+                                        <SelectValue placeholder="oz" />
+                                      </SelectTrigger>
+                                      <SelectContent className="bg-[#383629] border-[#544f3b] max-h-48">
+                                        {measurementUnits.map((unit) => (
+                                          <SelectItem 
+                                            key={unit} 
+                                            value={unit}
+                                            className="text-white text-xs"
+                                          >
+                                            {unit}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
                                   </div>
                                   <div className="md:col-span-1 flex items-end">
                                     <Button
