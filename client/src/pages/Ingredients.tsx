@@ -36,12 +36,16 @@ export const Ingredients = (): JSX.Element => {
 
   // Handle URL state synchronization
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (debounced.trim()) params.set("search", debounced.trim());
-    if (selectedCategory !== "all") params.set("category", selectedCategory);
-    if (selectedSubcategory !== "all") params.set("subcategory", selectedSubcategory);
+    const url = new URL(window.location.href);
+    url.searchParams.delete("search");
+    url.searchParams.delete("category");
+    url.searchParams.delete("subcategory");
     
-    setQueryParamReplace(params.toString());
+    if (debounced.trim()) url.searchParams.set("search", debounced.trim());
+    if (selectedCategory !== "all") url.searchParams.set("category", selectedCategory);
+    if (selectedSubcategory !== "all") url.searchParams.set("subcategory", selectedSubcategory);
+    
+    window.history.replaceState({}, "", url);
   }, [debounced, selectedCategory, selectedSubcategory]);
 
   // Filter ingredients based on search and filters
@@ -69,7 +73,7 @@ export const Ingredients = (): JSX.Element => {
     // Apply subcategory filter
     if (selectedSubcategory !== "all") {
       filtered = filtered.filter((ingredient: Ingredient) => 
-        ingredient.subcategory === selectedSubcategory
+        ingredient.subCategory === selectedSubcategory
       );
     }
     
@@ -157,13 +161,11 @@ export const Ingredients = (): JSX.Element => {
         </div>
 
         {/* Search Bar */}
-        <div className="px-4 py-3">
-          <SearchBar 
-            value={term}
-            onChange={setTerm}
-            placeholder="Search ingredients..."
-          />
-        </div>
+        <SearchBar 
+          value={term}
+          onChange={setTerm}
+          placeholder="Search ingredients..."
+        />
 
         {/* Filters and Controls */}
         <div className="px-3 py-3">

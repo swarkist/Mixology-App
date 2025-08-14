@@ -183,20 +183,6 @@ export default function PreferredBrands() {
           onChange={setTerm}
           placeholder="Search preferred brands..."
         />
-        
-        {/* Clear Filters Pill */}
-        {term.trim() !== "" && (
-          <div className="px-4 py-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setTerm("")}
-              className="text-sm border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors"
-            >
-              Clear Filters
-            </Button>
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div className="px-4 py-3">

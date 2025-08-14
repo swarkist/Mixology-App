@@ -167,13 +167,11 @@ export default function MyBar() {
         </div>
 
         {/* Search */}
-        <div className="px-4 py-3">
-          <SearchBar 
-            value={term}
-            onChange={setTerm}
-            placeholder="Search my bar..."
-          />
-        </div>
+        <SearchBar 
+          value={term}
+          onChange={setTerm}
+          placeholder="Search my bar..."
+        />
 
         {/* Action Buttons */}
         <div className="px-3 py-3 space-y-3">

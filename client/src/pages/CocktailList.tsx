@@ -210,15 +210,12 @@ export const CocktailList = (): JSX.Element => {
         </div>
 
         {/* Search Bar */}
-        <div className="px-4 py-3">
-          <SearchBar
-            value={term}
-            onChange={setTerm}
-            placeholder="Search cocktails..."
-            autoFocus
-            className="mb-3"
-          />
-        </div>
+        <SearchBar
+          value={term}
+          onChange={setTerm}
+          placeholder="Search cocktails..."
+          autoFocus
+        />
 
         {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">
