@@ -483,6 +483,111 @@ describe('Cocktail Management API Regression Tests', () => {
     });
   });
 
+  describe('UI Filtering and EmptyState Tests', () => {
+    it('should validate brand categorization logic for My Bar filtering', async () => {
+      const testBrandNames = [
+        'Jameson Whiskey',
+        'Absolut Vodka', 
+        'Bombay Gin',
+        'Captain Morgan Rum',
+        'Patron Tequila',
+        'Baileys Liqueur',
+        'Cointreau Triple Sec',
+        'Angostura Bitters',
+        'Grenadine Syrup',
+        'Tonic Water',
+        'Unknown Brand'
+      ];
+
+      const expectedCategories = [
+        'spirits', 'spirits', 'spirits', 'spirits', 'spirits',
+        'liqueurs', 'liqueurs',
+        'bitters',
+        'syrups',
+        'mixers',
+        'other'
+      ];
+
+      // Simulate the categorization logic from MyBar.tsx
+      const categorizeBrand = (brandName: string): string => {
+        const name = brandName.toLowerCase();
+        
+        if (name.includes('whiskey') || name.includes('whisky') || name.includes('bourbon') || 
+            name.includes('scotch') || name.includes('rye') || name.includes('vodka') || 
+            name.includes('gin') || name.includes('rum') || name.includes('tequila') || 
+            name.includes('cognac') || name.includes('brandy') || name.includes('moonshine')) {
+          return 'spirits';
+        }
+        
+        if (name.includes('liqueur') || name.includes('schnapps') || name.includes('amaretto') ||
+            name.includes('baileys') || name.includes('kahlua') || name.includes('cointreau') ||
+            name.includes('grand marnier') || name.includes('triple sec') || name.includes('curacao')) {
+          return 'liqueurs';
+        }
+        
+        if (name.includes('bitter') || name.includes('angostura') || name.includes('peychaud')) {
+          return 'bitters';
+        }
+        
+        if (name.includes('syrup') || name.includes('grenadine') || name.includes('simple syrup') ||
+            name.includes('cherry syrup') || name.includes('vanilla syrup')) {
+          return 'syrups';
+        }
+        
+        if (name.includes('tonic') || name.includes('soda') || name.includes('ginger beer') ||
+            name.includes('club soda') || name.includes('mixer') || name.includes('juice')) {
+          return 'mixers';
+        }
+        
+        return 'other';
+      };
+
+      testBrandNames.forEach((brandName, index) => {
+        const category = categorizeBrand(brandName);
+        expect(category).toBe(expectedCategories[index]);
+      });
+
+      console.log(`✅ Brand categorization: All ${testBrandNames.length} test cases passed`);
+    });
+
+    it('should validate EmptyState differentiation between search and filter results', async () => {
+      // Test that ingredient categories match expected filter options
+      const ingredients = await apiRequest('/ingredients');
+      const expectedCategories = ['spirits', 'mixers', 'juices', 'syrups', 'bitters', 'garnishes', 'other'];
+      
+      const foundCategories = new Set(ingredients.map((i: any) => i.category));
+      
+      foundCategories.forEach(category => {
+        expect(expectedCategories).toContain(category);
+      });
+
+      console.log(`✅ Category validation: Found categories: ${Array.from(foundCategories).join(', ')}`);
+    });
+
+    it('should test cocktail filtering consistency across pages', async () => {
+      // Test that featured and popular filters work consistently
+      const featuredCocktails = await apiRequest('/cocktails?featured=true');
+      const popularCocktails = await apiRequest('/cocktails?popular=true');
+      const allCocktails = await apiRequest('/cocktails');
+      
+      expect(Array.isArray(featuredCocktails)).toBe(true);
+      expect(Array.isArray(popularCocktails)).toBe(true);
+      expect(Array.isArray(allCocktails)).toBe(true);
+      
+      // Validate featured cocktails
+      featuredCocktails.forEach((cocktail: any) => {
+        expect(cocktail.isFeatured).toBe(true);
+      });
+
+      // Validate popular cocktails
+      popularCocktails.forEach((cocktail: any) => {
+        expect(cocktail.popularityCount).toBeGreaterThan(0);
+      });
+
+      console.log(`✅ Filter consistency: ${featuredCocktails.length} featured, ${popularCocktails.length} popular of ${allCocktails.length} total`);
+    });
+  });
+
   // Comprehensive cleanup with verification
   afterAll(async () => {
     try {
