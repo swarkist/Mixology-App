@@ -8,6 +8,9 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
 ## Recent Changes (August 14, 2025)
+- **Ingredient Tags Functionality Fix**: Completely resolved ingredient tags system with proper Firebase storage handling, PATCH route tag transformation, and EditIngredient form tag loading
+- **Ingredient Detail Page Enhancement**: Added "Used in Cocktails" section matching Preferred Brands design with proper `/recipe/{id}` navigation links and cocktail count display
+- **Tags Section Standardization**: Unified tags display across ingredient and cocktail pages with "Usage & Tags" title, gold badge styling, and "No tags assigned" fallback messaging
 - **Unified Real-Time Search & Standardized Empty States**: Implemented consistent pill-based filtering across Cocktails, Ingredients, and My Bar pages with enhanced EmptyState component
 - **My Bar Category Filtering**: Added smart brand categorization system (spirits, liqueurs, mixers, bitters, syrups, other) based on name pattern recognition
 - **Enhanced EmptyState Component**: Differentiated messaging for search vs filter results with proper "Clear filters" vs "Try different keywords" actions
@@ -51,6 +54,8 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **UI Consistency**: Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages (CocktailList, Ingredients, MyBar). URL state synchronization for filter persistence.
+- **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships showing all recipes using each ingredient, complete tags support with proper create/edit functionality, and consistent CardContent styling.
+- **Tags System**: Complete ingredient tagging functionality with proper Firebase storage, tag creation during ingredient updates, and unified "Usage & Tags" display matching cocktail pages.
 - **Admin Dashboard**: Comprehensive user management interface with real-time search, role/status filtering, pagination, and enhanced UX features including inline clear functionality and improved visual contrast.
 
 ## External Dependencies

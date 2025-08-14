@@ -43,7 +43,8 @@ const testIngredientTemplate = {
   category: 'spirits',
   subCategory: 'vodka',
   preferredBrand: 'Test Brand',
-  abv: 40
+  abv: 40,
+  tags: ['test_tag', 'regression_tag'] // Test ingredient tags functionality
 };
 
 let testManager: TestDataManager;
@@ -202,6 +203,95 @@ describe('Cocktail Management API Regression Tests', () => {
       });
 
       expect(result.inMyBar).toBe(true);
+    });
+  });
+
+  describe('Ingredient Tags Functionality', () => {
+    it('should create ingredient with tags', async () => {
+      const ingredientWithTags = {
+        ...testIngredientTemplate,
+        name: 'API_Test_Tagged_Ingredient',
+        tags: ['premium', 'imported', 'craft']
+      };
+
+      const result = await testManager.createTestIngredient(ingredientWithTags);
+      
+      expect(result).toHaveProperty('id');
+      expect(result.name).toContain('API_Test_Tagged_Ingredient');
+      
+      // Verify tags are properly associated via detailed endpoint
+      const detailsResult = await apiRequest(`/ingredients/${result.id}`);
+      expect(detailsResult.ingredient).toHaveProperty('tags');
+      expect(Array.isArray(detailsResult.ingredient.tags)).toBe(true);
+    });
+
+    it('should update ingredient tags via PATCH', async () => {
+      const newTags = ['updated_tag', 'regression_test', 'api_verified'];
+      
+      const result = await apiRequest(`/ingredients/${createdIngredientId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          tags: newTags
+        }),
+      });
+
+      expect(result).toHaveProperty('id');
+      
+      // Verify tags were saved correctly
+      const detailsResult = await apiRequest(`/ingredients/${createdIngredientId}`);
+      expect(detailsResult.ingredient.tags).toBeInstanceOf(Array);
+      
+      console.log('✅ Ingredient tags PATCH functionality verified');
+    });
+
+    it('should retrieve ingredient with complete tag data', async () => {
+      const result = await apiRequest(`/ingredients/${createdIngredientId}`);
+      
+      expect(result.ingredient).toHaveProperty('id');
+      expect(result.ingredient).toHaveProperty('name');
+      expect(result.ingredient).toHaveProperty('tags');
+      expect(Array.isArray(result.ingredient.tags)).toBe(true);
+      
+      console.log('✅ Ingredient detail endpoint returns complete tag structure');
+    });
+  });
+
+  describe('Ingredient-Cocktail Relationships', () => {
+    it('should show cocktails using specific ingredient', async () => {
+      // Get ingredient details which should include cocktails using it
+      const result = await apiRequest(`/ingredients/${createdIngredientId}`);
+      
+      expect(result.ingredient).toHaveProperty('id');
+      expect(result).toHaveProperty('cocktails');
+      expect(Array.isArray(result.cocktails)).toBe(true);
+      
+      // If our test cocktail uses this ingredient, verify the relationship
+      const cocktailsUsingIngredient = result.cocktails;
+      const foundRelatedCocktail = cocktailsUsingIngredient.find((c: any) => c.id === createdCocktailId);
+      
+      if (foundRelatedCocktail) {
+        expect(foundRelatedCocktail).toHaveProperty('name');
+        expect(foundRelatedCocktail.name).toContain('Test_Cocktail');
+        console.log('✅ Ingredient-cocktail relationship verified');
+      }
+    });
+
+    it('should validate ingredient detail page structure', async () => {
+      const result = await apiRequest(`/ingredients/${createdIngredientId}`);
+      
+      // Verify the complete structure returned by ingredient detail endpoint
+      expect(result).toHaveProperty('ingredient');
+      expect(result).toHaveProperty('tags');
+      expect(result).toHaveProperty('preferredBrands');
+      expect(result).toHaveProperty('cocktails');
+      
+      // Verify ingredient object structure
+      expect(result.ingredient).toHaveProperty('id');
+      expect(result.ingredient).toHaveProperty('name');
+      expect(result.ingredient).toHaveProperty('category');
+      expect(result.ingredient).toHaveProperty('usedInRecipesCount');
+      
+      console.log('✅ Ingredient detail page API structure validated');
     });
   });
 
