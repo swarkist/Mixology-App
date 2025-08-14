@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus } from "lucide-react";
+import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus, X } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -17,13 +17,27 @@ import { useDebounce } from "@/lib/useDebounce";
 import { getQueryParam, setQueryParamReplace } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
+// Define brand type categories based on common spirits and mixers
+const BRAND_CATEGORIES = [
+  "spirits",
+  "liqueurs", 
+  "mixers",
+  "bitters",
+  "syrups",
+  "other"
+] as const;
+
 export default function MyBar() {
   const { user } = useAuth();
   const [term, setTerm] = useState(() => getQueryParam("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
   const queryClient = useQueryClient();
   
   const isLoggedIn = !!user;
   const debounced = useDebounce(term, 300);
+  
+  // Check if category filters are active (not search)
+  const hasCategoryFilters = Boolean(selectedCategory);
 
   // Show login message for non-logged-in users
   if (!isLoggedIn) {
@@ -61,6 +75,14 @@ export default function MyBar() {
     }
   }, [debounced]);
 
+  useEffect(() => {
+    if (selectedCategory.trim()) {
+      setQueryParamReplace("category", selectedCategory.trim());
+    } else {
+      setQueryParamReplace("category", "");
+    }
+  }, [selectedCategory]);
+
   // Fetch all preferred brands with inMyBar filter
   const { data: allMyBarItems = [], isLoading, error } = useQuery({
     queryKey: ["/api/preferred-brands", { inMyBar: true }],
@@ -83,17 +105,69 @@ export default function MyBar() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Filter items based on search
+  // Helper function to categorize brands based on name patterns
+  const categorizeBrand = (brandName: string): string => {
+    const name = brandName.toLowerCase();
+    
+    // Spirits patterns
+    if (name.includes('whiskey') || name.includes('whisky') || name.includes('bourbon') || 
+        name.includes('scotch') || name.includes('rye') || name.includes('vodka') || 
+        name.includes('gin') || name.includes('rum') || name.includes('tequila') || 
+        name.includes('cognac') || name.includes('brandy') || name.includes('moonshine')) {
+      return 'spirits';
+    }
+    
+    // Liqueurs patterns
+    if (name.includes('liqueur') || name.includes('schnapps') || name.includes('amaretto') ||
+        name.includes('baileys') || name.includes('kahlua') || name.includes('cointreau') ||
+        name.includes('grand marnier') || name.includes('triple sec') || name.includes('curacao')) {
+      return 'liqueurs';
+    }
+    
+    // Bitters patterns
+    if (name.includes('bitter') || name.includes('angostura') || name.includes('peychaud')) {
+      return 'bitters';
+    }
+    
+    // Syrups patterns
+    if (name.includes('syrup') || name.includes('grenadine') || name.includes('simple syrup') ||
+        name.includes('cherry syrup') || name.includes('vanilla syrup')) {
+      return 'syrups';
+    }
+    
+    // Mixers patterns  
+    if (name.includes('tonic') || name.includes('soda') || name.includes('ginger beer') ||
+        name.includes('club soda') || name.includes('mixer') || name.includes('juice')) {
+      return 'mixers';
+    }
+    
+    return 'other';
+  };
+
+  // Filter items based on search and category
   const visibleMyBarItems = useMemo(() => {
     if (!allMyBarItems) return [];
     
-    if (!debounced.trim()) return allMyBarItems;
+    let filtered = allMyBarItems;
     
-    const q = debounced.toLowerCase();
-    return allMyBarItems.filter((item: PreferredBrand) =>
-      item.name?.toLowerCase().includes(q)
-    );
-  }, [allMyBarItems, debounced]);
+    // Apply search filter
+    if (debounced.trim()) {
+      const q = debounced.toLowerCase();
+      filtered = filtered.filter((item: PreferredBrand) =>
+        item.name?.toLowerCase().includes(q)
+      );
+    }
+    
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter((item: PreferredBrand) => {
+        const itemCategory = categorizeBrand(item.name || '');
+        return itemCategory === selectedCategory;
+      });
+    }
+    
+    return filtered;
+  }, [allMyBarItems, debounced, selectedCategory]);
 
   const toggleMyBarMutation = useMutation({
     mutationFn: async (brandId: number) => {
@@ -173,8 +247,53 @@ export default function MyBar() {
           placeholder="Search my bar..."
         />
 
-        {/* Action Buttons */}
+        {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">
+          {/* Category Filter Pills */}
+          <div className="flex gap-2 flex-wrap">
+            {BRAND_CATEGORIES.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  if (selectedCategory === category) {
+                    setSelectedCategory("");
+                  } else {
+                    setSelectedCategory(category);
+                  }
+                }}
+                className={`h-8 px-3 rounded-lg text-xs capitalize ${
+                  selectedCategory === category
+                    ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]"
+                    : "bg-[#383629] border-0 text-white hover:bg-[#444133]"
+                }`}
+              >
+                {category}
+              </Button>
+            ))}
+
+            {hasCategoryFilters && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setSelectedCategory("");
+                  // Clear URL params for filters
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("category");
+                  window.history.replaceState({}, "", url);
+                }}
+                className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
+                aria-label="Clear category filters"
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+                Clear filters
+              </Button>
+            )}
+          </div>
+
+          {/* Action Buttons */}
           <div className="flex gap-2 flex-wrap justify-between">
             <div className="flex gap-2">
               <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
@@ -212,7 +331,18 @@ export default function MyBar() {
         {/* Content */}
         <div className="px-4 py-6">
           {visibleMyBarItems.length === 0 ? (
-            <EmptyState term={term} onClear={() => setTerm("")} />
+            <EmptyState 
+              term={term} 
+              onClear={() => setTerm("")}
+              isFilterResult={hasCategoryFilters}
+              onClearFilters={() => {
+                setSelectedCategory("");
+                // Clear URL params for filters
+                const url = new URL(window.location.href);
+                url.searchParams.delete("category");
+                window.history.replaceState({}, "", url);
+              }}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleMyBarItems.map((item: PreferredBrand) => (
@@ -229,8 +359,8 @@ export default function MyBar() {
 
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
-                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611]">
-                        Spirit
+                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#e6b00a] hover:text-[#161611] capitalize">
+                        {categorizeBrand(item.name || '')}
                       </Badge>
                     </div>
                     <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={item.name}>
