@@ -35,7 +35,11 @@ export const EditIngredient = (): JSX.Element => {
   const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
   // Fetch ingredient data with details (including tags)
-  const { data: ingredientDetails, isLoading } = useQuery({
+  const { data: ingredientDetails, isLoading } = useQuery<{
+    ingredient: Ingredient;
+    tags: Tag[];
+    preferredBrands: any[];
+  }>({
     queryKey: [`/api/ingredients/${id}`],
     enabled: !!id,
   });
@@ -86,7 +90,7 @@ export const EditIngredient = (): JSX.Element => {
       setImagePreview(ingredient.imageUrl);
       
       // Load existing tags from the ingredient details
-      setTags(existingTags.map(tag => tag.name) || []);
+      setTags(existingTags.map((tag: Tag) => tag.name) || []);
     }
   }, [ingredient, existingTags, reset]);
 

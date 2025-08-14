@@ -527,18 +527,40 @@ export class FirebaseStorage {
     
     console.log('🔥 Firebase createIngredient input:', JSON.stringify(ingredient, null, 2));
     
+    // Extract tags from ingredient data to handle separately
+    const { tagIds, ...basicIngredient } = ingredient as any;
+    
     const ingredientData = {
-      ...ingredient,
+      ...basicIngredient,
       createdAt: new Date(),
       updatedAt: new Date(),
       usedInRecipesCount: 0,
       // Ensure inMyBar has a default value if not provided
-      inMyBar: ingredient.inMyBar !== undefined ? ingredient.inMyBar : false,
+      inMyBar: basicIngredient.inMyBar !== undefined ? basicIngredient.inMyBar : false,
     };
     
     console.log('🔥 Firebase ingredientData before save:', JSON.stringify(ingredientData, null, 2));
     
     await this.ingredientsCollection.doc(numericId.toString()).set(ingredientData);
+    console.log('🔥 Ingredient document created successfully');
+    
+    // Handle tags if provided
+    if (tagIds && Array.isArray(tagIds)) {
+      console.log(`🔥 Creating ${tagIds.length} ingredient tag relationships...`);
+      
+      for (let i = 0; i < tagIds.length; i++) {
+        const tagId = tagIds[i];
+        const ingredientTagDocId = Date.now() + Math.floor(Math.random() * 1000) + i;
+        const tagData = {
+          id: ingredientTagDocId,
+          ingredientId: numericId,
+          tagId: tagId
+        };
+        console.log(`🔥 Creating ingredient tag relationship:`, tagData);
+        await this.ingredientTagsCollection.doc(ingredientTagDocId.toString()).set(tagData);
+      }
+      console.log('🔥 Ingredient tag relationships created');
+    }
     
     // Read back from Firebase to see what was actually saved
     const savedDoc = await this.ingredientsCollection.doc(numericId.toString()).get();
@@ -550,10 +572,14 @@ export class FirebaseStorage {
 
   async updateIngredient(id: number, updates: Partial<InsertIngredient>): Promise<Ingredient> {
     console.log(`🔥 Firebase updateIngredient called with id: ${id}`);
+    console.log(`🔥 Updates:`, JSON.stringify(updates, null, 2));
+    
+    // Extract tags from updates to handle separately
+    const { tagIds, ...basicUpdates } = updates as any;
     
     // Check for large imageUrl and warn about size
-    if (updates.imageUrl && updates.imageUrl.length > 900000) {
-      console.warn(`🔥 Large image detected: ${updates.imageUrl.length} bytes. Firebase has ~1MB document limit.`);
+    if (basicUpdates.imageUrl && basicUpdates.imageUrl.length > 900000) {
+      console.warn(`🔥 Large image detected: ${basicUpdates.imageUrl.length} bytes. Firebase has ~1MB document limit.`);
     }
     
     const docRef = this.ingredientsCollection.doc(id.toString());
@@ -567,7 +593,7 @@ export class FirebaseStorage {
     
     try {
       console.log(`🔥 Updating ingredient document ${id}...`);
-      const updateData = { ...updates, updatedAt: new Date() };
+      const updateData = { ...basicUpdates, updatedAt: new Date() };
       
       // If imageUrl is too large, truncate or reject
       if (updateData.imageUrl && updateData.imageUrl.length > 1000000) {
@@ -576,13 +602,42 @@ export class FirebaseStorage {
       }
       
       await docRef.update(updateData);
-      console.log(`🔥 Ingredient ${id} updated successfully`);
+      console.log(`🔥 Ingredient ${id} basic fields updated successfully`);
     } catch (error: any) {
       console.error(`🔥 Error updating ingredient ${id}:`, error);
       if (error.message.includes('longer than') || error.message.includes('too large')) {
         throw new Error('Image file is too large. Please use a smaller image.');
       }
       throw new Error('Failed to update ingredient');
+    }
+    
+    // Handle tags update if provided
+    if (tagIds && Array.isArray(tagIds)) {
+      console.log(`🔥 Updating ${tagIds.length} ingredient tags...`);
+      
+      // Delete existing tag relationships
+      const existingTags = await this.ingredientTagsCollection
+        .where('ingredientId', '==', id).get();
+      console.log(`🔥 Found ${existingTags.docs.length} existing tag relationships to delete`);
+      
+      for (const doc of existingTags.docs) {
+        await doc.ref.delete();
+      }
+      console.log('🔥 Existing ingredient tag relationships deleted');
+      
+      // Add new tag relationships
+      for (let i = 0; i < tagIds.length; i++) {
+        const tagId = tagIds[i];
+        const ingredientTagDocId = Date.now() + Math.floor(Math.random() * 1000) + i;
+        const tagData = {
+          id: ingredientTagDocId,
+          ingredientId: id,
+          tagId: tagId
+        };
+        console.log(`🔥 Creating ingredient tag relationship:`, tagData);
+        await this.ingredientTagsCollection.doc(ingredientTagDocId.toString()).set(tagData);
+      }
+      console.log('🔥 New ingredient tag relationships added');
     }
     
     // Get the updated document
