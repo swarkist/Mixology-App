@@ -7,22 +7,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
-import { 
-  Shield, 
-  Users, 
-  Search, 
-  ChevronLeft, 
-  ChevronRight, 
-  UserCheck, 
-  UserX, 
+import {
+  Shield,
+  Users,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  UserCheck,
+  UserX,
   Crown,
   Eye,
   Calendar,
@@ -34,10 +34,12 @@ import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { ReviewBanner } from "@/components/ReviewBanner";
 
+type Role = 'basic' | 'reviewer' | 'admin';
+
 interface User {
   id: number;
   email: string;
-  role: 'basic' | 'reviewer' | 'admin';
+  role: Role;
   is_active: boolean;
   email_verified_at: string | null;
   created_at: string;
@@ -53,87 +55,17 @@ interface UsersResponse {
 }
 
 export default function AdminDashboard() {
-  const { user, isLoading: authLoading } = useAuth();
+  // ✅ Avoid name collision with table row user
+  const { user: authUser, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
-  
+
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(20);
 
-  // Fetch users with filters and pagination
-  const { data: usersData, isLoading, error } = useQuery<UsersResponse>({
-    queryKey: ['/api/admin/users', { searchQuery, roleFilter, statusFilter, page: currentPage, limit }],
-    queryFn: () => {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: limit.toString()
-      });
-      
-      if (searchQuery.trim()) {
-        params.set('query', searchQuery.trim());
-      }
-      if (roleFilter && roleFilter !== 'all') {
-        params.set('role', roleFilter);
-      }
-      if (statusFilter && statusFilter !== 'all') {
-        params.set('status', statusFilter);
-      }
-      
-      return apiRequest(`/api/admin/users?${params.toString()}`);
-    },
-    enabled: !!user && user.role === 'admin'
-  });
-
-  // Update user role mutation
-  const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, role }: { userId: number; role: 'basic' | 'admin' }) => {
-      return apiRequest(`/api/admin/users/${userId}/role`, {
-        method: 'PATCH',
-        body: { role }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      toast({
-        title: "Role updated",
-        description: "User role has been successfully updated."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update user role",
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Update user status mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, is_active }: { userId: number; is_active: boolean }) => {
-      return apiRequest(`/api/admin/users/${userId}/status`, {
-        method: 'PATCH',
-        body: { is_active }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      toast({
-        title: "Status updated",
-        description: "User status has been successfully updated."
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update failed",
-        description: error.message || "Failed to update user status",
-        variant: "destructive"
-      });
-    }
-  });
-
+  // Admin-only access to this page
   if (authLoading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -145,7 +77,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!user || !['admin', 'reviewer'].includes(user.role)) {
+  if (!authUser || authUser.role !== 'admin') {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <Card className="bg-neutral-900 border-neutral-800">
@@ -161,18 +93,82 @@ export default function AdminDashboard() {
     );
   }
 
+  // Fetch users with filters and pagination (only for admins)
+  const { data: usersData, isLoading, error } = useQuery<UsersResponse>({
+    queryKey: ['/api/admin/users', { searchQuery, roleFilter, statusFilter, page: currentPage, limit }],
+    queryFn: () => {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: limit.toString()
+      });
+
+      if (searchQuery.trim()) params.set('query', searchQuery.trim());
+      if (roleFilter && roleFilter !== 'all') params.set('role', roleFilter);
+      if (statusFilter && statusFilter !== 'all') params.set('status', statusFilter);
+
+      return apiRequest(`/api/admin/users?${params.toString()}`);
+    },
+    enabled: !!authUser && authUser.role === 'admin'
+  });
+
+  // Count active admins for "last admin" UI protection
+  const activeAdminCount =
+    usersData?.users.filter(u => u.role === 'admin' && u.is_active).length ?? 0;
+
+  // Update user role mutation (include 'reviewer')
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, role }: { userId: number; role: Role }) => {
+      return apiRequest(`/api/admin/users/${userId}/role`, {
+        method: 'PATCH',
+        body: { role }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "Role updated", description: "User role has been successfully updated." });
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Update failed",
+        description: err?.message || "Failed to update user role",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update user status mutation
+  const updateStatusMutation = useMutation({
+    mutationFn: async ({ userId, is_active }: { userId: number; is_active: boolean }) => {
+      return apiRequest(`/api/admin/users/${userId}/status`, {
+        method: 'PATCH',
+        body: { is_active }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({ title: "Status updated", description: "User status has been successfully updated." });
+    },
+    onError: (err: any) => {
+      toast({
+        title: "Update failed",
+        description: err?.message || "Failed to update user status",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
+
+  const isAdmin = authUser.role === 'admin';
 
   return (
     <div className="min-h-screen bg-black text-white p-4">
@@ -218,7 +214,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-neutral-900 border-neutral-800">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-neutral-400 flex items-center gap-2">
@@ -232,7 +228,7 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="bg-neutral-900 border-neutral-800">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-neutral-400 flex items-center gap-2">
@@ -252,7 +248,7 @@ export default function AdminDashboard() {
         <Card className="bg-neutral-900 border-neutral-800">
           <CardHeader>
             <CardTitle className="text-white">User Management</CardTitle>
-            
+
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <div className="flex-1">
@@ -284,7 +280,7 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
-              
+
               <div className="flex gap-2">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
                   <SelectTrigger className="w-32 bg-neutral-800 border-neutral-700 text-white">
@@ -297,7 +293,7 @@ export default function AdminDashboard() {
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
-                
+
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-32 bg-neutral-800 border-neutral-700 text-white">
                     <SelectValue placeholder="Status" />
@@ -311,7 +307,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </CardHeader>
-          
+
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
@@ -319,7 +315,7 @@ export default function AdminDashboard() {
               </div>
             ) : error ? (
               <div className="text-center py-8 text-red-400">
-                Error loading users: {error.message}
+                Error loading users: {(error as any)?.message || 'Unknown error'}
               </div>
             ) : (
               <>
@@ -335,104 +331,115 @@ export default function AdminDashboard() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {usersData?.users.map((user) => (
-                        <TableRow key={user.id} className="border-neutral-800">
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
-                                <Mail className="w-4 h-4 text-neutral-400" />
+                      {usersData?.users.map((rowUser) => {
+                        const isSelf = rowUser.id === authUser.id;
+                        const disableWriteForThisRow =
+                          !isAdmin ||
+                          (isSelf && activeAdminCount <= 1); // optional UI safety
+
+                        return (
+                          <TableRow key={rowUser.id} className="border-neutral-800">
+                            <TableCell>
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 bg-neutral-800 rounded-full flex items-center justify-center">
+                                  <Mail className="w-4 h-4 text-neutral-400" />
+                                </div>
+                                <div>
+                                  <div className="font-medium text-white">{rowUser.email}</div>
+                                  <div className="text-sm text-neutral-400">ID: {rowUser.id}</div>
+                                </div>
                               </div>
-                              <div>
-                                <div className="font-medium text-white">{user.email}</div>
-                                <div className="text-sm text-neutral-400">ID: {user.id}</div>
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={user.role === 'admin' ? 'default' : 'secondary'}
-                              className={
-                                user.role === 'admin' ? 'bg-yellow-600 text-black' : 
-                                user.role === 'reviewer' ? 'bg-blue-600 text-white' :
-                                'bg-neutral-700 text-neutral-300'
-                              }
-                            >
-                              {user.role === 'admin' ? (
-                                <>
-                                  <Crown className="w-3 h-3 mr-1" />
-                                  Admin
-                                </>
-                              ) : user.role === 'reviewer' ? (
-                                <>
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Reviewer
-                                </>
-                              ) : (
-                                'Basic'
-                              )}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={user.is_active ? 'default' : 'secondary'}
-                              className={user.is_active ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}
-                            >
-                              {user.is_active ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-neutral-400">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              {formatDate(user.created_at)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Select
-                                value={user.role}
-                                onValueChange={(role: 'basic' | 'reviewer' | 'admin') => {
-                                  updateRoleMutation.mutate({ userId: user.id, role });
-                                }}
-                                disabled={user?.role !== 'admin'} // Only admins can change roles
+                            </TableCell>
+
+                            <TableCell>
+                              <Badge
+                                variant={rowUser.role === 'admin' ? 'default' : 'secondary'}
+                                className={
+                                  rowUser.role === 'admin' ? 'bg-yellow-600 text-black' :
+                                  rowUser.role === 'reviewer' ? 'bg-blue-600 text-white' :
+                                  'bg-neutral-700 text-neutral-300'
+                                }
                               >
-                                <SelectTrigger className="w-28 h-8 bg-neutral-800 border-neutral-700 text-white text-xs">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="basic">Basic</SelectItem>
-                                  <SelectItem value="reviewer">Reviewer</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              
-                              <Button
-                                size="sm"
-                                variant={user.is_active ? "destructive" : "default"}
-                                onClick={() => {
-                                  updateStatusMutation.mutate({ 
-                                    userId: user.id, 
-                                    is_active: !user.is_active 
-                                  });
-                                }}
-                                className="h-8"
-                                disabled={user?.role !== 'admin'} // Only admins can activate/deactivate users
-                              >
-                                {user.is_active ? (
+                                {rowUser.role === 'admin' ? (
                                   <>
-                                    <UserX className="w-3 h-3 mr-1" />
-                                    Deactivate
+                                    <Crown className="w-3 h-3 mr-1" />
+                                    Admin
+                                  </>
+                                ) : rowUser.role === 'reviewer' ? (
+                                  <>
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    Reviewer
                                   </>
                                 ) : (
-                                  <>
-                                    <UserCheck className="w-3 h-3 mr-1" />
-                                    Activate
-                                  </>
+                                  'Basic'
                                 )}
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                              </Badge>
+                            </TableCell>
+
+                            <TableCell>
+                              <Badge
+                                variant={rowUser.is_active ? 'default' : 'secondary'}
+                                className={rowUser.is_active ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}
+                              >
+                                {rowUser.is_active ? 'Active' : 'Inactive'}
+                              </Badge>
+                            </TableCell>
+
+                            <TableCell className="text-neutral-400">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4" />
+                                {formatDate(rowUser.created_at)}
+                              </div>
+                            </TableCell>
+
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={rowUser.role}
+                                  onValueChange={(role: Role) => {
+                                    updateRoleMutation.mutate({ userId: rowUser.id, role });
+                                  }}
+                                  disabled={disableWriteForThisRow}
+                                >
+                                  <SelectTrigger className="w-28 h-8 bg-neutral-800 border-neutral-700 text-white text-xs">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="basic">Basic</SelectItem>
+                                    <SelectItem value="reviewer">Reviewer</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                <Button
+                                  size="sm"
+                                  variant={rowUser.is_active ? "destructive" : "default"}
+                                  onClick={() => {
+                                    updateStatusMutation.mutate({
+                                      userId: rowUser.id,
+                                      is_active: !rowUser.is_active
+                                    });
+                                  }}
+                                  className="h-8"
+                                  disabled={disableWriteForThisRow}
+                                >
+                                  {rowUser.is_active ? (
+                                    <>
+                                      <UserX className="w-3 h-3 mr-1" />
+                                      Deactivate
+                                    </>
+                                  ) : (
+                                    <>
+                                      <UserCheck className="w-3 h-3 mr-1" />
+                                      Activate
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
@@ -443,7 +450,7 @@ export default function AdminDashboard() {
                     <p className="text-sm text-neutral-400">
                       Showing {((currentPage - 1) * limit) + 1} to {Math.min(currentPage * limit, usersData.total)} of {usersData.total} users
                     </p>
-                    
+
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
@@ -454,11 +461,11 @@ export default function AdminDashboard() {
                       >
                         <ChevronLeft className="w-4 h-4" />
                       </Button>
-                      
+
                       <span className="text-sm text-neutral-400">
                         Page {currentPage} of {usersData.totalPages}
                       </span>
-                      
+
                       <Button
                         variant="outline"
                         size="sm"

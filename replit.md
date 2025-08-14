@@ -9,6 +9,8 @@ Documentation updates: Only update replit.md when running regression tests, not 
 Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
 
 ## Recent Changes (August 14, 2025)
+- **AdminDashboard Role Editing Fix**: Resolved critical bug where admin users couldn't edit other users' roles due to variable naming collision between `authUser` (current user) and `rowUser` (table row user). Implemented proper role checking logic with `isAdmin` flag and last admin protection to prevent system lockout.
+- **Complete Three-Tier RBAC Implementation**: Finished reviewer role with read-only admin access, including ReviewBanner integration across all admin forms, disabled save/submit buttons for reviewers, and proper UI gating for write operations.
 - **Comprehensive Regression Testing**: Executed full test suite covering backend/frontend, UI accessibility, and all user roles with 87.5% pass rate on accessibility tests and comprehensive security validation
 - **Ingredient Tags Functionality Fix**: Completely resolved ingredient tags system with proper Firebase storage handling, PATCH route tag transformation, and EditIngredient form tag loading
 - **Ingredient Detail Page Enhancement**: Added "Used in Cocktails" section matching Preferred Brands design with proper `/recipe/{id}` navigation links and cocktail count display
