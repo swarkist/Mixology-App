@@ -69,7 +69,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
             <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
               Featured Cocktails
             </h2>
-            <Link href="/cocktails">
+            <Link href="/cocktails?featured=true">
               <Button variant="outline" size="sm" className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium">
                 View All
               </Button>
@@ -115,7 +115,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
             <h2 className="font-bold text-white text-[22px] [font-family:'Plus_Jakarta_Sans',Helvetica]">
               Popular Recipes
             </h2>
-            <Link href="/cocktails">
+            <Link href="/cocktails?popular=true">
               <Button variant="outline" size="sm" className="bg-[#383529] border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] font-medium">
                 View All
               </Button>
