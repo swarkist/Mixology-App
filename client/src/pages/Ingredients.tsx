@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2 } from "lucide-react";
+import { SearchIcon, Plus, Filter, Check, Star, BarChart3, Edit2, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import type { Ingredient } from "@shared/schema";
@@ -23,11 +23,14 @@ export const Ingredients = (): JSX.Element => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [term, setTerm] = useState(() => getQueryParam("search") || "");
-  const [selectedCategory, setSelectedCategory] = useState<string>(() => getQueryParam("category") || "all");
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>(() => getQueryParam("subcategory") || "all");
+  const [selectedCategory, setSelectedCategory] = useState<string>(() => getQueryParam("category") || "");
+
   
   const isAdmin = user?.role === 'admin';
   const debounced = useDebounce(term, 300);
+
+  // Check if category filters are active (not search)
+  const hasCategoryFilters = selectedCategory;
 
   // Fetch all ingredients first 
   const { data: allIngredients, isLoading, error } = useQuery<Ingredient[]>({
@@ -39,14 +42,12 @@ export const Ingredients = (): JSX.Element => {
     const url = new URL(window.location.href);
     url.searchParams.delete("search");
     url.searchParams.delete("category");
-    url.searchParams.delete("subcategory");
     
     if (debounced.trim()) url.searchParams.set("search", debounced.trim());
-    if (selectedCategory !== "all") url.searchParams.set("category", selectedCategory);
-    if (selectedSubcategory !== "all") url.searchParams.set("subcategory", selectedSubcategory);
+    if (selectedCategory) url.searchParams.set("category", selectedCategory);
     
     window.history.replaceState({}, "", url);
-  }, [debounced, selectedCategory, selectedSubcategory]);
+  }, [debounced, selectedCategory]);
 
   // Filter ingredients based on search and filters
   const visibleIngredients = useMemo(() => {
@@ -64,21 +65,15 @@ export const Ingredients = (): JSX.Element => {
     }
     
     // Apply category filter
-    if (selectedCategory !== "all") {
+    if (selectedCategory) {
       filtered = filtered.filter((ingredient: Ingredient) => 
         ingredient.category === selectedCategory
       );
     }
     
-    // Apply subcategory filter
-    if (selectedSubcategory !== "all") {
-      filtered = filtered.filter((ingredient: Ingredient) => 
-        ingredient.subCategory === selectedSubcategory
-      );
-    }
     
     return filtered;
-  }, [allIngredients, debounced, selectedCategory, selectedSubcategory]);
+  }, [allIngredients, debounced, selectedCategory]);
 
 
 
@@ -104,14 +99,7 @@ export const Ingredients = (): JSX.Element => {
     console.log("My Bar functionality moved to preferred brands");
   };
 
-  // Get subcategories for selected category  
-  const getSubcategoriesForCategory = (category: string) => {
-    if (category === "all") return [];
-    // For now, return empty array - subcategories can be added later
-    return [];
-  };
 
-  const subcategories = getSubcategoriesForCategory(selectedCategory);
 
   if (isLoading) {
     return (
@@ -167,66 +155,56 @@ export const Ingredients = (): JSX.Element => {
           placeholder="Search ingredients..."
         />
 
-        {/* Filters and Controls */}
-        <div className="px-3 py-3">
+        {/* Filter and Action Buttons */}
+        <div className="px-3 py-3 space-y-3">
+          {/* Category Filter Pills */}
           <div className="flex gap-2 flex-wrap">
-            {/* Category Filter */}
-            <div className="flex-shrink-0">
-              <Select value={selectedCategory} onValueChange={(value) => {
-                setSelectedCategory(value);
-                setSelectedSubcategory("all"); // Reset subcategory when category changes
-              }}>
-                <SelectTrigger className="w-auto min-w-[100px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
-                  <SelectValue placeholder="Categories" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#383629] border-[#544f3b]">
-                  <SelectItem value="all" className="text-white">
-                    All Categories
-                  </SelectItem>
-                  {INGREDIENT_CATEGORIES.map((category) => (
-                    <SelectItem 
-                      key={category} 
-                      value={category}
-                      className="text-white capitalize"
-                    >
-                      {category}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {INGREDIENT_CATEGORIES.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? "default" : "outline"}
+                size="sm"
+                onClick={() => {
+                  if (selectedCategory === category) {
+                    setSelectedCategory("");
+                  } else {
+                    setSelectedCategory(category);
+                  }
+                }}
+                className={`h-8 px-3 rounded-lg text-xs capitalize ${
+                  selectedCategory === category
+                    ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]"
+                    : "bg-[#383629] border-0 text-white hover:bg-[#444133]"
+                }`}
+              >
+                {category}
+              </Button>
+            ))}
 
-            {/* Subcategory Filter */}
-            {subcategories.length > 0 && (
-              <div className="flex-shrink-0">
-                <Select value={selectedSubcategory} onValueChange={setSelectedSubcategory}>
-                  <SelectTrigger className="w-auto min-w-[120px] h-8 gap-1 pl-3 pr-1 rounded-lg bg-[#383629] border-0 text-xs font-medium text-white">
-                    <SelectValue placeholder="Subcategories" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#383629] border-[#544f3b]">
-                    <SelectItem value="all" className="text-white">
-                      All Subcategories
-                    </SelectItem>
-                    {subcategories.map((subcategory: string) => (
-                      <SelectItem 
-                        key={subcategory} 
-                        value={subcategory}
-                        className="text-white capitalize"
-                      >
-                        {subcategory}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {hasCategoryFilters && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setSelectedCategory("");
+                  // Clear URL params for filters
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("category");
+                  window.history.replaceState({}, "", url);
+                }}
+                className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
+                aria-label="Clear category filters"
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+                Clear filters
+              </Button>
             )}
 
-            {/* Add Ingredient Button */}
             {isAdmin && (
               <Link href="/add-ingredient">
                 <Button
                   size="sm"
-                  className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs whitespace-nowrap"
+                  className="h-8 px-4 bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold text-xs"
                 >
                   Add Ingredient
                 </Button>
