@@ -297,7 +297,20 @@ export const CocktailList = (): JSX.Element => {
         {/* Cocktail Grid */}
         <div className="px-4 py-6">
           {visibleCocktails.length === 0 ? (
-            <EmptyState term={term} onClear={() => setTerm("")} />
+            <EmptyState 
+              term={term} 
+              onClear={() => setTerm("")}
+              isFilterResult={hasSpecificFilters}
+              onClearFilters={() => {
+                setShowOnlyFeatured(false);
+                setShowOnlyPopular(false);
+                // Keep search term, only clear Featured/Popular filters
+                const url = new URL(window.location.href);
+                url.searchParams.delete("featured");
+                url.searchParams.delete("popular");
+                window.history.replaceState({}, "", url);
+              }}
+            />
           ) : (
             <div
               className={

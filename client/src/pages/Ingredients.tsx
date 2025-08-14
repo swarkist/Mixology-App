@@ -30,7 +30,7 @@ export const Ingredients = (): JSX.Element => {
   const debounced = useDebounce(term, 300);
 
   // Check if category filters are active (not search)
-  const hasCategoryFilters = selectedCategory;
+  const hasCategoryFilters = Boolean(selectedCategory);
 
   // Fetch all ingredients first 
   const { data: allIngredients, isLoading, error } = useQuery<Ingredient[]>({
@@ -236,7 +236,18 @@ export const Ingredients = (): JSX.Element => {
         {/* Content */}
         <div className="px-4 py-6">
           {visibleIngredients.length === 0 ? (
-            <EmptyState term={term} onClear={() => setTerm("")} />
+            <EmptyState 
+              term={term} 
+              onClear={() => setTerm("")}
+              isFilterResult={hasCategoryFilters}
+              onClearFilters={() => {
+                setSelectedCategory("");
+                // Clear URL params for filters
+                const url = new URL(window.location.href);
+                url.searchParams.delete("category");
+                window.history.replaceState({}, "", url);
+              }}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {visibleIngredients.map((ingredient: Ingredient) => (
