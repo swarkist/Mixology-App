@@ -243,26 +243,30 @@ export const IngredientDetail = (): JSX.Element => {
 
 
         {/* Tags Section */}
-        {tags && tags.length > 0 && (
-          <Card className="bg-[#2a2920] border-[#4a4735]">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Tags
-              </h2>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag) => (
+        <Card className="bg-[#2a2920] border-[#4a4735]">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Usage & Tags
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {tags && tags.length > 0 ? (
+                tags.map((tag) => (
                   <Badge 
                     key={tag.id} 
                     variant="outline" 
-                    className="border-[#4a4735] text-[#bab59b] hover:border-[#f2c40c] hover:text-[#f2c40c] transition-colors"
+                    className="border-[#f2c40c] text-[#f2c40c]"
                   >
                     {tag.name}
                   </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                ))
+              ) : (
+                <div className="text-[#bab59b] text-center p-4 w-full">
+                  No tags assigned to this ingredient.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Cocktails Using This Ingredient Section */}
         {cocktailsWithIngredient && cocktailsWithIngredient.length > 0 && (
@@ -273,7 +277,7 @@ export const IngredientDetail = (): JSX.Element => {
               </h2>
               <div className="grid gap-3">
                 {cocktailsWithIngredient.map((cocktail: any) => (
-                  <Link key={cocktail.id} href={`/cocktail/${cocktail.id}`}>
+                  <Link key={cocktail.id} href={`/cocktails/${cocktail.id}`}>
                     <div className="flex justify-between items-center p-3 bg-[#383528] rounded-lg hover:bg-[#4a4735] transition-colors cursor-pointer">
                       <div className="flex items-center gap-3">
                         {cocktail.imageUrl ? (
