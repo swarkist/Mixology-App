@@ -191,7 +191,7 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 size="sm"
-                className="border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800"
+                className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
               >
                 <Home className="w-4 h-4 mr-2" />
                 Back to Site
