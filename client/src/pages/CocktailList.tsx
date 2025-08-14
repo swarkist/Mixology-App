@@ -199,7 +199,7 @@ export const CocktailList = (): JSX.Element => {
               variant={showOnlyFeatured ? "default" : "outline"}
               size="sm"
               onClick={() => setShowOnlyFeatured(!showOnlyFeatured)}
-              className={`h-8 px-3 rounded-lg text-xs ${showOnlyFeatured ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+              className={`h-8 px-3 rounded-lg text-xs ${showOnlyFeatured ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
             >
               <Star className="h-3 w-3 mr-1" />
               Featured
@@ -209,7 +209,7 @@ export const CocktailList = (): JSX.Element => {
               variant={showOnlyPopular ? "default" : "outline"}
               size="sm"
               onClick={() => setShowOnlyPopular(!showOnlyPopular)}
-              className={`h-8 px-3 rounded-lg text-xs ${showOnlyPopular ? "bg-[#f2c40c] text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
+              className={`h-8 px-3 rounded-lg text-xs ${showOnlyPopular ? "bg-[#f2c40c] text-[#161611] hover:bg-[#e6b00a] hover:text-[#161611]" : "bg-[#383629] border-0 text-white hover:bg-[#444133]"}`}
             >
               <TrendingUp className="h-3 w-3 mr-1" />
               Popular
