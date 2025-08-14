@@ -25,8 +25,11 @@ import {
   UserX, 
   Crown,
   Calendar,
-  Mail
+  Mail,
+  X,
+  Home
 } from "lucide-react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 
 interface User {
@@ -174,14 +177,26 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
-              <Shield className="w-5 h-5 text-black" />
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-black" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                <p className="text-neutral-400">Manage users and system settings</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-              <p className="text-neutral-400">Manage users and system settings</p>
-            </div>
+            <Link href="/">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-neutral-700 text-neutral-300 hover:text-white hover:bg-neutral-800"
+              >
+                <Home className="w-4 h-4 mr-2" />
+                Back to Site
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -237,20 +252,35 @@ export default function AdminDashboard() {
             
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <form onSubmit={handleSearch} className="flex-1 flex gap-2">
-                <div className="relative flex-1">
+              <div className="flex-1">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
                   <Input
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setCurrentPage(1);
+                    }}
                     placeholder="Search users..."
-                    className="bg-neutral-800 border-neutral-700 text-white pl-10"
+                    className="bg-neutral-800 border-neutral-700 text-white pl-10 pr-10"
                   />
+                  {searchQuery && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setCurrentPage(1);
+                      }}
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-neutral-400 hover:text-white hover:bg-neutral-700"
+                      aria-label="Clear search"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-                <Button type="submit" variant="outline" className="border-neutral-700 text-white">
-                  Search
-                </Button>
-              </form>
+              </div>
               
               <div className="flex gap-2">
                 <Select value={roleFilter} onValueChange={setRoleFilter}>
