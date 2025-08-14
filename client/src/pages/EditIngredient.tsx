@@ -34,13 +34,14 @@ export const EditIngredient = (): JSX.Element => {
   const [newTag, setNewTag] = useState("");
   const [suggestedTags, setSuggestedTags] = useState<Tag[]>([]);
 
-  // Fetch ingredient data with details
-  const { data: ingredientDetails, isLoading } = useQuery<{ingredient: Ingredient}>({
+  // Fetch ingredient data with details (including tags)
+  const { data: ingredientDetails, isLoading } = useQuery({
     queryKey: [`/api/ingredients/${id}`],
     enabled: !!id,
   });
 
   const ingredient = ingredientDetails?.ingredient;
+  const existingTags = ingredientDetails?.tags || [];
 
   // Fetch ingredient-specific suggested tags
   const { data: mostUsedTags } = useQuery<Tag[]>({
@@ -84,12 +85,10 @@ export const EditIngredient = (): JSX.Element => {
       });
       setImagePreview(ingredient.imageUrl);
       
-      // Load existing tags from the ingredient data
-      // The Firebase storage may include tags array in the ingredient object
-      const existingTags = (ingredient as any).tags || [];
-      setTags(Array.isArray(existingTags) ? existingTags : []);
+      // Load existing tags from the ingredient details
+      setTags(existingTags.map(tag => tag.name) || []);
     }
-  }, [ingredient, reset]);
+  }, [ingredient, existingTags, reset]);
 
   // Update ingredient mutation
   const updateMutation = useMutation({
