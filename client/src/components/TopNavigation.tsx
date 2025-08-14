@@ -89,8 +89,8 @@ const TopNavigation = (): JSX.Element => {
               </Link>
             ))}
             
-            {/* Admin-only navigation (only show if admin) */}
-            {user?.role === 'admin' && adminNavItems.map((item, index) => (
+            {/* Admin/Reviewer navigation (show for admin and reviewer) */}
+            {(user?.role === 'admin' || user?.role === 'reviewer') && adminNavItems.map((item, index) => (
               <Link key={`admin-${index}`} href={item.href}>
                 <span className="font-medium text-white text-sm leading-[21px] [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors cursor-pointer">
                   {item.label}
@@ -120,8 +120,8 @@ const TopNavigation = (): JSX.Element => {
 
           {/* Auth buttons */}
           <div className="flex items-center gap-2">
-            {/* Admin-only Add Recipe button */}
-            {user?.role === 'admin' && (
+            {/* Admin/Reviewer Add Recipe button */}
+            {(user?.role === 'admin' || user?.role === 'reviewer') && (
               <Link href="/add-cocktail">
                 <Button className="h-10 px-4 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]">
                   Add Recipe
@@ -142,7 +142,7 @@ const TopNavigation = (): JSX.Element => {
                 <DropdownMenuContent align="end" className="bg-[#161611] border-[#383528] text-white">
                   <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-[#383528]" />
-                  {user.role === 'admin' && (
+                  {(user.role === 'admin' || user.role === 'reviewer') && (
                     <DropdownMenuItem asChild className="text-white hover:bg-[#383528]">
                       <Link href="/admin">
                         <Shield className="mr-2 h-4 w-4" />
@@ -238,8 +238,8 @@ const TopNavigation = (): JSX.Element => {
               </Link>
             ))}
             
-            {/* Admin-only navigation (only show if admin) */}
-            {user?.role === 'admin' && adminNavItems.map((item, index) => (
+            {/* Admin/Reviewer navigation (show for admin and reviewer) */}
+            {(user?.role === 'admin' || user?.role === 'reviewer') && adminNavItems.map((item, index) => (
               <Link key={`admin-${index}`} href={item.href}>
                 <div 
                   className="block font-medium text-white text-base py-2 [font-family:'Plus_Jakarta_Sans',Helvetica] hover:text-[#f2c40c] transition-colors"
@@ -250,8 +250,8 @@ const TopNavigation = (): JSX.Element => {
               </Link>
             ))}
             
-            {/* Admin-only Add Recipe button */}
-            {user?.role === 'admin' && (
+            {/* Admin/Reviewer Add Recipe button */}
+            {(user?.role === 'admin' || user?.role === 'reviewer') && (
               <Link href="/add-cocktail">
                 <Button 
                   className="w-full mt-4 h-10 font-bold text-sm bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 [font-family:'Plus_Jakarta_Sans',Helvetica]"
@@ -271,7 +271,7 @@ const TopNavigation = (): JSX.Element => {
                   <div className="text-white text-sm mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica]">
                     Signed in as {user.email}
                   </div>
-                  {user.role === 'admin' && (
+                  {(user.role === 'admin' || user.role === 'reviewer') && (
                     <Link href="/admin">
                       <Button 
                         variant="outline" 

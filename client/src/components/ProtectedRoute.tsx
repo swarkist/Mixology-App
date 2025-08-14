@@ -4,13 +4,15 @@ import { useEffect } from "react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requireRole?: 'admin' | 'basic';
+  requireRole?: 'admin' | 'basic' | 'reviewer';
+  requireRoles?: ('admin' | 'basic' | 'reviewer')[];
   redirectTo?: string;
 }
 
 export function ProtectedRoute({ 
   children, 
   requireRole,
+  requireRoles,
   redirectTo = '/login' 
 }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
@@ -23,12 +25,19 @@ export function ProtectedRoute({
         return;
       }
 
+      // Check single role requirement
       if (requireRole && user.role !== requireRole) {
         setLocation('/'); // Redirect to home if insufficient permissions
         return;
       }
+
+      // Check multiple roles requirement
+      if (requireRoles && !requireRoles.includes(user.role)) {
+        setLocation('/'); // Redirect to home if insufficient permissions
+        return;
+      }
     }
-  }, [user, isLoading, requireRole, redirectTo, setLocation]);
+  }, [user, isLoading, requireRole, requireRoles, redirectTo, setLocation]);
 
   if (isLoading) {
     return (
@@ -43,6 +52,10 @@ export function ProtectedRoute({
   }
 
   if (requireRole && user.role !== requireRole) {
+    return null;
+  }
+
+  if (requireRoles && !requireRoles.includes(user.role)) {
     return null;
   }
 

@@ -34,49 +34,49 @@ function Router() {
       {/* Admin-only routes */}
       <Route path="/add-cocktail">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <AddCocktail />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/edit-cocktail/:id?">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <AddCocktail />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/add-ingredient">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <AddIngredient />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/edit-ingredient/:id">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <EditIngredient />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/import">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <ImportCocktail />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/cocktails/import">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <ImportCocktail />
           </ProtectedRoute>
         )}
       </Route>
       <Route path="/admin">
         {() => (
-          <ProtectedRoute requireRole="admin">
+          <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <AdminDashboard />
           </ProtectedRoute>
         )}
