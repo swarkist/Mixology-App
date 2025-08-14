@@ -52,11 +52,8 @@ export const CocktailList = (): JSX.Element => {
     setQueryParamReplace("q", debounced); 
   }, [debounced]);
 
-  // Check if any filters are active
-  const hasAnyFilter =
-    showOnlyFeatured ||
-    showOnlyPopular ||
-    term.trim() !== '';
+  // Check if Featured or Popular filters are active (not search)
+  const hasSpecificFilters = showOnlyFeatured || showOnlyPopular;
 
   // Clear all filters function
   const clearAllFilters = () => {
@@ -241,13 +238,21 @@ export const CocktailList = (): JSX.Element => {
               Popular
             </Button>
 
-            {hasAnyFilter && (
+            {hasSpecificFilters && (
               <Button
                 type="button"
                 size="sm"
-                onClick={clearAllFilters}
+                onClick={() => {
+                  setShowOnlyFeatured(false);
+                  setShowOnlyPopular(false);
+                  // Keep search term, only clear Featured/Popular filters
+                  const url = new URL(window.location.href);
+                  url.searchParams.delete("featured");
+                  url.searchParams.delete("popular");
+                  window.history.replaceState({}, "", url);
+                }}
                 className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
-                aria-label="Clear all filters"
+                aria-label="Clear Featured and Popular filters"
               >
                 <X className="h-3 w-3" aria-hidden="true" />
                 Clear filters
