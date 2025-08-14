@@ -112,8 +112,11 @@ export const CocktailList = (): JSX.Element => {
 
   // Use appropriate query data
   const cocktails = showMyFavs ? favQuery.data : defaultQuery.data;
-  const isLoading = showMyFavs ? favQuery.isLoading : defaultQuery.isLoading;
+  const isLoading = showMyFavs ? (isAuthed ? favQuery.isLoading : false) : defaultQuery.isLoading;
   const error = showMyFavs ? favQuery.error : defaultQuery.error;
+
+  // Show authentication prompt when My Favs is selected but user isn't logged in
+  const showAuthPrompt = showMyFavs && !isAuthed;
 
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
@@ -267,7 +270,11 @@ export const CocktailList = (): JSX.Element => {
                     variant={showMyFavs ? "default" : "outline"}
                     size="sm"
                     onClick={() => {
-                      if (!isAuthed) return; // Silently do nothing if not authenticated
+                      if (!isAuthed) {
+                        // Redirect to login page when not authenticated
+                        setLocation('/login');
+                        return;
+                      }
                       setShowMyFavs(!showMyFavs);
                     }}
                     className={`h-8 px-3 rounded-lg text-xs ${

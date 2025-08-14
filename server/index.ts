@@ -31,7 +31,8 @@ app.use(helmet({
         "'unsafe-inline'", // Allow inline scripts for Vite HMR
         "'unsafe-eval'",   // Allow eval for Vite development
         "https://localhost:*",
-        "http://localhost:*"
+        "http://localhost:*",
+        "https://replit.com" // Allow Replit dev banner scripts
       ],
       styleSrc: [
         "'self'",
