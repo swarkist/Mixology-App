@@ -173,27 +173,30 @@ export default function PreferredBrands() {
             Preferred Brands
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Manage your preferred spirit and mixer brands. Build your collection with {brands?.length || 0} brands.
+            Manage your preferred spirit and mixer brands. Build your collection with {visibleBrands?.length || 0} brands.
           </p>
         </div>
 
-        {/* Search Form */}
-        <div className="px-4 py-3">
-          <div className="h-12">
-            <div className="flex h-full rounded-lg bg-[#383629] overflow-hidden">
-              <div className="pl-4 flex items-center">
-                <Search className="h-5 w-5 text-[#bab59c]" />
-              </div>
-              <Input
-                type="text"
-                placeholder="Search preferred brands..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border-0 bg-transparent h-full text-white placeholder:text-[#bab59c] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica] pl-2 pr-4 py-2"
-              />
-            </div>
+        {/* Search Bar */}
+        <SearchBar
+          value={term}
+          onChange={setTerm}
+          placeholder="Search preferred brands..."
+        />
+        
+        {/* Clear Filters Pill */}
+        {term.trim() !== "" && (
+          <div className="px-4 py-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTerm("")}
+              className="text-sm border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors"
+            >
+              Clear Filters
+            </Button>
           </div>
-        </div>
+        )}
 
         {/* Action Buttons */}
         <div className="px-4 py-3">
@@ -216,20 +219,20 @@ export default function PreferredBrands() {
         </div>
 
         {/* Stats Bar */}
-        {brands && (
+        {visibleBrands && (
           <div className="px-4 py-3 border-b border-[#544f3b] mb-3">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[#bab59c]">
               <div className="flex items-center gap-2">
                 <BarChart3 className="h-4 w-4" />
-                <span>Total: {brands.length}</span>
+                <span>Total: {visibleBrands.length}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-[#f2c40c]" />
-                <span>In My Bar: {brands.filter((b: PreferredBrand) => b.inMyBar).length}</span>
+                <span>In My Bar: {allBrands.filter((b: any) => b.inMyBar).length}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4" />
-                <span>Used In: {brands.reduce((sum: number, b: PreferredBrand) => sum + (b.usedInRecipesCount || 0), 0)} recipes</span>
+                <span>Used In: {allBrands.reduce((sum: number, b: PreferredBrand) => sum + (b.usedInRecipesCount || 0), 0)} recipes</span>
               </div>
             </div>
           </div>
@@ -237,9 +240,9 @@ export default function PreferredBrands() {
 
         {/* Content */}
         <div className="px-4 py-6">
-          {brands && brands.length > 0 ? (
+          {visibleBrands && visibleBrands.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {brands.map((brand: PreferredBrand) => (
+              {visibleBrands.map((brand: PreferredBrand) => (
                 <Card key={brand.id} className="bg-[#383629] border-[#544f3b] hover:border-[#f2c40c] transition-all duration-300 overflow-hidden flex flex-col">
                   {/* Image Section */}
                   <div
@@ -285,13 +288,13 @@ export default function PreferredBrands() {
                         disabled={toggleMyBarMutation.isPending}
                         size="sm"
                         className={`flex-1 ${
-                          brand.inMyBar
+                          (brand as any).inMyBar
                             ? "bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
                             : "bg-transparent border border-[#544f3b] text-[#bab59c] hover:border-[#f2c40c] hover:text-[#f2c40c]"
                         }`}
                       >
-                        <Heart className={`w-3 h-3 mr-1 ${brand.inMyBar ? 'fill-current' : ''}`} />
-                        {brand.inMyBar ? "In My Bar" : "Add to Bar"}
+                        <Heart className={`w-3 h-3 mr-1 ${(brand as any).inMyBar ? 'fill-current' : ''}`} />
+                        {(brand as any).inMyBar ? "In My Bar" : "Add to Bar"}
                       </Button>
                       <Link href={`/edit-preferred-brand/${brand.id}`}>
                         <Button
@@ -308,21 +311,11 @@ export default function PreferredBrands() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <Card className="bg-[#383629] border-[#544f3b] max-w-md mx-auto">
-                <CardContent className="p-8 text-center">
-                  <div className="text-[#bab59c] mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                    {searchTerm ? "No brands found matching your search." : "No preferred brands added yet."}
-                  </div>
-                  <Link href="/add-preferred-brand">
-                    <Button className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-semibold">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Your First Preferred Brand
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            </div>
+            <EmptyState
+              term={term}
+              onClear={() => setTerm("")}
+              message={term ? "Try adjusting your search terms." : "Add your first preferred brand to get started."}
+            />
           )}
         </div>
       </div>
