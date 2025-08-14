@@ -49,7 +49,7 @@ export const CocktailList = (): JSX.Element => {
   // Favorites functionality
   const { data: favData } = useFavoriteIds();
   const { mutate: toggleFav } = useToggleFavorite();
-  const isAuthed = !!favData?.isAuthed;
+  const isAuthed = favData?.isAuthed === true;
   const favIds = favData?.ids ?? [];
 
   // Clear all filters
@@ -100,18 +100,10 @@ export const CocktailList = (): JSX.Element => {
             popular: showOnlyPopular,
           },
         ],
-    enabled: showMyFavs ? isAuthed : true, // Only enable My Favs query when authenticated
+    enabled: !showMyFavs || isAuthed, // Only enable when not My Favs or when authenticated
     queryFn: async () => {
       const queryString = buildQueryString();
-      if (showMyFavs && isAuthed) {
-        // Use apiRequest for authenticated requests
-        return apiRequest(`/api/cocktails${queryString}`, { method: 'GET' });
-      } else {
-        // Use regular fetch for public requests
-        const response = await fetch(`/api/cocktails${queryString}`);
-        if (!response.ok) throw new Error("Failed to fetch cocktails");
-        return response.json();
-      }
+      return apiRequest(`/api/cocktails${queryString}`, { method: 'GET' });
     },
   });
 

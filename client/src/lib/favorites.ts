@@ -9,8 +9,12 @@ export function useFavoriteIds() {
         const res = await apiRequest('/api/user/favorites', { method: 'GET' });
         return { ids: (res?.ids ?? []) as string[], isAuthed: true };
       } catch (err: any) {
-        // Treat 401 as logged-out
-        return { ids: [] as string[], isAuthed: false };
+        // Check if error message contains 401 or unauthorized
+        if (err.message?.includes('401') || err.message?.toLowerCase().includes('unauthorized')) {
+          return { ids: [] as string[], isAuthed: false };
+        }
+        // Re-throw other errors
+        throw err;
       }
     },
     staleTime: 60_000,

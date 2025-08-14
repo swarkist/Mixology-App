@@ -66,7 +66,8 @@ const corsOptions: cors.CorsOptions = origins.length
       },
       credentials: true,
     }
-  : {}; // no origins set -> default allow same-origin only
+  : { credentials: true }; // no origins set -> default allow same-origin only with credentials
+app.options('*', cors(corsOptions)); // Handle preflight requests
 app.use(cors(corsOptions));
 
 // Basic rate limiting (tune as needed)
@@ -80,6 +81,20 @@ app.use("/api", apiLimiter);
 
 // Cookie parser for auth tokens
 app.use(cookieParser());
+
+// Express session middleware for session-based authentication
+import session from 'express-session';
+app.use(session({
+  secret: process.env.JWT_SECRET || 'fallback-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production', // true for HTTPS in production
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in production
+    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+  }
+}));
 
 // Admin API key gate for write methods on /api/*
 const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {
