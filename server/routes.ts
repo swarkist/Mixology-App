@@ -12,8 +12,6 @@ import { extractBrandFromImage } from "./ai/openrouter";
 import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
-import { createFavoritesRoutes } from './routes/favorites';
-import { debugRouter } from './routes/debug';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 
@@ -29,13 +27,6 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   
   // Register admin routes  
   app.use('/api/admin', createAdminRoutes(storage));
-  
-  // Register favorites routes
-  app.use('/api', createFavoritesRoutes(storage, requireAuth));
-  
-  // Register debug routes
-  app.use('/api', debugRouter);
-  
   // =================== USERS ===================
   app.get("/api/users/:id", async (req, res) => {
     const id = parseInt(req.params.id);
@@ -269,69 +260,12 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   // =================== COCKTAILS ===================
   app.get("/api/cocktails", async (req, res) => {
-    const { search, featured, popular, ingredients, matchAll, favoriteOnly } = req.query;
+    const { search, featured, popular, ingredients, matchAll } = req.query;
     
     try {
       let cocktails;
       
-      // Handle favorite-only requests
-      if (favoriteOnly === 'true') {
-        if (!req.user) return res.status(401).json({ error: 'Unauthorized' });
-        const userId = req.user?.id?.toString();
-        const { getUserFavoriteIds } = await import('./storage/favorites');
-        const favoriteIds = await getUserFavoriteIds(userId);
-        if (!favoriteIds.length) return res.json([]);
-        
-        // Robust cocktail fetching: try by docId first, then by field 'id' with chunked queries
-        const { getFirestore } = await import('firebase-admin/firestore');
-        const db = getFirestore();
-        let foundCocktails: any[] = [];
-        
-        try {
-          // Try fetching by Firestore document IDs first
-          const docRefs = favoriteIds.map(id => db.collection('cocktails').doc(id));
-          const docSnaps = await db.getAll(...docRefs);
-          
-          for (const snap of docSnaps) {
-            if (snap.exists) {
-              foundCocktails.push({ id: snap.id, ...snap.data() });
-            }
-          }
-          
-          // If no cocktails found by docId, try querying by field 'id'
-          if (foundCocktails.length === 0) {
-            // Chunk the favorite IDs into groups of 10 (Firestore 'in' query limit)
-            const chunks = [];
-            for (let i = 0; i < favoriteIds.length; i += 10) {
-              chunks.push(favoriteIds.slice(i, i + 10));
-            }
-            
-            for (const chunk of chunks) {
-              // Try both string and number matching
-              const stringQuery = db.collection('cocktails').where('id', 'in', chunk);
-              const numberQuery = db.collection('cocktails').where('id', 'in', chunk.map(id => parseInt(id)));
-              
-              const [stringSnap, numberSnap] = await Promise.all([
-                stringQuery.get(),
-                numberQuery.get()
-              ]);
-              
-              stringSnap.docs.forEach(doc => {
-                foundCocktails.push({ id: doc.id, ...doc.data() });
-              });
-              
-              numberSnap.docs.forEach(doc => {
-                foundCocktails.push({ id: doc.id, ...doc.data() });
-              });
-            }
-          }
-          
-          cocktails = foundCocktails;
-        } catch (error) {
-          console.error('Error fetching favorite cocktails:', error);
-          cocktails = [];
-        }
-      } else if (search) {
+      if (search) {
         cocktails = await storage.searchCocktails(search as string);
       } else if (featured === 'true') {
         cocktails = await storage.getFeaturedCocktails();

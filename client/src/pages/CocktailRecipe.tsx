@@ -9,8 +9,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { formatIngredientMeasurement } from "@/lib/fractionUtils";
-import { useFavoriteIds, useToggleFavorite, isFavorited } from "@/lib/favorites";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailRecipe = (): JSX.Element => {
@@ -22,13 +20,6 @@ export const CocktailRecipe = (): JSX.Element => {
   
   const cocktailId = params?.id ? parseInt(params.id) : null;
   const isAdmin = user?.role === 'admin';
-
-  // Favorites functionality
-  const { data: favData } = useFavoriteIds();
-  const { mutate: toggleFav } = useToggleFavorite();
-  const isAuthed = !!favData?.isAuthed;
-  const favIds = favData?.ids ?? [];
-  const favOn = cocktailId ? isFavorited(favIds, cocktailId.toString()) : false;
 
   // Fetch cocktail details
   const { data: cocktailDetails, isLoading, error } = useQuery({
@@ -151,35 +142,9 @@ export const CocktailRecipe = (): JSX.Element => {
             </Button>
           </Link>
           <div className="flex gap-2">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={favOn ? 'Remove from favorites' : 'Add to favorites'}
-                    aria-pressed={favOn}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      if (!isAuthed) {
-                        return; // Tooltip will show login message
-                      }
-                      if (cocktailId) {
-                        toggleFav(cocktailId.toString());
-                      }
-                    }}
-                    className={`text-white hover:bg-[#2a2920] ${
-                      favOn ? 'text-rose-500' : ''
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${favOn ? 'fill-current' : ''}`} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="center">
-                  {!isAuthed ? 'Login to fav me' : (favOn ? 'Remove from favorites' : 'Add to favorites')}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
+              <Heart className="w-4 h-4" />
+            </Button>
             <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
               <Share className="w-4 h-4" />
             </Button>

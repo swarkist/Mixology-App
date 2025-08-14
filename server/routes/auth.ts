@@ -123,55 +123,54 @@ export function createAuthRoutes(storage: IStorage): Router {
   // POST /api/auth/login
   router.post('/login', authLimiter, async (req, res) => {
     try {
-      // Dev logging for debugging
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[LOGIN] Content-Type:', req.headers['content-type']);
-        console.log('[LOGIN] Body:', req.body);
-      }
-
-      // Validate request body shape
-      if (!req.body || typeof req.body !== 'object') {
-        return res.status(400).json({ 
-          error: 'Expected JSON { email, password }' 
-        });
-      }
-
-      if (typeof req.body.email !== 'string' || typeof req.body.password !== 'string') {
-        return res.status(400).json({ 
-          error: 'Expected JSON { email: string, password: string }' 
-        });
-      }
-
       const { email, password } = loginSchema.parse(req.body);
       
       // Find user
       const user = await storage.getUserByEmail(email);
       if (!user || !user.is_active) {
-        return res.status(400).json({ 
-          error: 'Invalid credentials' 
+        return res.status(200).json({ 
+          success: false, 
+          message: GENERIC_ERROR_MESSAGE 
         });
       }
 
       // Verify password
       const isValid = await verifyPassword(password, user.password_hash);
       if (!isValid) {
-        return res.status(400).json({ 
-          error: 'Invalid credentials' 
+        return res.status(200).json({ 
+          success: false, 
+          message: GENERIC_ERROR_MESSAGE 
         });
       }
 
-      // Create session using express-session
-      if (req.session) {
-        req.session.userId = user.id;
-        req.session.user = { id: user.id, email: user.email, role: user.role };
-      }
-
-      // Generate tokens for additional security
+      // Generate tokens
       const accessToken = signAccessToken(user);
-      const refreshToken = signRefreshToken(user.id);
+      const refreshToken = signRefreshToken(0); // Temporary
 
-      // Set tokens in httpOnly cookies
-      setAuthCookies(res, accessToken, refreshToken);
+      // Create session
+      const session = await storage.createSession({
+        user_id: user.id,
+        refresh_token_hash: hashToken(refreshToken),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ip: req.ip,
+        user_agent: req.get('User-Agent') || null
+      });
+
+      // Generate final refresh token with session ID
+      const finalRefreshToken = signRefreshToken(session.id);
+      
+      // Update session with correct refresh token hash
+      await storage.revokeSession(session.id);
+      await storage.createSession({
+        user_id: user.id,
+        refresh_token_hash: hashToken(finalRefreshToken),
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        ip: req.ip,
+        user_agent: req.get('User-Agent') || null
+      });
+
+      // Set cookies
+      setAuthCookies(res, accessToken, finalRefreshToken);
 
       // Log login
       await storage.createAuditLog({
@@ -184,23 +183,27 @@ export function createAuthRoutes(storage: IStorage): Router {
         user_agent: req.get('User-Agent')
       });
 
-      // Return success response
-      const { password_hash, ...safeUser } = user;
       res.json({
-        ok: true,
-        user: safeUser
+        success: true,
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+          is_active: user.is_active
+        }
       });
 
     } catch (error) {
+      console.error('Login error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
-          error: "Expected JSON { email, password }" 
+          success: false, 
+          message: error.errors[0].message 
         });
       }
-      
-      console.error('Login error:', error);
       res.status(500).json({ 
-        error: "Internal server error" 
+        success: false, 
+        message: 'Login failed' 
       });
     }
   });

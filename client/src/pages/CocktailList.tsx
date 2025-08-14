@@ -9,8 +9,6 @@ import {
   List,
   Filter,
   StarIcon,
-  Heart,
-  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,8 +23,6 @@ import {
 } from "@/components/ui/select";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { useFavoriteIds, useToggleFavorite, isFavorited } from "@/lib/favorites";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
@@ -42,25 +38,8 @@ export const CocktailList = (): JSX.Element => {
   const [spiritFilter, setSpiritFilter] = useState<string>("all");
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
-  const [showMyFavs, setShowMyFavs] = useState(false);
   
   const isAdmin = user?.role === 'admin';
-  
-  // Favorites functionality
-  const { data: favData } = useFavoriteIds();
-  const { mutate: toggleFav } = useToggleFavorite();
-  const isAuthed = favData?.isAuthed === true;
-  const favIds = favData?.ids ?? [];
-
-  // Clear all filters
-  const hasAnyFilter = showOnlyFeatured || showOnlyPopular || showMyFavs || searchQuery.trim() !== '' || spiritFilter !== 'all';
-  const clearAllFilters = () => {
-    setShowOnlyFeatured(false);
-    setShowOnlyPopular(false);
-    setShowMyFavs(false);
-    setSearchQuery('');
-    setSpiritFilter('all');
-  };
 
   // Parse URL params
   useEffect(() => {
@@ -80,43 +59,29 @@ export const CocktailList = (): JSX.Element => {
     if (searchQuery.trim()) params.set("search", searchQuery.trim());
     if (showOnlyFeatured) params.set("featured", "true");
     if (showOnlyPopular) params.set("popular", "true");
-    if (showMyFavs) params.set("favoriteOnly", "true");
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Default cocktails query (when not showing favorites)
-  const defaultQuery = useQuery<Cocktail[]>({
-    queryKey: ['/api/cocktails', {
-      search: searchQuery,
-      featured: showOnlyFeatured,
-      popular: showOnlyPopular,
-    }],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (searchQuery.trim()) params.set("search", searchQuery.trim());
-      if (showOnlyFeatured) params.set("featured", "true");
-      if (showOnlyPopular) params.set("popular", "true");
-      const queryString = params.toString() ? `?${params.toString()}` : "";
-      return apiRequest(`/api/cocktails${queryString}`, { method: 'GET' });
+  // Fetch cocktails with filters
+  const {
+    data: cocktails,
+    isLoading,
+    error,
+  } = useQuery<Cocktail[]>({
+    queryKey: [
+      "/api/cocktails",
+      {
+        search: searchQuery,
+        featured: showOnlyFeatured,
+        popular: showOnlyPopular,
+      },
+    ],
+    queryFn: async () => {
+      const response = await fetch(`/api/cocktails${buildQueryString()}`);
+      if (!response.ok) throw new Error("Failed to fetch cocktails");
+      return response.json();
     },
-    enabled: !showMyFavs,
   });
-
-  // Favorites query (only when showing My Favs and authenticated)
-  const favQuery = useQuery<Cocktail[]>({
-    queryKey: ['/api/cocktails', { favoriteOnly: true }],
-    queryFn: () => apiRequest('/api/cocktails?favoriteOnly=true', { method: 'GET' }),
-    enabled: showMyFavs && isAuthed, // 🔒 no 401s when logged out
-    retry: false,
-  });
-
-  // Use appropriate query data
-  const cocktails = showMyFavs ? favQuery.data : defaultQuery.data;
-  const isLoading = showMyFavs ? (isAuthed ? favQuery.isLoading : false) : defaultQuery.isLoading;
-  const error = showMyFavs ? favQuery.error : defaultQuery.error;
-
-  // Show authentication prompt when My Favs is selected but user isn't logged in
-  const showAuthPrompt = showMyFavs && !isAuthed;
 
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
@@ -174,19 +139,6 @@ export const CocktailList = (): JSX.Element => {
             </Card>
           ))}
         </div>
-      </div>
-    );
-  }
-
-  // When My Favs on and not authed: show message (do not render error state)
-  if (showMyFavs && !isAuthed) {
-    return (
-      <div className="min-h-screen bg-[#171712] text-white p-10">
-        <TopNavigation />
-        <div className="py-24 text-center text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
-          Login to view your favorite recipes
-        </div>
-        <Navigation />
       </div>
     );
   }
@@ -263,50 +215,6 @@ export const CocktailList = (): JSX.Element => {
               Popular
             </Button>
 
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={showMyFavs ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => {
-                      if (!isAuthed) {
-                        // Redirect to login page when not authenticated
-                        setLocation('/login');
-                        return;
-                      }
-                      setShowMyFavs(!showMyFavs);
-                    }}
-                    className={`h-8 px-3 rounded-lg text-xs ${
-                      showMyFavs 
-                        ? "bg-[#f2c40c] text-[#161611]" 
-                        : isAuthed 
-                          ? "bg-[#383629] border-0 text-white hover:bg-[#444133]" 
-                          : "bg-[#383629] border-0 text-gray-500 opacity-50 cursor-pointer"
-                    }`}
-                  >
-                    <Heart className={`h-3 w-3 mr-1 ${showMyFavs ? 'fill-current' : ''}`} />
-                    My Favs
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" align="center">
-                  {!isAuthed ? 'Login to view your favs' : 'Filter to show only your favorite cocktails'}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-
-            {hasAnyFilter && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearAllFilters}
-                className="h-8 px-3 rounded-lg text-xs bg-transparent border border-gray-500 text-gray-400 hover:bg-gray-700 hover:text-white"
-              >
-                <X className="h-3 w-3 mr-1" />
-                Clear
-              </Button>
-            )}
-
             {isAdmin && (
               <Link href="/add-cocktail">
                 <Button
@@ -344,35 +252,7 @@ export const CocktailList = (): JSX.Element => {
 
         {/* Cocktail Grid */}
         <div className="px-4 py-6">
-          {showMyFavs && !isAuthed ? (
-            <Card className="bg-[#383629] border-[#544f3b]">
-              <CardContent className="p-8 text-center">
-                <Heart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                <h3 className="text-white text-lg font-semibold mb-2">Login to view your favorite recipes</h3>
-                <p className="text-[#bab59b] mb-4">Sign in to see your personalized list of favorite cocktails.</p>
-                <Button
-                  onClick={() => setShowMyFavs(false)}
-                  className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]"
-                >
-                  Browse Cocktails
-                </Button>
-              </CardContent>
-            </Card>
-          ) : showMyFavs && isAuthed && (!cocktails || cocktails.length === 0) ? (
-            <Card className="bg-[#383629] border-[#544f3b]">
-              <CardContent className="p-8 text-center">
-                <Heart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                <h3 className="text-white text-lg font-semibold mb-2">No favorites yet</h3>
-                <p className="text-[#bab59b] mb-4">Start exploring and add some cocktails to your favorites!</p>
-                <Button
-                  onClick={() => setShowMyFavs(false)}
-                  className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]"
-                >
-                  Browse Cocktails
-                </Button>
-              </CardContent>
-            </Card>
-          ) : cocktails && cocktails.length > 0 ? (
+          {cocktails && cocktails.length > 0 ? (
             <div
               className={
                 viewMode === "grid"
@@ -438,7 +318,7 @@ export const CocktailList = (): JSX.Element => {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mt-auto">
+                    <div className="flex items-center gap-2 mt-auto">
                       <Link href={`/recipe/${cocktail.id}`}>
                         <Button
                           variant="outline"
@@ -448,27 +328,15 @@ export const CocktailList = (): JSX.Element => {
                           View Recipe
                         </Button>
                       </Link>
-                      
-                      <Button
-                        variant="ghost"
+                      {/* <Button
+                        variant="outline"
                         size="sm"
-                        aria-label={isFavorited(favIds, cocktail.id.toString()) ? 'Remove from favorites' : 'Add to favorites'}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (!isAuthed) return; // Silently do nothing if not authenticated
-                          toggleFav(cocktail.id.toString());
-                        }}
-                        disabled={!isAuthed}
-                        className={`p-2 ${
-                          isFavorited(favIds, cocktail.id.toString())
-                            ? 'text-rose-500 hover:text-rose-600'
-                            : isAuthed 
-                              ? 'text-gray-400 hover:text-rose-500'
-                              : 'text-gray-600 cursor-not-allowed opacity-50'
-                        }`}
+                        onClick={() => handleStartMaking(cocktail)}
+                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
+                        disabled={incrementPopularityMutation.isPending}
                       >
-                        <Heart className={`h-4 w-4 ${isFavorited(favIds, cocktail.id.toString()) ? 'fill-current' : ''}`} />
-                      </Button>
+                        Start Making
+                      </Button> */}
                     </div>
                   </CardContent>
                 </Card>

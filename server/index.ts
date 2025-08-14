@@ -4,7 +4,6 @@ import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import session from 'express-session';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { MemStorage } from "./storage/memory";
@@ -16,11 +15,6 @@ const app = express();
 // --- Security & hardening ---
 app.set("trust proxy", 1);
 
-const allowlist = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map(s => s.trim())
-  .filter(Boolean);
-
 // Configure Helmet with CSP that allows Vite development server
 app.use(helmet({
   contentSecurityPolicy: {
@@ -31,8 +25,7 @@ app.use(helmet({
         "'unsafe-inline'", // Allow inline scripts for Vite HMR
         "'unsafe-eval'",   // Allow eval for Vite development
         "https://localhost:*",
-        "http://localhost:*",
-        "https://replit.com" // Allow Replit dev banner scripts
+        "http://localhost:*"
       ],
       styleSrc: [
         "'self'",
@@ -56,43 +49,25 @@ app.use(helmet({
     }
   }
 }));
+app.use(morgan("combined"));
 
-// CORS must allow credentials and your exact origins (no trailing slash)
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true);     // same-origin
-    return cb(null, allowlist.includes(origin));
-  },
-  credentials: true,                         // 🔑 allow cookies
-}));
-
-app.options('*', cors({
-  origin: (origin, cb) => {
-    if (!origin) return cb(null, true);
-    return cb(null, allowlist.includes(origin));
-  },
-  credentials: true,
-}));
-
-// Body parsing middleware MUST come before sessions and routes
+// Body limits - default 512KB for security, but OCR endpoint needs more
 app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR endpoint needs larger limit
 app.use(express.json({ limit: "512kb" }));
 app.use(express.urlencoded({ extended: true, limit: "512kb" }));
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET!,       // make sure this is set in Secrets
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: true,                            // HTTPS in Replit
-    sameSite: 'none',                        // cross-site cookie in IDE iframe
-    maxAge: 1000 * 60 * 60 * 24 * 7,
-    // DO NOT set cookie.domain (let browser scope it automatically)
-  },
-}));
-
-app.use(morgan("combined"));
+// CORS allowlist via env secret CORS_ORIGINS (comma-separated)
+const origins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+const corsOptions: cors.CorsOptions = origins.length
+  ? {
+      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+        if (!origin) return cb(null, true); // allow same-origin/non-browser tools
+        cb(null, origins.includes(origin));
+      },
+      credentials: true,
+    }
+  : {}; // no origins set -> default allow same-origin only
+app.use(cors(corsOptions));
 
 // Basic rate limiting (tune as needed)
 const apiLimiter = rateLimit({

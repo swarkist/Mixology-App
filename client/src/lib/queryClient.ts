@@ -7,26 +7,26 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-export async function apiRequest(path: string, options: RequestInit = {}) {
-  const { body, ...restOptions } = options;
+// Auth-compatible API request function
+export async function apiRequest(endpoint: string, options: { 
+  method?: string; 
+  body?: any; 
+} = {}): Promise<any> {
+  const { method = 'GET', body } = options;
   
-  const res = await fetch(path, {
-    credentials: 'include', // 🔑 send session cookie
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
-    // Auto-stringify JSON bodies
-    body: body && typeof body === 'object' ? JSON.stringify(body) : body,
-    ...restOptions,
+  const res = await fetch(endpoint, {
+    method,
+    headers: body ? { "Content-Type": "application/json" } : {},
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: "include",
   });
 
-  // Bubble non-OK responses (keeps status code text in error)
   if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new Error(`${res.status} ${res.statusText} ${text}`);
+    const text = (await res.text()) || res.statusText;
+    throw new Error(`${res.status}: ${text}`);
   }
-  return res.status === 204 ? null : res.json();
+
+  return res.json();
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

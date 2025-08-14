@@ -43,7 +43,7 @@ export default function Login() {
     },
     onSuccess: (response) => {
       setIsLoading(false);
-      if (response.ok) {
+      if (response.success) {
         queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
         toast({
           title: "Welcome back!",
@@ -53,7 +53,7 @@ export default function Login() {
       } else {
         toast({
           title: "Login failed",
-          description: response.error || "Invalid credentials",
+          description: response.message || "Invalid credentials",
           variant: "destructive"
         });
       }
