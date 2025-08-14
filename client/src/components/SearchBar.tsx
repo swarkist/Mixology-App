@@ -55,9 +55,7 @@ export default function SearchBar({
             size="sm"
             onClick={() => onChange("")}
             className="text-sm border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors shrink-0"
-          >
-            Clear Filters
-          </Button>
+          >Clear Search</Button>
         )}
       </div>
     </div>
