@@ -1,0 +1,64 @@
+/import:1  Refused to load the script 'https://replit.com/public/js/replit-dev-banner.js' because it violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://localhost:* http://localhost:*". Note that 'script-src-elem' was not explicitly set, so 'script-src' is used as a fallback.
+
+react-dom.development.js:29895 Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+aiRequest.ts:21   POST https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/openrouter 401 (Unauthorized)
+callOpenRouter @ aiRequest.ts:21
+parseWithAI @ ImportCocktail.tsx:297
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+BrandFromImageDialog.tsx:59 🔥 Client: Starting OCR extraction for file: vodka-test.jpg 171282
+imageCompression.ts:14 Compressing image: vodka-test.jpg, original size: 171282 bytes
+imageCompression.ts:39 Image compressed to 20899 bytes (~20KB)
+BrandFromImageDialog.tsx:64 🔥 Client: Compressed image length: 20899
+BrandFromImageDialog.tsx:69   POST https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/ai/brands/from-image 401 (Unauthorized)
+extractBrand @ BrandFromImageDialog.tsx:69
+await in extractBrand
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430
+BrandFromImageDialog.tsx:75 🔥 Client: Response status: 401
+BrandFromImageDialog.tsx:77 🔥 Client: Response JSON: {error: 'Authentication required'}
+BrandFromImageDialog.tsx:91  🔥 Client: OCR failed: Error: Authentication required
+    at extractBrand (BrandFromImageDialog.tsx:82:15)
+extractBrand @ BrandFromImageDialog.tsx:91
+await in extractBrand
+callCallback2 @ react-dom.development.js:4164
+invokeGuardedCallbackDev @ react-dom.development.js:4213
+invokeGuardedCallback @ react-dom.development.js:4277
+invokeGuardedCallbackAndCatchFirstError @ react-dom.development.js:4291
+executeDispatch @ react-dom.development.js:9041
+processDispatchQueueItemsInOrder @ react-dom.development.js:9073
+processDispatchQueue @ react-dom.development.js:9086
+dispatchEventsForPlugins @ react-dom.development.js:9097
+(anonymous) @ react-dom.development.js:9288
+batchedUpdates$1 @ react-dom.development.js:26179
+batchedUpdates @ react-dom.development.js:3991
+dispatchEventForPluginEventSystem @ react-dom.development.js:9287
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ react-dom.development.js:6465
+dispatchEvent @ react-dom.development.js:6457
+dispatchDiscreteEvent @ react-dom.development.js:6430

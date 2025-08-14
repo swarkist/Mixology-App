@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // =================== AI IMPORT ROUTES ===================
 
   // Photo → Preferred Brand OCR endpoint - allow admin and reviewer for parsing
-  app.post("/api/ai/brands/from-image", allowRoles('admin', 'reviewer'), async (req, res) => {
+  app.post("/api/ai/brands/from-image", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       console.log("🔥 OCR request received");
       
@@ -987,7 +987,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // =================== AI IMPORT PARSE/COMMIT ROUTES ===================
   
   // Parse content (reviewers and admins can parse)
-  app.post("/api/import/parse", allowRoles('admin', 'reviewer'), async (req, res) => {
+  app.post("/api/import/parse", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       const { content, source } = req.body;
       
@@ -1070,7 +1070,7 @@ Return an array of recipes. Only include complete recipes with clear ingredient 
   });
   
   // Commit parsed recipes (only admins can commit to database)
-  app.post("/api/import/commit", allowRoles('admin'), async (req, res) => {
+  app.post("/api/import/commit", requireAuth, allowRoles('admin'), async (req, res) => {
     try {
       const { recipes } = req.body;
       
@@ -1211,103 +1211,4 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
     }
   });
 
-  // OpenRouter proxy endpoint - allow admin and reviewer for parsing  
-  app.post("/api/openrouter", allowRoles('admin', 'reviewer'), async (req, res) => {
-    try {
-      const { model, systemPrompt, userContent } = req.body;
-      
-      if (!model || !userContent) {
-        return res.status(400).json({ error: "Model and userContent are required" });
-      }
-      
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            ...(systemPrompt ? [{ role: "system", content: systemPrompt }] : []),
-            { role: "user", content: userContent }
-          ]
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.text();
-        console.error("OpenRouter API error:", errorData);
-        return res.status(response.status).json({ 
-          error: `OpenRouter API error: ${response.statusText}` 
-        });
-      }
-      
-      const data = await response.json();
-      res.json(data);
-    } catch (error) {
-      console.error("OpenRouter request failed:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to process OpenRouter request" 
-      });
-    }
-  });
-
-  // YouTube transcript endpoint - allow admin and reviewer for parsing
-  app.post("/api/youtube-transcript", allowRoles('admin', 'reviewer'), async (req, res) => {
-    try {
-      const { videoId } = req.body;
-      
-      if (!videoId) {
-        return res.status(400).json({ error: "Video ID is required" });
-      }
-      
-      // Import the youtube-transcript library
-      const { YoutubeTranscript } = await import('youtube-transcript');
-      
-      // Try multiple language hints + allow auto-generated
-      const tryLangs = ["en", "en-US", "en-GB"];
-      let transcriptItems: any = null;
-      let lastError: any;
-
-      for (const lang of tryLangs) {
-        try {
-          transcriptItems = await YoutubeTranscript.fetchTranscript(videoId, { lang });
-          if (transcriptItems?.length) break;
-        } catch (e) {
-          lastError = e;
-        }
-      }
-
-      // Fallback: no language hint (lets library try auto-generated)
-      if (!transcriptItems || transcriptItems.length === 0) {
-        try {
-          transcriptItems = await YoutubeTranscript.fetchTranscript(videoId);
-        } catch (e) {
-          lastError = e;
-        }
-      }
-      
-      if (!transcriptItems || transcriptItems.length === 0) {
-        return res.status(404).json({ 
-          error: `No transcript available or fetch blocked for video ${videoId}. The video may not have auto-generated captions or manual subtitles available. Try a different video with captions.`
-        });
-      }
-      
-      // Join all transcript text and limit length for token limits
-      const transcript = transcriptItems
-        .map((item: any) => item.text)
-        .join(' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .slice(0, 12000);
-      
-      res.json({ transcript });
-    } catch (error) {
-      console.error("YouTube transcript extraction failed:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to extract YouTube transcript" 
-      });
-    }
-  });
 }

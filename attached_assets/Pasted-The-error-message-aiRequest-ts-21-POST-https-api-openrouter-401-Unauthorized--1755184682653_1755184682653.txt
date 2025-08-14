@@ -1,0 +1,52 @@
+The error message:
+
+```
+aiRequest.ts:21   POST https://.../api/openrouter 401 (Unauthorized)
+```
+
+means that a **POST request** was made to the `/api/openrouter` endpoint, but the server **rejected it with a 401 Unauthorized** status. This indicates that the request lacked valid authentication credentials or the credentials provided were invalid.
+
+---
+
+### 🔍 What likely caused it?
+
+Based on the page content, the app is trying to use AI to parse recipe content via OpenRouter. The 401 error suggests one of the following:
+
+- **Missing API key**: The request didn’t include an authentication token or API key required by the server.
+- **Invalid or expired token**: The token provided might be incorrect, expired, or revoked.
+- **Improper request headers**: The `Authorization` header may be missing or malformed.
+- **Backend misconfiguration**: The server might not be properly set up to validate the token or route the request.
+
+---
+
+### 🛠️ How to fix it
+
+Here’s how you can resolve the issue:
+
+#### ✅ 1. Check the Authorization Header
+Ensure your request includes a valid `Authorization` header, like:
+
+```ts
+headers: {
+  "Authorization": `Bearer YOUR_API_KEY`,
+  "Content-Type": "application/json"
+}
+```
+
+Replace `YOUR_API_KEY` with the actual key or token expected by the OpenRouter API.
+
+#### ✅ 2. Verify the API Key
+- Make sure the key is correct and hasn’t expired.
+- If you're using environment variables, confirm they’re loaded properly.
+
+#### ✅ 3. Backend Configuration
+If you're the developer of the backend:
+- Confirm that the `/api/openrouter` route is correctly set up to authenticate incoming requests.
+- If you're proxying to OpenRouter, ensure your server includes the correct credentials when forwarding the request.
+
+---
+
+### 🧪 Bonus Tip: Debugging Locally
+Try logging the request headers in `aiRequest.ts` before sending the POST request. That’ll help confirm whether the token is being attached properly.
+
+Let me know if you want help editing the request code or configuring the backend—I can walk you through it.
