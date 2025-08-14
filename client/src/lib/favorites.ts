@@ -36,12 +36,15 @@ export function useToggleFavorite() {
       return { prev };
     },
     onError: (_e, _id, ctx) => {
+      // Roll back optimistic update on error
       if (ctx?.prev) {
         qc.setQueryData(['/api/user/favorites'], ctx.prev);
       }
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: ['/api/user/favorites'] });
+      // Also invalidate cocktails queries to update My Favs filter
+      qc.invalidateQueries({ queryKey: ['/api/cocktails'] });
     }
   });
 }

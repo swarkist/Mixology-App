@@ -277,14 +277,55 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         const favoriteIds = await getUserFavoriteIds(userId);
         if (!favoriteIds.length) return res.json([]);
         
-        // Get cocktails by favorite IDs
-        cocktails = await Promise.all(
-          favoriteIds.map(async (id: string) => {
-            return await storage.getCocktailById(parseInt(id));
-          })
-        );
-        // Filter out any null results
-        cocktails = cocktails.filter(Boolean);
+        // Robust cocktail fetching: try by docId first, then by field 'id' with chunked queries
+        const { getFirestore } = await import('firebase-admin/firestore');
+        const db = getFirestore();
+        let foundCocktails: any[] = [];
+        
+        try {
+          // Try fetching by Firestore document IDs first
+          const docRefs = favoriteIds.map(id => db.collection('cocktails').doc(id));
+          const docSnaps = await db.getAll(...docRefs);
+          
+          for (const snap of docSnaps) {
+            if (snap.exists) {
+              foundCocktails.push({ id: snap.id, ...snap.data() });
+            }
+          }
+          
+          // If no cocktails found by docId, try querying by field 'id'
+          if (foundCocktails.length === 0) {
+            // Chunk the favorite IDs into groups of 10 (Firestore 'in' query limit)
+            const chunks = [];
+            for (let i = 0; i < favoriteIds.length; i += 10) {
+              chunks.push(favoriteIds.slice(i, i + 10));
+            }
+            
+            for (const chunk of chunks) {
+              // Try both string and number matching
+              const stringQuery = db.collection('cocktails').where('id', 'in', chunk);
+              const numberQuery = db.collection('cocktails').where('id', 'in', chunk.map(id => parseInt(id)));
+              
+              const [stringSnap, numberSnap] = await Promise.all([
+                stringQuery.get(),
+                numberQuery.get()
+              ]);
+              
+              stringSnap.docs.forEach(doc => {
+                foundCocktails.push({ id: doc.id, ...doc.data() });
+              });
+              
+              numberSnap.docs.forEach(doc => {
+                foundCocktails.push({ id: doc.id, ...doc.data() });
+              });
+            }
+          }
+          
+          cocktails = foundCocktails;
+        } catch (error) {
+          console.error('Error fetching favorite cocktails:', error);
+          cocktails = [];
+        }
       } else if (search) {
         cocktails = await storage.searchCocktails(search as string);
       } else if (featured === 'true') {

@@ -100,6 +100,7 @@ export const CocktailList = (): JSX.Element => {
             popular: showOnlyPopular,
           },
         ],
+    enabled: showMyFavs ? isAuthed : true, // Only enable My Favs query when authenticated
     queryFn: async () => {
       const queryString = buildQueryString();
       if (showMyFavs && isAuthed) {
@@ -323,7 +324,21 @@ export const CocktailList = (): JSX.Element => {
 
         {/* Cocktail Grid */}
         <div className="px-4 py-6">
-          {showMyFavs && isAuthed && (!cocktails || cocktails.length === 0) ? (
+          {showMyFavs && !isAuthed ? (
+            <Card className="bg-[#383629] border-[#544f3b]">
+              <CardContent className="p-8 text-center">
+                <Heart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
+                <h3 className="text-white text-lg font-semibold mb-2">Login to view your favorite recipes</h3>
+                <p className="text-[#bab59b] mb-4">Sign in to see your personalized list of favorite cocktails.</p>
+                <Button
+                  onClick={() => setShowMyFavs(false)}
+                  className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]"
+                >
+                  Browse Cocktails
+                </Button>
+              </CardContent>
+            </Card>
+          ) : showMyFavs && isAuthed && (!cocktails || cocktails.length === 0) ? (
             <Card className="bg-[#383629] border-[#544f3b]">
               <CardContent className="p-8 text-center">
                 <Heart className="w-12 h-12 text-gray-500 mx-auto mb-4" />
