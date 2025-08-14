@@ -101,7 +101,10 @@ export const CocktailList = (): JSX.Element => {
           },
         ],
     queryFn: async () => {
-      const response = await fetch(`/api/cocktails${buildQueryString()}`);
+      const url = `/api/cocktails${buildQueryString()}`;
+      const response = await fetch(url, {
+        credentials: 'include' // Include cookies for authentication
+      });
       if (!response.ok) throw new Error("Failed to fetch cocktails");
       return response.json();
     },
