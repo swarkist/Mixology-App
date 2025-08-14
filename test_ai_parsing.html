@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test AI Parsing</title>
+</head>
+<body>
+    <h1>Testing AI Parsing as Reviewer</h1>
+    
+    <script>
+    async function testAIAsReviewer() {
+        try {
+            // First login as reviewer
+            const loginResponse = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    email: 'reviewer@test.com',
+                    password: 'password123'
+                })
+            });
+            
+            const loginData = await loginResponse.json();
+            console.log('Login response:', loginData);
+            
+            if (loginData.success) {
+                // Test AI parsing
+                const aiResponse = await fetch('/api/openrouter', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'openai/gpt-4o-mini',
+                        systemPrompt: 'Parse this cocktail recipe into JSON format with name, description, ingredients array (with name, amount, unit), and instructions array.',
+                        userContent: `Chipotle Patron Margarita
+Ingredients:
+1.5 oz. Tequila (Patron Silver)
+0.5 oz. Cointreau (or Patron Citronge)
+1 oz. Lime juice, freshly squeezed
+0.5 oz. Agave Nectar
+Method
+Shake and strain, serve on the rocks.
+Kosher salt (optional), for rimming the glass`
+                    })
+                });
+                
+                const aiData = await aiResponse.json();
+                console.log('AI Response:', aiData);
+                console.log('Status:', aiResponse.status);
+                
+                if (!aiResponse.ok) {
+                    console.error('AI request failed:', aiResponse.status, aiData);
+                } else {
+                    console.log('AI parsing successful!');
+                }
+            } else {
+                console.error('Login failed:', loginData);
+            }
+            
+        } catch (error) {
+            console.error('Test error:', error);
+        }
+    }
+    
+    // Run test when page loads
+    testAIAsReviewer();
+    </script>
+</body>
+</html>
