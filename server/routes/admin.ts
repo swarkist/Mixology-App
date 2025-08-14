@@ -4,7 +4,7 @@ import { requireAuth, requireAdmin } from '../middleware/requireAuth';
 import type { IStorage } from '../storage';
 
 const updateUserRoleSchema = z.object({
-  role: z.enum(['basic', 'admin'])
+  role: z.enum(['basic', 'reviewer', 'admin'])
 });
 
 const updateUserStatusSchema = z.object({
