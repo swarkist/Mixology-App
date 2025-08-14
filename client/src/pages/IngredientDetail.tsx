@@ -277,7 +277,7 @@ export const IngredientDetail = (): JSX.Element => {
               </h2>
               <div className="grid gap-3">
                 {cocktailsWithIngredient.map((cocktail: any) => (
-                  <Link key={cocktail.id} href={`/cocktails/${cocktail.id}`}>
+                  <Link key={cocktail.id} href={`/recipe/${cocktail.id}`}>
                     <div className="flex justify-between items-center p-3 bg-[#383528] rounded-lg hover:bg-[#4a4735] transition-colors cursor-pointer">
                       <div className="flex items-center gap-3">
                         {cocktail.imageUrl ? (
