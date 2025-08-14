@@ -25,6 +25,7 @@ export default function EditPreferredBrand() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const isReviewer = user?.role === 'reviewer';
   
   const brandId = parseInt(params?.id || "0");
 
@@ -163,8 +164,8 @@ export default function EditPreferredBrand() {
           <Button 
             form="preferred-brand-form"
             type="submit"
-            disabled={updateMutation.isPending || user?.role === 'reviewer'}
-            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
+            disabled={updateMutation.isPending || isReviewer}
+            className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="hidden sm:inline">
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -178,6 +179,7 @@ export default function EditPreferredBrand() {
 
       {/* Form */}
       <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <ReviewBanner />
         <Form {...form}>
           <form id="preferred-brand-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Basic Information */}
@@ -298,8 +300,8 @@ export default function EditPreferredBrand() {
             <Button 
               form="preferred-brand-form"
               type="submit"
-              disabled={updateMutation.isPending || user?.role === 'reviewer'}
-              className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12"
+              disabled={updateMutation.isPending || isReviewer}
+              className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
@@ -316,9 +318,9 @@ export default function EditPreferredBrand() {
               </Link>
               <Button 
                 onClick={handleDelete}
-                disabled={deleteMutation.isPending || user?.role === 'reviewer'}
+                disabled={deleteMutation.isPending || isReviewer}
                 variant="outline"
-                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
+                className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 {deleteMutation.isPending ? "Deleting..." : "Delete"}
