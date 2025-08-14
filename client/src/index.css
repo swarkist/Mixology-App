@@ -89,14 +89,3 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
-
-/* Custom button pill styles for favorites */
-.pill { 
-  @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40 transition; 
-}
-.pill-active { 
-  @apply bg-primary text-primary-foreground border-transparent; 
-}
-.pill-outline { 
-  @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40; 
-}
