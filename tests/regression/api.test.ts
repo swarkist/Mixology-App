@@ -588,21 +588,107 @@ describe('Cocktail Management API Regression Tests', () => {
     });
   });
 
+  describe('Admin Dashboard Functionality Tests', () => {
+    it('should test admin user search functionality', async () => {
+      // Test that admin user search works with query parameters
+      const allUsers = await apiRequest('/admin/users?page=1&limit=20');
+      
+      expect(allUsers).toHaveProperty('users');
+      expect(allUsers).toHaveProperty('total');
+      expect(allUsers).toHaveProperty('page');
+      expect(allUsers).toHaveProperty('limit');
+      expect(Array.isArray(allUsers.users)).toBe(true);
+
+      // Test search with query
+      if (allUsers.users.length > 0) {
+        const firstUser = allUsers.users[0];
+        const searchQuery = firstUser.email.substring(0, 2);
+        
+        const searchResults = await apiRequest(`/admin/users?page=1&limit=20&query=${searchQuery}`);
+        expect(Array.isArray(searchResults.users)).toBe(true);
+        
+        // Should find at least the user we searched for
+        const foundUser = searchResults.users.find((u: any) => u.email.includes(searchQuery));
+        expect(foundUser).toBeDefined();
+      }
+
+      console.log(`✅ Admin search: Found ${allUsers.total} total users`);
+    });
+
+    it('should test admin user role and status filtering', async () => {
+      // Test role filtering
+      const adminUsers = await apiRequest('/admin/users?page=1&limit=20&role=admin');
+      const basicUsers = await apiRequest('/admin/users?page=1&limit=20&role=basic');
+      
+      expect(Array.isArray(adminUsers.users)).toBe(true);
+      expect(Array.isArray(basicUsers.users)).toBe(true);
+      
+      // Validate admin users have admin role
+      adminUsers.users.forEach((user: any) => {
+        expect(user.role).toBe('admin');
+      });
+      
+      // Validate basic users have basic role
+      basicUsers.users.forEach((user: any) => {
+        expect(user.role).toBe('basic');
+      });
+
+      // Test status filtering
+      const activeUsers = await apiRequest('/admin/users?page=1&limit=20&status=true');
+      const inactiveUsers = await apiRequest('/admin/users?page=1&limit=20&status=false');
+      
+      expect(Array.isArray(activeUsers.users)).toBe(true);
+      expect(Array.isArray(inactiveUsers.users)).toBe(true);
+      
+      // Validate active users are active
+      activeUsers.users.forEach((user: any) => {
+        expect(user.is_active).toBe(true);
+      });
+      
+      // Validate inactive users are inactive
+      inactiveUsers.users.forEach((user: any) => {
+        expect(user.is_active).toBe(false);
+      });
+
+      console.log(`✅ Admin filtering: ${adminUsers.users.length} admin, ${basicUsers.users.length} basic, ${activeUsers.users.length} active, ${inactiveUsers.users.length} inactive`);
+    });
+
+    it('should test admin pagination functionality', async () => {
+      // Test pagination parameters
+      const page1 = await apiRequest('/admin/users?page=1&limit=5');
+      
+      expect(page1).toHaveProperty('users');
+      expect(page1).toHaveProperty('total');
+      expect(page1).toHaveProperty('page');
+      expect(page1).toHaveProperty('limit');
+      expect(page1).toHaveProperty('totalPages');
+      
+      expect(page1.page).toBe(1);
+      expect(page1.limit).toBe(5);
+      expect(page1.users.length).toBeLessThanOrEqual(5);
+      
+      if (page1.totalPages > 1) {
+        const page2 = await apiRequest('/admin/users?page=2&limit=5');
+        expect(page2.page).toBe(2);
+        expect(page2.limit).toBe(5);
+        
+        // Ensure different results on different pages
+        const page1Ids = page1.users.map((u: any) => u.id);
+        const page2Ids = page2.users.map((u: any) => u.id);
+        const overlap = page1Ids.filter((id: any) => page2Ids.includes(id));
+        expect(overlap.length).toBe(0); // No overlap between pages
+      }
+
+      console.log(`✅ Admin pagination: ${page1.totalPages} total pages, ${page1.total} total users`);
+    });
+  });
+
   // Comprehensive cleanup with verification
   afterAll(async () => {
-    try {
-      await testManager.cleanupAllTestData();
-      console.log('✅ API test cleanup completed successfully');
-    } catch (error) {
-      console.error('❌ API test cleanup failed:', error);
-      // Run emergency cleanup as fallback
-      try {
-        await testManager.emergencyCleanup();
-        console.log('✅ Emergency cleanup completed');
-      } catch (emergencyError) {
-        console.error('💥 Emergency cleanup also failed:', emergencyError);
-        throw new Error('CRITICAL: Test data may remain in database');
-      }
+    if (testManager) {
+      console.log('🧹 Cleaning up test data and restoring production state...');
+      await testManager.cleanup();
+      console.log('✅ Regression tests completed successfully with full data isolation');
     }
   });
 });

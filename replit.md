@@ -7,6 +7,17 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 
+## Recent Changes (August 14, 2025)
+- **Unified Real-Time Search & Standardized Empty States**: Implemented consistent pill-based filtering across Cocktails, Ingredients, and My Bar pages with enhanced EmptyState component
+- **My Bar Category Filtering**: Added smart brand categorization system (spirits, liqueurs, mixers, bitters, syrups, other) based on name pattern recognition
+- **Enhanced EmptyState Component**: Differentiated messaging for search vs filter results with proper "Clear filters" vs "Try different keywords" actions
+- **Streamlined My Bar Layout**: Removed "My Collection" badge and consolidated filter pills with action buttons into single inline row for cleaner interface
+- **Brand Categorization Logic**: Implemented intelligent brand category detection analyzing names (whiskey→spirits, syrup→syrups, tonic→mixers, etc.)
+- **URL State Synchronization**: Added category filter persistence in URL parameters for bookmarkable filtered views
+- **Comprehensive Filter Testing**: Updated regression test suite with brand categorization validation and EmptyState differentiation testing
+- **Cross-Page Filtering Consistency**: Standardized pill filter design and behavior across all major pages (CocktailList, Ingredients, MyBar)
+- **Admin Dashboard UX Improvements**: Enhanced search functionality with inline clear button, improved button contrast (yellow theme), added "Back to Site" navigation link in header, converted search to real-time operation
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -40,6 +51,7 @@ Documentation updates: Only update replit.md when running regression tests, not 
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **UI Consistency**: Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages (CocktailList, Ingredients, MyBar). URL state synchronization for filter persistence.
+- **Admin Dashboard**: Comprehensive user management interface with real-time search, role/status filtering, pagination, and enhanced UX features including inline clear functionality and improved visual contrast.
 
 ## External Dependencies
 
