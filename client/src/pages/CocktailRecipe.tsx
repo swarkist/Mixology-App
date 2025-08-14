@@ -141,6 +141,7 @@ export const CocktailRecipe = (): JSX.Element => {
               Back to Recipes
             </Button>
           </Link>
+          {/* Social Buttons 
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
               <Heart className="w-4 h-4" />
@@ -148,7 +149,7 @@ export const CocktailRecipe = (): JSX.Element => {
             <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
               <Share className="w-4 h-4" />
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
 
