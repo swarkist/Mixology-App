@@ -10,6 +10,7 @@ import {
   Filter,
   StarIcon,
   X,
+  Edit2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ export const CocktailList = (): JSX.Element => {
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
   
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'reviewer';
 
   // Update URL when debounced search term changes
   useEffect(() => { 
@@ -353,7 +354,7 @@ export const CocktailList = (): JSX.Element => {
                           size="sm"
                           onClick={() => handleToggleFeatured(cocktail)}
                           className="text-[#bab59b] hover:text-[#f2c40c]"
-                          disabled={toggleFeaturedMutation.isPending}
+                          disabled={toggleFeaturedMutation.isPending || user?.role === 'reviewer'}
                         >
                           <StarIcon
                             className={`h-4 w-4 ${cocktail.isFeatured ? "fill-[#f2c40c] text-[#f2c40c]" : ""}`}
@@ -378,24 +379,26 @@ export const CocktailList = (): JSX.Element => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 mt-auto">
-                      <Link href={`/recipe/${cocktail.id}`}>
+                      <Link href={`/recipe/${cocktail.id}`} className="flex-1">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
+                          className="w-full bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
                         >
                           View Recipe
                         </Button>
                       </Link>
-                      {/* <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleStartMaking(cocktail)}
-                        className="bg-[#f2c40c] text-[#161611] hover:bg-[#f2c40c]/90 border-0"
-                        disabled={incrementPopularityMutation.isPending}
-                      >
-                        Start Making
-                      </Button> */}
+                      {isAdmin && (
+                        <Link href={`/edit-cocktail/${cocktail.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

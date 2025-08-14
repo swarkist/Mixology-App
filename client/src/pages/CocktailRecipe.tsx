@@ -19,7 +19,7 @@ export const CocktailRecipe = (): JSX.Element => {
   const { user } = useAuth();
   
   const cocktailId = params?.id ? parseInt(params.id) : null;
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'reviewer';
 
   // Fetch cocktail details
   const { data: cocktailDetails, isLoading, error } = useQuery({
@@ -285,7 +285,7 @@ export const CocktailRecipe = (): JSX.Element => {
               <Button 
                 variant="outline" 
                 onClick={handleDelete}
-                disabled={deleteMutation.isPending}
+                disabled={deleteMutation.isPending || user?.role === 'reviewer'}
                 className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
               >
                 <Trash2 className="w-4 h-4 mr-2" />

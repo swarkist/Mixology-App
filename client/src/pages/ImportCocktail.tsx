@@ -549,7 +549,7 @@ SAMPLE RECIPE
               
               <Button
                 onClick={parseWithAI}
-                disabled={isParsing || !rawContent.trim()}
+                disabled={isParsing || !rawContent.trim() || user?.role === 'reviewer'}
                 className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
               >
                 {isParsing ? (

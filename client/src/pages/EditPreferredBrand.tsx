@@ -16,12 +16,15 @@ import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import IngredientAssociation from "@/components/IngredientAssociation";
+import { ReviewBanner } from "@/components/ReviewBanner";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function EditPreferredBrand() {
   const [, params] = useRoute("/edit-preferred-brand/:id");
   const [, setLocation] = useLocation();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const brandId = parseInt(params?.id || "0");
 
@@ -160,7 +163,7 @@ export default function EditPreferredBrand() {
           <Button 
             form="preferred-brand-form"
             type="submit"
-            disabled={updateMutation.isPending}
+            disabled={updateMutation.isPending || user?.role === 'reviewer'}
             className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0"
           >
             <span className="hidden sm:inline">
@@ -295,7 +298,7 @@ export default function EditPreferredBrand() {
             <Button 
               form="preferred-brand-form"
               type="submit"
-              disabled={updateMutation.isPending}
+              disabled={updateMutation.isPending || user?.role === 'reviewer'}
               className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -313,7 +316,7 @@ export default function EditPreferredBrand() {
               </Link>
               <Button 
                 onClick={handleDelete}
-                disabled={deleteMutation.isPending}
+                disabled={deleteMutation.isPending || user?.role === 'reviewer'}
                 variant="outline"
                 className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm"
               >

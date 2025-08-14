@@ -26,7 +26,7 @@ export const Ingredients = (): JSX.Element => {
   const [selectedCategory, setSelectedCategory] = useState<string>(() => getQueryParam("category") || "");
 
   
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'reviewer';
   const debounced = useDebounce(term, 300);
 
   // Check if category filters are active (not search)

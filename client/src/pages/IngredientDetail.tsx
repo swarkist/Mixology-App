@@ -87,8 +87,7 @@ export const IngredientDetail = (): JSX.Element => {
   const deleteMutation = useMutation({
     mutationFn: async () => {
       return await apiRequest(`/api/ingredients/${ingredientId}`, {
-        method: 'DELETE',
-        headers: { 'x-admin-key': 'true' }
+        method: 'DELETE'
       });
     },
     onSuccess: () => {
@@ -154,7 +153,7 @@ export const IngredientDetail = (): JSX.Element => {
               Ingredients
             </Button>
           </Link>
-          <RoleGate role="admin" onAuthCheck={setIsAdmin}>
+          <RoleGate roles={["admin", "reviewer"]} onAuthCheck={setIsAdmin}>
             <div className="flex gap-2">
               <Link href={`/edit-ingredient/${ingredient.id}`}>
                 <Button size="sm" className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]">
@@ -220,7 +219,7 @@ export const IngredientDetail = (): JSX.Element => {
                 Preferred Brands
               </h2>
               <div className="grid gap-3">
-                {preferredBrands.map((brand) => (
+                {preferredBrands.map((brand: any) => (
                   <div key={brand.id} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
                     <div className="flex items-center gap-3">
                       {brand.imageUrl && (
@@ -250,7 +249,7 @@ export const IngredientDetail = (): JSX.Element => {
             </h2>
             <div className="flex flex-wrap gap-2">
               {tags && tags.length > 0 ? (
-                tags.map((tag) => (
+                tags.map((tag: any) => (
                   <Badge 
                     key={tag.id} 
                     variant="outline" 
