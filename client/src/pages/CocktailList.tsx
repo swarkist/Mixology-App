@@ -9,6 +9,7 @@ import {
   List,
   Filter,
   StarIcon,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,26 @@ export const CocktailList = (): JSX.Element => {
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
   
   const isAdmin = user?.role === 'admin';
+
+  // Check if any filters are active
+  const hasAnyFilter =
+    showOnlyFeatured ||
+    showOnlyPopular ||
+    searchQuery.trim() !== '';
+
+  // Clear all filters function
+  const clearAllFilters = () => {
+    setShowOnlyFeatured(false);
+    setShowOnlyPopular(false);
+    setSearchQuery('');
+    setSpiritFilter('all');
+    
+    // Clear URL params
+    if (typeof window !== 'undefined') {
+      const { pathname } = window.location;
+      window.history.replaceState({}, '', pathname);
+    }
+  };
 
   // Parse URL params
   useEffect(() => {
@@ -214,6 +235,19 @@ export const CocktailList = (): JSX.Element => {
               <TrendingUp className="h-3 w-3 mr-1" />
               Popular
             </Button>
+
+            {hasAnyFilter && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={clearAllFilters}
+                className="h-8 px-3 rounded-lg text-xs bg-[#544f3b] border-0 text-[#bab59b] hover:bg-[#665b47] hover:text-white transition-colors inline-flex items-center gap-1"
+                aria-label="Clear all filters"
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+                Clear filters
+              </Button>
+            )}
 
             {isAdmin && (
               <Link href="/add-cocktail">

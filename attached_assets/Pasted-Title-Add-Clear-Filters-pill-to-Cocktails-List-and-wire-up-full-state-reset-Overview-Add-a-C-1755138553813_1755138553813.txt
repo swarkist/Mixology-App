@@ -1,0 +1,94 @@
+Title
+Add “Clear Filters” pill to Cocktails List and wire up full state reset
+
+Overview
+Add a “Clear filters” pill to the Cocktails List filter bar that only appears when at least one filter is active. When clicked, it resets ALL filter state to defaults and refreshes the list. Keep the visual style consistent with existing filter pills.
+
+Scope
+- Frontend only; no backend changes.
+- Works with current filter states: Featured, Popular, My Favs, Search text, and Tag chips (adjust names if your file differs).
+- Does not alter any existing request logic beyond triggering a refetch via state changes.
+- Safe for both desktop and mobile.
+
+Files to update
+- client/src/pages/CocktailList.tsx
+- (Optional) your global/tailwind styles for pill helpers if they’re not present
+
+Implementation
+
+1) Ensure/declare filter state in CocktailList.tsx:
+--------------------------------------------------
+Add these (or confirm they exist) inside the component:
+
+const [isFeatured, setIsFeatured] = useState(false);
+const [isPopular, setIsPopular]   = useState(false);
+const [isMyFavs, setIsMyFavs]     = useState(false);
+const [search, setSearch]         = useState('');
+const [activeTags, setActiveTags] = useState<string[]>([]);
+
+2) Derived flag: is anything active?
+------------------------------------
+const hasAnyFilter =
+  isFeatured ||
+  isPopular ||
+  isMyFavs ||
+  search.trim() !== '' ||
+  activeTags.length > 0;
+
+3) Clear-all handler (resets everything and clears URL params):
+--------------------------------------------------------------
+function clearAll() {
+  setIsFeatured(false);
+  setIsPopular(false);
+  setIsMyFavs(false);
+  setSearch('');
+  setActiveTags([]);
+  // Optional: clear querystring without navigation
+  if (typeof window !== 'undefined') {
+    const { pathname } = window.location;
+    window.history.replaceState({}, '', pathname);
+  }
+}
+
+4) Render the “Clear filters” pill at the end of the filter bar:
+----------------------------------------------------------------
+- Place this AFTER your existing pills (Featured/Popular/My Favs/etc.).
+- Use lucide-react’s X icon for clarity.
+
+At top of file (imports):
+import { X } from 'lucide-react';
+
+In the filter bar JSX:
+{hasAnyFilter && (
+  <button
+    type="button"
+    className="pill-outline inline-flex items-center gap-1"
+    onClick={clearAll}
+    aria-label="Clear all filters"
+  >
+    <X size={16} aria-hidden="true" />
+    Clear filters
+  </button>
+)}
+
+5) Optional (if you don’t already have pill helpers):
+-----------------------------------------------------
+In your global styles/tailwind layer, add:
+
+.pill { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40 transition; }
+.pill-active { @apply bg-primary text-primary-foreground border-transparent; }
+.pill-outline { @apply px-3 py-1 rounded-full border border-border text-sm hover:bg-accent/40; }
+
+Accessibility
+- The button includes aria-label="Clear all filters".
+- Icon has aria-hidden="true".
+
+Validation (manual)
+1. Open Cocktails List → with no filters active, “Clear filters” is not visible.
+2. Activate any filter (Featured/Popular/My Favs), enter Search text, or add a Tag → the pill appears.
+3. Click “Clear filters” → all states reset (Featured/Popular/My Favs off, Search empty, Tags cleared), pill disappears, list shows default results.
+4. Confirm no console errors and that your list refetches as usual due to state changes.
+
+Notes
+- If your state variable names differ, update this prompt’s code accordingly in the file.
+- If you sync filters to the URL, the provided replaceState snippet keeps the address bar clean after clearing.
