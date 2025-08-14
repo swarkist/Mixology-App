@@ -73,6 +73,11 @@ app.options('*', cors({
   credentials: true,
 }));
 
+// Body parsing middleware MUST come before sessions and routes
+app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR endpoint needs larger limit
+app.use(express.json({ limit: "512kb" }));
+app.use(express.urlencoded({ extended: true, limit: "512kb" }));
+
 app.use(session({
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET!,       // make sure this is set in Secrets
   resave: false,
@@ -87,11 +92,6 @@ app.use(session({
 }));
 
 app.use(morgan("combined"));
-
-// Body limits - default 512KB for security, but OCR endpoint needs more
-app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR endpoint needs larger limit
-app.use(express.json({ limit: "512kb" }));
-app.use(express.urlencoded({ extended: true, limit: "512kb" }));
 
 // Basic rate limiting (tune as needed)
 const apiLimiter = rateLimit({

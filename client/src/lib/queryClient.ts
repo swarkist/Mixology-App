@@ -8,13 +8,17 @@ async function throwIfResNotOk(res: Response) {
 }
 
 export async function apiRequest(path: string, options: RequestInit = {}) {
+  const { body, ...restOptions } = options;
+  
   const res = await fetch(path, {
     credentials: 'include', // 🔑 send session cookie
     headers: {
       'Content-Type': 'application/json',
       ...(options.headers || {}),
     },
-    ...options,
+    // Auto-stringify JSON bodies
+    body: body && typeof body === 'object' ? JSON.stringify(body) : body,
+    ...restOptions,
   });
 
   // Bubble non-OK responses (keeps status code text in error)
