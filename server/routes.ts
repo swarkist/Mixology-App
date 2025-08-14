@@ -197,6 +197,23 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     try {
       const updateData = { ...req.body };
       
+      // Transform tags from string array to tag IDs (same as POST route)
+      if (req.body.tags && Array.isArray(req.body.tags)) {
+        console.log('🔥 Transforming ingredient tags for update...');
+        updateData.tagIds = await Promise.all(
+          req.body.tags.map(async (tagName: string) => {
+            let existingTag = await storage.findTagByName(tagName);
+            if (!existingTag) {
+              console.log(`🔥 Creating new ingredient tag: ${tagName}`);
+              existingTag = await storage.createTag({ name: tagName });
+            }
+            return existingTag.id;
+          })
+        );
+        delete updateData.tags;
+        console.log(`🔥 Transformed tags to IDs:`, updateData.tagIds);
+      }
+      
       // Handle image upload
       if (req.body.image && typeof req.body.image === 'string') {
         console.log('🔥 Processing image upload for ingredient update...');

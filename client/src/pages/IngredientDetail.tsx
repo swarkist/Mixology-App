@@ -22,6 +22,14 @@ interface Tag {
   name: string;
 }
 
+interface Cocktail {
+  id: number;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  category?: string;
+}
+
 interface IngredientDetail {
   ingredient: {
     id: number;
@@ -52,6 +60,28 @@ export const IngredientDetail = (): JSX.Element => {
     },
     enabled: !!ingredientId,
     retry: false,
+  });
+
+  // Fetch cocktails that use this ingredient
+  const { data: cocktailsWithIngredient } = useQuery({
+    queryKey: ['/api/cocktails/with-ingredient', ingredientId],
+    queryFn: async () => {
+      const allCocktails = await apiRequest('/api/cocktails');
+      const cocktailsWithDetails = await Promise.all(
+        allCocktails.map(async (cocktail: any) => {
+          const details = await apiRequest(`/api/cocktails/${cocktail.id}`);
+          return { ...cocktail, details };
+        })
+      );
+      
+      // Filter cocktails that use this ingredient
+      return cocktailsWithDetails.filter((cocktail: any) => 
+        cocktail.details?.ingredients?.some((ing: any) => 
+          ing.ingredientId === parseInt(ingredientId!)
+        )
+      );
+    },
+    enabled: !!ingredientId,
   });
 
   const deleteMutation = useMutation({
@@ -228,6 +258,45 @@ export const IngredientDetail = (): JSX.Element => {
                   >
                     {tag.name}
                   </Badge>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Cocktails Using This Ingredient Section */}
+        {cocktailsWithIngredient && cocktailsWithIngredient.length > 0 && (
+          <Card className="bg-[#2a2920] border-[#4a4735]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                Used in Cocktails ({cocktailsWithIngredient.length})
+              </h2>
+              <div className="grid gap-3">
+                {cocktailsWithIngredient.map((cocktail: any) => (
+                  <Link key={cocktail.id} href={`/cocktail/${cocktail.id}`}>
+                    <div className="flex justify-between items-center p-3 bg-[#383528] rounded-lg hover:bg-[#4a4735] transition-colors cursor-pointer">
+                      <div className="flex items-center gap-3">
+                        {cocktail.imageUrl ? (
+                          <img 
+                            src={cocktail.imageUrl} 
+                            alt={cocktail.name}
+                            className="w-8 h-8 rounded object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-[#4a4735] flex items-center justify-center">
+                            <Eye className="w-4 h-4 text-[#bab59b]" />
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-white font-medium">{cocktail.name}</span>
+                          {cocktail.description && (
+                            <p className="text-[#bab59b] text-sm mt-1">{cocktail.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <Eye className="w-4 h-4 text-[#bab59b]" />
+                    </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
