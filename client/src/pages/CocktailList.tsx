@@ -84,28 +84,36 @@ export const CocktailList = (): JSX.Element => {
     return params.toString() ? `?${params.toString()}` : "";
   };
 
-  // Fetch cocktails with filters
-  const {
-    data: cocktails,
-    isLoading,
-    error,
-  } = useQuery<Cocktail[]>({
-    queryKey: showMyFavs && isAuthed
-      ? ['/api/cocktails', { favoriteOnly: true }]
-      : [
-          "/api/cocktails",
-          {
-            search: searchQuery,
-            featured: showOnlyFeatured,
-            popular: showOnlyPopular,
-          },
-        ],
-    enabled: !showMyFavs || isAuthed, // Only enable when not My Favs or when authenticated
-    queryFn: async () => {
-      const queryString = buildQueryString();
+  // Default cocktails query (when not showing favorites)
+  const defaultQuery = useQuery<Cocktail[]>({
+    queryKey: ['/api/cocktails', {
+      search: searchQuery,
+      featured: showOnlyFeatured,
+      popular: showOnlyPopular,
+    }],
+    queryFn: () => {
+      const params = new URLSearchParams();
+      if (searchQuery.trim()) params.set("search", searchQuery.trim());
+      if (showOnlyFeatured) params.set("featured", "true");
+      if (showOnlyPopular) params.set("popular", "true");
+      const queryString = params.toString() ? `?${params.toString()}` : "";
       return apiRequest(`/api/cocktails${queryString}`, { method: 'GET' });
     },
+    enabled: !showMyFavs,
   });
+
+  // Favorites query (only when showing My Favs and authenticated)
+  const favQuery = useQuery<Cocktail[]>({
+    queryKey: ['/api/cocktails', { favoriteOnly: true }],
+    queryFn: () => apiRequest('/api/cocktails?favoriteOnly=true', { method: 'GET' }),
+    enabled: showMyFavs && isAuthed, // 🔒 no 401s when logged out
+    retry: false,
+  });
+
+  // Use appropriate query data
+  const cocktails = showMyFavs ? favQuery.data : defaultQuery.data;
+  const isLoading = showMyFavs ? favQuery.isLoading : defaultQuery.isLoading;
+  const error = showMyFavs ? favQuery.error : defaultQuery.error;
 
   // Toggle featured status mutation
   const toggleFeaturedMutation = useMutation({
@@ -163,6 +171,19 @@ export const CocktailList = (): JSX.Element => {
             </Card>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // When My Favs on and not authed: show message (do not render error state)
+  if (showMyFavs && !isAuthed) {
+    return (
+      <div className="min-h-screen bg-[#171712] text-white p-10">
+        <TopNavigation />
+        <div className="py-24 text-center text-[#bab59b] [font-family:'Plus_Jakarta_Sans',Helvetica]">
+          Login to view your favorite recipes
+        </div>
+        <Navigation />
       </div>
     );
   }

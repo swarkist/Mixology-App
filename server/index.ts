@@ -4,6 +4,7 @@ import cors from "cors";
 import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import session from 'express-session';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { MemStorage } from "./storage/memory";
@@ -14,6 +15,11 @@ const app = express();
 
 // --- Security & hardening ---
 app.set("trust proxy", 1);
+
+const allowlist = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
 
 // Configure Helmet with CSP that allows Vite development server
 app.use(helmet({
@@ -49,26 +55,43 @@ app.use(helmet({
     }
   }
 }));
+
+// CORS must allow credentials and your exact origins (no trailing slash)
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);     // same-origin
+    return cb(null, allowlist.includes(origin));
+  },
+  credentials: true,                         // 🔑 allow cookies
+}));
+
+app.options('*', cors({
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    return cb(null, allowlist.includes(origin));
+  },
+  credentials: true,
+}));
+
+app.use(session({
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET!,       // make sure this is set in Secrets
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: true,                            // HTTPS in Replit
+    sameSite: 'none',                        // cross-site cookie in IDE iframe
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    // DO NOT set cookie.domain (let browser scope it automatically)
+  },
+}));
+
 app.use(morgan("combined"));
 
 // Body limits - default 512KB for security, but OCR endpoint needs more
 app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR endpoint needs larger limit
 app.use(express.json({ limit: "512kb" }));
 app.use(express.urlencoded({ extended: true, limit: "512kb" }));
-
-// CORS allowlist via env secret CORS_ORIGINS (comma-separated)
-const origins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-const corsOptions: cors.CorsOptions = origins.length
-  ? {
-      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
-        if (!origin) return cb(null, true); // allow same-origin/non-browser tools
-        cb(null, origins.includes(origin));
-      },
-      credentials: true,
-    }
-  : { credentials: true }; // no origins set -> default allow same-origin only with credentials
-app.options('*', cors(corsOptions)); // Handle preflight requests
-app.use(cors(corsOptions));
 
 // Basic rate limiting (tune as needed)
 const apiLimiter = rateLimit({
@@ -81,20 +104,6 @@ app.use("/api", apiLimiter);
 
 // Cookie parser for auth tokens
 app.use(cookieParser());
-
-// Express session middleware for session-based authentication
-import session from 'express-session';
-app.use(session({
-  secret: process.env.JWT_SECRET || 'fallback-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // true for HTTPS in production
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' for cross-site in production
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  }
-}));
 
 // Admin API key gate for write methods on /api/*
 const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {

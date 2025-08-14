@@ -13,6 +13,7 @@ import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
 import { createFavoritesRoutes } from './routes/favorites';
+import { debugRouter } from './routes/debug';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 
@@ -31,6 +32,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   
   // Register favorites routes
   app.use('/api', createFavoritesRoutes(storage, requireAuth));
+  
+  // Register debug routes
+  app.use('/api', debugRouter);
+  
   // =================== USERS ===================
   app.get("/api/users/:id", async (req, res) => {
     const id = parseInt(req.params.id);
