@@ -8,7 +8,10 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
 
-## Recent Changes (August 14, 2025)
+## Recent Changes (August 15, 2025)
+- **Password Reset Flow Implementation**: Complete forgot/reset password functionality with secure token-based authentication. Fixed frontend API endpoint mismatch and created ResetPassword component for token handling. Implemented NIST-aligned security controls including 30-minute token expiry, SHA-256 hashing, single-use enforcement, and neutral responses to prevent account enumeration. Configured production SMTP email delivery with all required secrets (SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL). Verified complete flow: email request → token generation → password reset → automatic login → session revocation.
+
+## Previous Changes (August 14, 2025)
 - **Critical Security Fixes Completed**: Resolved authentication bypass vulnerability in AI endpoints by implementing proper middleware ordering (requireAuth before allowRoles). Added missing /api/openrouter and /api/youtube-transcript routes with comprehensive role-based access control, ensuring reviewer/admin users can access AI features while basic users receive 403 errors.
 - **Complete RBAC UI Implementation**: Finished three-tier role system with comprehensive ReviewBanner integration across all forms. Implemented consistent disabled save/delete functionality for reviewer role across BrandFromImageDialog, AddPreferredBrand, and EditPreferredBrand pages with proper visual styling (opacity-50, cursor-not-allowed).
 - **AdminDashboard Role Management**: Fixed critical bug preventing admin users from editing roles due to variable naming collision. Implemented proper role checking with last admin protection to prevent system lockout scenarios.
@@ -72,9 +75,9 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **UI Framework**: shadcn/ui, Radix UI primitives, Tailwind CSS, Lucide React icons.
 - **Backend**: Express.js, Node.js, TypeScript, Firebase Admin SDK.
 - **Database**: Firebase Firestore.
-- **Authentication**: Express sessions, bcrypt, passport-local.
+- **Authentication**: Express sessions, bcrypt, passport-local, secure password reset with email tokens.
 - **Validation**: Zod, React Hook Form with `zodResolver`.
-- **Security**: Helmet, CORS, `express-rate-limit`, Morgan logging.
+- **Security**: Helmet, CORS, `express-rate-limit`, Morgan logging, SMTP email integration.
 - **AI Integration**: OpenRouter API, YouTube transcript extraction, Cheerio web scraping.
 - **Image Processing**: Custom image compression utilities (`imageCompression.ts`).
 
