@@ -10,6 +10,7 @@ console.log('=' .repeat(60));
 // Test configuration
 const testFiles = [
   'tests/regression/data-isolation-verification.test.ts',
+  'tests/regression/api-endpoint-validation.test.ts', // CRITICAL: Run first to catch API mismatches
   'tests/regression/auth-scenarios.test.ts',
   'tests/regression/api.test.ts',
   'tests/regression/firebase-persistence.test.ts', 

@@ -10,6 +10,7 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 
 ## Recent Changes (August 15, 2025)
 - **Password Reset Flow Implementation**: Complete forgot/reset password functionality with secure token-based authentication. Fixed frontend API endpoint mismatch and created ResetPassword component for token handling. Implemented NIST-aligned security controls including 30-minute token expiry, SHA-256 hashing, single-use enforcement, and neutral responses to prevent account enumeration. Configured production SMTP email delivery with all required secrets (SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL). Verified complete flow: email request → token generation → password reset → automatic login → session revocation.
+- **Enhanced Regression Testing**: Added critical API endpoint validation test (`api-endpoint-validation.test.ts`) to prevent frontend-backend integration mismatches that could break user flows. This addresses the root cause of the forgot password bug where frontend called `/forgot-password` but backend only had `/forgot`. New test validates all authentication routes, core endpoints, query parameters, and ensures critical user journeys have proper API coverage.
 
 ## Previous Changes (August 14, 2025)
 - **Critical Security Fixes Completed**: Resolved authentication bypass vulnerability in AI endpoints by implementing proper middleware ordering (requireAuth before allowRoles). Added missing /api/openrouter and /api/youtube-transcript routes with comprehensive role-based access control, ensuring reviewer/admin users can access AI features while basic users receive 403 errors.
@@ -82,4 +83,4 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **Image Processing**: Custom image compression utilities (`imageCompression.ts`).
 
 ### Development & Testing Dependencies
-- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, and performance.
+- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and **API endpoint validation** to prevent frontend-backend integration mismatches.

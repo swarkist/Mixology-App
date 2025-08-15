@@ -12,6 +12,15 @@ This directory contains comprehensive automated tests for the cocktail managemen
 
 ## Test Files
 
+### 🔍 `api-endpoint-validation.test.ts` - API Integration Validation
+**CRITICAL: Prevents frontend-backend API mismatches that break user flows**
+- **Endpoint Existence**: Validates all frontend API calls have matching backend routes
+- **Authentication Routes**: Confirms login, register, forgot/reset password endpoints work
+- **Parameter Validation**: Tests that endpoints accept expected request formats
+- **Error Response Format**: Ensures proper error structures and status codes
+- **Route Consistency**: Catches critical integration bugs like `/forgot-password` vs `/forgot`
+- **Query Parameter Support**: Validates filtering and search parameters work correctly
+
 ### 🛡️ `data-isolation-verification.test.ts` - Data Protection
 Verifies complete isolation from production data:
 - **Unique Prefixes**: All test data uses timestamped prefixes
