@@ -8,38 +8,6 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
 
-## Recent Changes (August 16, 2025)
-- **Mixi Bot Assets Added**: New icon assets for upcoming bot functionality including multi-resolution Mixi Bot icons (16px-512px) in PNG format in `client/public/icons/` directory. Added custom `MixiIconBartender` SVG component with configurable size and className props for future AI bartender feature integration.
-- **AI Features Enhancement**: Major updates to AI-powered functionality including refined photo OCR brand extraction (`server/ai/openrouter.ts`) with improved model fallback system, enhanced YouTube transcript processing (`client/src/lib/extractYouTubeTranscript.ts`) with robust video ID extraction supporting multiple URL formats, and streamlined AI request handling (`client/src/lib/aiRequest.ts`) with proper model routing and error management.
-- **Authentication & Security Refinements**: Enhanced authentication middleware (`server/middleware/requireAuth.ts`, `server/middleware/roles.ts`) with improved role-based access control, refined authentication routes (`server/routes/auth.ts`) with better error handling and security measures, and comprehensive test coverage for authentication scenarios (`tests/regression/auth-scenarios.test.ts`).
-- **Testing Infrastructure Expansion**: Added comprehensive unit tests for AI features (`tests/unit/ai-features.test.ts`) covering photo OCR, recipe import, and transcript processing, plus critical API endpoint validation tests (`tests/regression/api-endpoint-validation.test.ts`) to prevent frontend-backend integration mismatches and ensure all critical user journeys have proper API coverage.
-- **Progressive Web App (PWA) Implementation**: Added full PWA support with web app manifest (`client/public/manifest.webmanifest`) featuring "Miximixology" branding, standalone display mode, dark theme with gold accent color (#FFD43B), and comprehensive icon set utilizing the Mixi Bot assets. Updated `client/index.html` with manifest link and Apple Touch Icon support for enhanced mobile experience and app-like functionality.
-- **Comprehensive Regression Testing Enhancement**: Added dedicated PWA functionality test suite (`tests/regression/pwa-functionality.test.ts`) with comprehensive validation of web app manifest, icon resources, HTML PWA integration, branding consistency, performance requirements, mobile experience, and W3C standards compliance. Enhanced API endpoint validation tests with PWA resource accessibility checks. Updated test runner to include PWA validation in regression suite, ensuring Progressive Web App features are properly tested and maintained.
-
-## Recent Changes (August 15, 2025)
-- **Password Reset Flow Implementation**: Complete forgot/reset password functionality with secure token-based authentication. Fixed frontend API endpoint mismatch and created ResetPassword component for token handling. Implemented NIST-aligned security controls including 30-minute token expiry, SHA-256 hashing, single-use enforcement, and neutral responses to prevent account enumeration. Configured production SMTP email delivery with all required secrets (SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL). Verified complete flow: email request → token generation → password reset → automatic login → session revocation.
-- **Enhanced Regression Testing**: Added critical API endpoint validation test (`api-endpoint-validation.test.ts`) to prevent frontend-backend integration mismatches that could break user flows. This addresses the root cause of the forgot password bug where frontend called `/forgot-password` but backend only had `/forgot`. New test validates all authentication routes, core endpoints, query parameters, and ensures critical user journeys have proper API coverage.
-
-## Previous Changes (August 14, 2025)
-- **Critical Security Fixes Completed**: Resolved authentication bypass vulnerability in AI endpoints by implementing proper middleware ordering (requireAuth before allowRoles). Added missing /api/openrouter and /api/youtube-transcript routes with comprehensive role-based access control, ensuring reviewer/admin users can access AI features while basic users receive 403 errors.
-- **Complete RBAC UI Implementation**: Finished three-tier role system with comprehensive ReviewBanner integration across all forms. Implemented consistent disabled save/delete functionality for reviewer role across BrandFromImageDialog, AddPreferredBrand, and EditPreferredBrand pages with proper visual styling (opacity-50, cursor-not-allowed).
-- **AdminDashboard Role Management**: Fixed critical bug preventing admin users from editing roles due to variable naming collision. Implemented proper role checking with last admin protection to prevent system lockout scenarios.
-- **Security Validation Complete**: Rate limiting and authentication hardening confirmed working through regression testing. All AI endpoints properly require authentication, with 429 rate limit responses indicating security measures are active and protecting against abuse.
-- **Documentation Updates**: Updated architectural documentation to reflect security improvements and RBAC implementation details for future development reference.
-- **Ingredient Tags Functionality Fix**: Completely resolved ingredient tags system with proper Firebase storage handling, PATCH route tag transformation, and EditIngredient form tag loading
-- **Ingredient Detail Page Enhancement**: Added "Used in Cocktails" section matching Preferred Brands design with proper `/recipe/{id}` navigation links and cocktail count display
-- **Tags Section Standardization**: Unified tags display across ingredient and cocktail pages with "Usage & Tags" title, gold badge styling, and "No tags assigned" fallback messaging
-- **Unified Real-Time Search & Standardized Empty States**: Implemented consistent pill-based filtering across Cocktails, Ingredients, and My Bar pages with enhanced EmptyState component
-- **My Bar Category Filtering**: Added smart brand categorization system (spirits, liqueurs, mixers, bitters, syrups, other) based on name pattern recognition
-- **Enhanced EmptyState Component**: Differentiated messaging for search vs filter results with proper "Clear filters" vs "Try different keywords" actions
-- **Streamlined My Bar Layout**: Removed "My Collection" badge and consolidated filter pills with action buttons into single inline row for cleaner interface
-- **Brand Categorization Logic**: Implemented intelligent brand category detection analyzing names (whiskey→spirits, syrup→syrups, tonic→mixers, etc.)
-- **URL State Synchronization**: Added category filter persistence in URL parameters for bookmarkable filtered views
-- **Comprehensive Filter Testing**: Updated regression test suite with brand categorization validation and EmptyState differentiation testing
-- **Security Validation**: Comprehensive testing confirmed authentication hardening is working correctly with proper 401 responses for unauthorized access attempts
-- **Cross-Page Filtering Consistency**: Standardized pill filter design and behavior across all major pages (CocktailList, Ingredients, MyBar)
-- **Admin Dashboard UX Improvements**: Enhanced search functionality with inline clear button, improved button contrast (yellow theme), added "Back to Site" navigation link in header, converted search to real-time operation
-
 ## System Architecture
 
 ### Frontend Architecture
@@ -50,32 +18,32 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **Forms**: React Hook Form with Zod validation.
 - **Styling**: Consistent dark theme with gold accents, Plus Jakarta Sans font.
 - **Accessibility**: Comprehensive button accessibility, horizontal scrolling fixes for mobile.
+- **UI/UX Decisions**: Consistent dark theme with gold accents, Plus Jakarta Sans font. Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages. URL state synchronization for filter persistence. PWA support with "Miximixology" branding, standalone display mode, dark theme, and comprehensive icon set.
+- **Application Structure**: Multi-page application including Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages. Responsive navigation system (desktop header + mobile bottom nav).
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
 - **Database**: Firebase Firestore with server-only access via Admin SDK.
-- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header.
+- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
 - **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
-- **AI Integration**: OpenRouter API proxy with model routing for recipe parsing, OCR, and content analysis.
+- **AI Integration**: OpenRouter API proxy with model routing.
 - **YouTube Processing**: Transcript extraction and AI-powered recipe parsing from video content.
+- **Error Handling**: Global error middleware, custom request logging.
 
 ### Key Features & Design Decisions
-- **Application Structure**: Multi-page application including Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages. Responsive navigation system (desktop header + mobile bottom nav).
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
 - **Data Persistence**: Firebase Firestore with server-only access.
 - **My Bar Functionality**: Dedicated section with category-based filtering (spirits, liqueurs, mixers, bitters, syrups, other) for tracking user's personal ingredient collection, with dynamic cocktail count. Features smart brand categorization and real-time search filtering.
-- **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression (800px max, 70% JPEG quality) to prevent Firebase document size limit errors.
+- **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression (800px max, 70% JPEG quality).
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
-- **Error Handling**: Global error middleware, custom request logging.
-- **AI-Powered Features**: Photo OCR for brand extraction (extract → review → edit → create workflow), YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, including new ingredient detection with category assignment, and preservation of "part" measurements.
+- **AI-Powered Features**: AI-powered chatbot with streaming SSE API and 4-model fallback, recipe database integration for context-aware recommendations, and clickable navigation links. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements.
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
-- **UI Consistency**: Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages (CocktailList, Ingredients, MyBar). URL state synchronization for filter persistence.
-- **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships showing all recipes using each ingredient, complete tags support with proper create/edit functionality, and consistent CardContent styling.
-- **Tags System**: Complete ingredient tagging functionality with proper Firebase storage, tag creation during ingredient updates, and unified "Usage & Tags" display matching cocktail pages.
-- **Admin Dashboard**: Comprehensive user management interface with real-time search, role/status filtering, pagination, and enhanced UX features including inline clear functionality and improved visual contrast.
+- **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships, complete tags support, and consistent styling.
+- **Tags System**: Complete ingredient tagging functionality with proper Firebase storage and unified "Usage & Tags" display.
+- **Admin Dashboard**: Comprehensive user management interface with real-time search, role/status filtering, pagination, and enhanced UX.
 
 ## External Dependencies
 
@@ -91,4 +59,4 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **Image Processing**: Custom image compression utilities (`imageCompression.ts`).
 
 ### Development & Testing Dependencies
-- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and **API endpoint validation** to prevent frontend-backend integration mismatches.
+- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation.
