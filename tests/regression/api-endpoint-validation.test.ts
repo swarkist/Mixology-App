@@ -234,4 +234,24 @@ describe('API Endpoint Validation Tests', () => {
       }
     });
   });
+
+  describe('PWA Resource Endpoints', () => {
+    it('should serve web app manifest', async () => {
+      const { status } = await apiRequest('/manifest.webmanifest');
+      expect(status, 'Web app manifest should be accessible').toBe(200);
+    });
+
+    it('should serve PWA icons', async () => {
+      const iconSizes = ['16', '32', '64', '96', '192', '256', '512'];
+      for (const size of iconSizes) {
+        const { status } = await apiRequest(`/mixi-bot-${size}.png`);
+        expect(status, `Icon mixi-bot-${size}.png should be accessible`).toBe(200);
+      }
+    });
+
+    it('should serve favicon', async () => {
+      const { status } = await apiRequest('/favicon.ico');
+      expect(status, 'Favicon should be accessible').toBe(200);
+    });
+  });
 });

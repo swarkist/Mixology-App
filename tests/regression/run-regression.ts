@@ -11,6 +11,7 @@ console.log('=' .repeat(60));
 const testFiles = [
   'tests/regression/data-isolation-verification.test.ts',
   'tests/regression/api-endpoint-validation.test.ts', // CRITICAL: Run first to catch API mismatches
+  'tests/regression/pwa-functionality.test.ts', // PWA validation after API validation
   'tests/regression/auth-scenarios.test.ts',
   'tests/regression/api.test.ts',
   'tests/regression/firebase-persistence.test.ts', 
@@ -21,6 +22,8 @@ const testFiles = [
 
 const testDescriptions = {
   'data-isolation-verification.test.ts': 'Data isolation and production data protection verification',
+  'api-endpoint-validation.test.ts': 'API endpoint validation and frontend-backend integration consistency',
+  'pwa-functionality.test.ts': 'Progressive Web App features, manifest validation, and mobile experience',
   'auth-scenarios.test.ts': 'Authentication, authorization, RBAC, and user management testing',
   'api.test.ts': 'Core API functionality (CRUD operations, search, filtering)',
   'firebase-persistence.test.ts': 'Firebase data persistence and synchronization',
