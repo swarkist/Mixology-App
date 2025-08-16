@@ -1,317 +1,266 @@
-import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, X } from "lucide-react";
+import { Loader2, MessageCircle } from "lucide-react";
 import { Link } from "wouter";
+
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
-import { onMixiOpen, type MixiOpenDetail } from "@/lib/mixiBus";
+import { onMixiOpen } from "@/lib/mixiBus";
+import { useCocktailIndex } from "../../hooks/useCocktailIndex";
 
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-}
-
-// Helper function to parse and render links in messages
-const parseMessageContent = (content: string, setOpen: (open: boolean) => void) => {
-  // Parse markdown-style links [text](/path)
-  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-  const parts: (string | React.ReactElement)[] = [];
-  let lastIndex = 0;
-  let match;
-
-  while ((match = linkRegex.exec(content)) !== null) {
-    // Add text before the link
-    if (match.index > lastIndex) {
-      parts.push(content.slice(lastIndex, match.index));
-    }
-    
-    // Add the link
-    const linkText = match[1];
-    const linkPath = match[2];
-    parts.push(
-      <Link 
-        key={match.index} 
-        href={linkPath}
-        className="text-yellow-400 hover:text-yellow-300 underline hover:no-underline"
-        onClick={() => {
-          // Close the chat when navigating
-          setOpen(false);
-        }}
-      >
-        {linkText}
-      </Link>
-    );
-    
-    lastIndex = linkRegex.lastIndex;
-  }
-  
-  // Add remaining text
-  if (lastIndex < content.length) {
-    parts.push(content.slice(lastIndex));
-  }
-  
-  return parts.length > 0 ? parts : [content];
-};
+type Msg = { role: "user" | "assistant"; content: string };
 
 export default function MixiChat() {
   const [open, setOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([
+    { role: "assistant", content: "Hey, I’m Mixi! Ask me about cocktails, substitutes, tags (tiki/holiday/dessert), or how to scale a recipe to your pitcher." },
+  ]);
   const [input, setInput] = useState("");
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [pendingContext, setPendingContext] = useState<any>(null);
-  const [lastOpenedBy, setLastOpenedBy] = useState<HTMLElement | null>(null);
-  
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  const viewportRef = useRef<HTMLDivElement>(null);
+
+  // Load minimal cocktail index to validate/auto-correct links
+  const { data: cocktailIndex = [] } = useCocktailIndex();
+  const validIds = useMemo(
+    () => new Set(cocktailIndex.map((c) => String(c.id))),
+    [cocktailIndex]
+  );
+  const nameToId = useMemo(() => {
+    const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+    const m = new Map<string, string>();
+    for (const c of cocktailIndex) m.set(norm(c.name), String(c.id));
+    return m;
+  }, [cocktailIndex]);
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    viewportRef.current?.scrollTo({
+      top: viewportRef.current.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [messages, loading, open]);
 
-  // Listen for global open events
+  // Allow any CTA to open Mixi with seed/context
   useEffect(() => {
     return onMixiOpen(({ seed, context }) => {
-      // Store the currently focused element to return focus later
-      setLastOpenedBy(document.activeElement as HTMLElement);
-      
       setOpen(true);
-      
-      // Clear previous messages and context
-      setMessages([]);
-      setPendingContext(context || null);
-      
-      // Add seed message if provided
       if (seed) {
-        setMessages([{ role: "assistant", content: seed }]);
+        setMessages((m) => [...m, { role: "assistant", content: seed }]);
       }
+      if (context) setPendingContext(context);
     });
   }, []);
 
-  // Handle dialog close - return focus to triggering element
-  const handleClose = () => {
-    setOpen(false);
-    
-    // Abort any ongoing streaming
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    setIsStreaming(false);
-    
-    // Return focus to the element that opened the chat
-    if (lastOpenedBy && document.contains(lastOpenedBy)) {
-      setTimeout(() => {
-        lastOpenedBy?.focus();
-      }, 100);
-    }
-    setLastOpenedBy(null);
-  };
+  // --- Link safety/sanitization ------------------------------------------------
 
-  const sendMessage = async () => {
-    if (!input.trim() || isStreaming) return;
+  // Replace/strip unsafe links in assistant markdown after streaming is done.
+  function sanitizeAssistantMarkdown(md: string): string {
+    // 1) Allow ONLY links of the form [Name](/recipe/<id>) — but keep them
+    //     *only* if <id> exists. If the name matches a DB item, auto-correct the id.
+    md = md.replace(
+      /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi,
+      (_full, label: string, _url: string, rawId: string) => {
+        const id = String(rawId).trim();
+        if (validIds.has(id)) return `[${label}](/recipe/${id})`;
+        // Try to auto-correct by name when id is wrong/made up
+        const norm = label.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+        const corrected = nameToId.get(norm);
+        if (corrected) return `[${label}](/recipe/${corrected})`;
+        // Unknown → render as plain text with note, *no link*
+        return `${label} (not in our library)`;
+      }
+    );
 
-    const userMessage = input.trim();
+    // 2) Strip any other markdown links (e.g., external) to plain text label (optional hardening)
+    md = md.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, (_full, label: string) => {
+      return `${label} (external)`;
+    });
+
+    return md;
+  }
+
+  // Render assistant text with safe internal links only
+  const internalLinkRegex = /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi;
+  function renderWithSafeLinks(text: string) {
+    const nodes: any[] = [];
+    let last = 0;
+    let m: RegExpExecArray | null;
+
+    while ((m = internalLinkRegex.exec(text))) {
+      const [full, label, _url, idRaw] = m;
+      const id = String(idRaw);
+      if (m.index > last) nodes.push(text.slice(last, m.index));
+
+      if (validIds.has(id)) {
+        nodes.push(
+          <Link key={m.index} href={`/recipe/${id}`} className="underline underline-offset-2 decoration-yellow-500 hover:text-yellow-400">
+            {label}
+          </Link>
+        );
+      } else {
+        nodes.push(
+          <span key={m.index}>
+            {label} <span className="text-xs text-zinc-400">(not in our library)</span>
+          </span>
+        );
+      }
+      last = m.index + full.length;
+    }
+
+    if (last < text.length) nodes.push(text.slice(last));
+    return <>{nodes}</>;
+  }
+
+  // --- Chat send/stream --------------------------------------------------------
+
+  const send = async () => {
+    if (!input.trim() || loading) return;
+    const userText = input.trim();
     setInput("");
-    
-    // Add user message to chat
-    const newMessages = [...messages, { role: "user" as const, content: userMessage }];
-    setMessages(newMessages);
-    setIsStreaming(true);
 
-    // Create abort controller for this request
-    abortControllerRef.current = new AbortController();
+    const next = [...messages, { role: "user", content: userText } as Msg];
+    setMessages(next);
+    setLoading(true);
 
-    try {
-      const response = await fetch("/api/mixi/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          messages: newMessages,
-          context: pendingContext
-        }),
-        signal: abortControllerRef.current.signal
-      });
+    const r = await fetch("/api/mixi/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: "user",
+            // simple concat so the model sees the full user thread (keeps server simple)
+            content: next.filter((m) => m.role === "user").map((m) => m.content).join("\n\n---\n\n"),
+          },
+        ],
+        context: pendingContext || undefined,
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      // Handle streaming response
-      const reader = response.body?.getReader();
-      if (!reader) {
-        throw new Error("No response body reader");
-      }
-
-      // Start with an empty assistant message
-      let assistantMessage = "";
-      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
-
-      try {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split('\n');
-
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              const data = line.slice(6);
-              if (data === '[DONE]') {
-                setIsStreaming(false);
-                return;
-              }
-
-              try {
-                const parsed = JSON.parse(data);
-                if (parsed.content) {
-                  assistantMessage += parsed.content;
-                  // Update the last message (assistant message) with new content
-                  setMessages(prev => [
-                    ...prev.slice(0, -1),
-                    { role: "assistant", content: assistantMessage }
-                  ]);
-                }
-              } catch (parseError) {
-                // Skip invalid JSON chunks
-              }
-            }
-          }
-        }
-      } finally {
-        reader.releaseLock();
-      }
-
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('Request aborted');
-        return;
-      }
-      
-      console.error("Chat error:", error);
-      setMessages(prev => [
-        ...prev,
-        { 
-          role: "assistant", 
-          content: "I'm sorry. Looks like my mind is not working at the moment. Please try again later." 
-        }
+    if (!r.ok || !r.body) {
+      setLoading(false);
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", content: "I’m sorry. Looks like my mind is not working at the moment. Please try again later." },
       ]);
-    } finally {
-      setIsStreaming(false);
-      abortControllerRef.current = null;
-      // Clear context after first message
-      setPendingContext(null);
+      return;
     }
-  };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+    // Prepare an empty assistant message to stream into
+    setMessages((m) => [...m, { role: "assistant", content: "" }]);
+
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let partial = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      partial += chunk;
+
+      // Parse SSE "data: {json}"
+      const lines = partial.split("\n");
+      partial = lines.pop() || "";
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("data:")) continue;
+        const data = trimmed.slice(5).trim();
+        if (!data || data === "[DONE]") continue;
+
+        try {
+          const json = JSON.parse(data);
+          const delta = json.choices?.[0]?.delta?.content || "";
+          if (delta) {
+            setMessages((m) => {
+              const copy = [...m];
+              const last = copy[copy.length - 1];
+              if (last?.role === "assistant") last.content += delta;
+              return copy;
+            });
+          }
+        } catch {
+          // ignore malformed frames
+        }
+      }
     }
+
+    // Stream finished → sanitize links in the last assistant message
+    setLoading(false);
+    setMessages((prev) => {
+      const out = [...prev];
+      const last = out[out.length - 1];
+      if (last?.role === "assistant" && typeof last.content === "string") {
+        last.content = sanitizeAssistantMarkdown(last.content);
+      }
+      return out;
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[600px] h-[80vh] flex flex-col p-0">
-        <DialogHeader className="flex-shrink-0 px-6 py-4 border-b border-[#544f3a]">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full border border-yellow-500/40 p-1">
-              <MixiIconBartender size={24} className="text-yellow-400" />
-            </div>
-            <DialogTitle className="text-white">Mixi</DialogTitle>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleClose}
-            className="absolute right-4 top-4 text-[#bab59b] hover:text-white"
-            aria-label="Close chat"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </DialogHeader>
+    <>
+      {/* Floating Button */}
+      <button
+        aria-label="Open Mixi chat"
+        onClick={() => setOpen((o) => !o)}
+        className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full px-4 py-3 shadow-lg bg-yellow-500 text-black hover:bg-yellow-400"
+      >
+        <MessageCircle className="w-5 h-5" />
+        <span>Mixi</span>
+      </button>
 
-        <ScrollArea className="flex-1 px-6">
-          <div className="space-y-4 py-4">
-            {messages.length === 0 && (
-              <div className="text-center py-8">
-                <div className="rounded-full border border-yellow-500/40 p-3 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                  <MixiIconBartender size={32} className="text-yellow-400" />
-                </div>
-                <p className="text-[#bab59b]">Hello! I'm Mixi, your AI bartender. How can I help you today?</p>
+      {/* Chat Panel */}
+      {open && (
+        <div className="fixed bottom-20 right-4 w-[min(420px,94vw)] z-50">
+          <Card className="border-yellow-600/40">
+            <CardHeader className="bg-black/60 flex items-center gap-2">
+              <div className="rounded-full border border-yellow-500/40 p-1 text-yellow-400">
+                <MixiIconBartender size={22} />
               </div>
-            )}
-            
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex gap-3 ${
-                  message.role === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
-                {message.role === "assistant" && (
-                  <div className="rounded-full border border-yellow-500/40 p-1 h-8 w-8 flex-shrink-0 flex items-center justify-center">
-                    <MixiIconBartender size={16} className="text-yellow-400" />
+              <CardTitle className="text-yellow-400">Mixi</CardTitle>
+            </CardHeader>
+
+            <CardContent className="p-0">
+              <div ref={viewportRef} className="max-h-[52vh] overflow-y-auto p-4 space-y-3">
+                {messages.map((m, i) => (
+                  <div key={i} className={m.role === "user" ? "text-right" : "text-left"}>
+                    <div
+                      className={`inline-block rounded-md px-3 py-2 text-sm ${
+                        m.role === "user"
+                          ? "bg-yellow-500 text-black"
+                          : "bg-zinc-900 text-zinc-100 border border-zinc-800"
+                      }`}
+                    >
+                      {m.role === "assistant" ? renderWithSafeLinks(m.content) : m.content}
+                    </div>
+                  </div>
+                ))}
+
+                {loading && (
+                  <div className="flex items-center gap-2 text-zinc-400 text-sm">
+                    <Loader2 className="w-4 h-4 animate-spin" /> Mixi is thinking…
                   </div>
                 )}
-                <div
-                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                    message.role === "user"
-                      ? "bg-yellow-500 text-black"
-                      : "bg-[#26261c] border border-[#544f3a] text-white"
-                  }`}
-                >
-                  <div className="whitespace-pre-wrap">{parseMessageContent(message.content, setOpen)}</div>
-                </div>
               </div>
-            ))}
-            
-            {isStreaming && (
-              <div className="flex gap-3 justify-start">
-                <div className="rounded-full border border-yellow-500/40 p-1 h-8 w-8 flex-shrink-0 flex items-center justify-center">
-                  <MixiIconBartender size={16} className="text-yellow-400" />
-                </div>
-                <div className="bg-[#26261c] border border-[#544f3a] text-white rounded-lg px-4 py-2">
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-                    <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
 
-        <div className="flex-shrink-0 border-t border-[#544f3a] p-4">
-          <div className="flex gap-2">
-            <Input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask Mixi anything about cocktails..."
-              className="flex-1 bg-[#26261c] border-[#544f3a] text-white placeholder:text-[#bab59b] focus-visible:ring-yellow-500"
-              disabled={isStreaming}
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!input.trim() || isStreaming}
-              className="bg-yellow-500 hover:bg-yellow-400 text-black"
-              aria-label="Send message"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
+              <div className="border-t border-zinc-800 p-3 flex gap-2">
+                <Input
+                  placeholder="Ask Mixi anything…"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && send()}
+                />
+                <Button onClick={send} disabled={loading || !input.trim()} variant="secondary">
+                  Send
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+    </>
   );
 }
