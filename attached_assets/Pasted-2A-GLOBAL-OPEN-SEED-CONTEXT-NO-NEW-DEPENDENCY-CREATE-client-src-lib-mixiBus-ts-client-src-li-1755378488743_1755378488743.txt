@@ -1,0 +1,111 @@
+2A) GLOBAL OPEN/SEED/CONTEXT (NO NEW DEPENDENCY)
+CREATE client/src/lib/mixiBus.ts:
+
+// client/src/lib/mixiBus.ts
+export type MixiOpenDetail = { seed?: string; context?: any };
+
+export function openMixi(detail?: MixiOpenDetail) {
+  window.dispatchEvent(new CustomEvent<MixiOpenDetail>("mixi:open", { detail }));
+}
+
+export function onMixiOpen(cb: (detail: MixiOpenDetail) => void) {
+  const handler = (e: Event) => cb((e as CustomEvent<MixiOpenDetail>).detail || {});
+  window.addEventListener("mixi:open", handler);
+  return () => window.removeEventListener("mixi:open", handler);
+}
+
+
+2B) MIXICHAT HOOK-UP
+IN client/src/components/MixiChat.tsx, LISTEN FOR THE GLOBAL EVENT AND OPEN THE PANEL WITH OPTIONAL SEED/CONTEXT. (If the file doesn’t exist, create the chat using the streaming scaffold from the prompt.)
+
+// at top:
+import { onMixiOpen } from "@/lib/mixiBus";
+
+export default function MixiChat() {
+  // ... your existing state
+  const [open, setOpen] = useState(false);
+  const [pendingContext, setPendingContext] = useState<any>(null);
+
+  useEffect(() => {
+    // Allow any CTA to open Mixi with a seed message/context
+    return onMixiOpen(({ seed, context }) => {
+      setOpen(true);
+      if (seed) {
+        setMessages(m => [...m, { role: "assistant", content: seed }]);
+      }
+      if (context) setPendingContext(context);
+    });
+  }, []);
+
+  // When sending, include optional pendingContext in body:
+  const send = async () => {
+    // ...
+    const r = await fetch("/api/mixi/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          { role: "user", content: next.filter(m => m.role === "user").map(m => m.content).join("\n\n---\n\n") }
+        ],
+        context: pendingContext || undefined
+      }),
+    });
+    // ...
+  };
+
+  // rest of component unchanged
+}
+
+
+LANDING PAGE (REPLACE SEARCH BAR WITH MIXI CTA)
+FILE: client/src/pages/sections/FilterByIngredientSection.tsx
+
+IMPORTS TO ADD (top of file):
+
+import MixiIconBartender from "@/components/icons/MixiIconBartender";
+import { openMixi } from "@/lib/mixiBus";
+
+
+REPLACE your current “SearchIcon Bar” block with this Ask Mixi CTA:
+
+{/* Ask Mixi CTA (replaces the old Search bar) */}
+<div className="absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-full max-w-[480px] px-4">
+  <div className="flex h-16 rounded-lg overflow-hidden">
+    <button
+      onClick={() =>
+        openMixi({
+          seed: "Tell me your spirits or mood and I’ll suggest cocktails.",
+          context: null
+        })
+      }
+      className="flex w-full items-center justify-center gap-2 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-lg border border-[#544f3a]"
+      aria-label="Ask Mixi for help"
+    >
+      <MixiIconBartender size={18} />
+      Ask Mixi
+    </button>
+  </div>
+  <p className="mt-2 text-center text-[#bab59b]">Mixi is here to help you</p>
+</div>
+
+
+No other layout changes required. This keeps your existing hero styles and replaces the unused search bar with a single, on-brand CTA.
+
+CTA REMINDERS FOR OTHER PAGES (UNCHANGED)
+Use openMixi({ seed, context }) everywhere:
+
+Cocktails list: seed “Tell me your spirits or mood…”.
+
+Cocktail detail: pass { context: { cocktailId } }, seed “Scale this to a 64 oz pitcher (round to 0.25 oz).”
+
+Ingredients: when focused, { context: { ingredientId } }, seed “What can I substitute…”.
+
+Preferred brands: include brand name in seed.
+
+My Bar: pass { context: { myBar: [{id,name}, …] } }, seed “What can I make with what I have?”
+
+Replit Agent — One extra line to include in your prompt
+
+Add this to your existing Agent prompt (anywhere under Tasks → Client or CTA Plumbing):
+
+Global CTA plumbing: Create client/src/lib/mixiBus.ts (openMixi/onMixiOpen). Update MixiChat.tsx to subscribe and open with optional seed/context. Replace the landing page Search bar in client/src/pages/sections/FilterByIngredientSection.tsx with an Ask Mixi button that calls openMixi({ seed: "Tell me your spirits or mood and I’ll suggest cocktails." }) and shows the subtitle “Mixi is here to help you”.
