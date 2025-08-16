@@ -1,0 +1,199 @@
+Title
+
+Add Mixi AI Chatbot (Free OpenRouter) + Bartender Icon + Sitewide “Ask Mixi” CTAs, with Pitcher Scaling & Tag Search
+
+Context
+
+Stack: React 18 + Vite + TypeScript, Tailwind, shadcn/ui (Radix), Wouter, TanStack Query.
+
+Backend: Express.js (TypeScript) + Firebase Admin SDK (Firestore).
+
+Auth: session-based, RBAC; writes require x-admin-key (Mixi stays read-only).
+
+Branding/assets already present:
+
+SVG icon: client/src/components/icons/MixiIconBartender.tsx
+
+PNGs in client/public/ + favicon.ico
+
+PWA: client/public/manifest.webmanifest + links in client/index.html
+
+We already have a floating Mixi chat UI scaffold (streaming).
+
+Do not update replit.md unless you are running regression tests.
+
+Error & Communication Policy
+
+If the same error occurs more than once, STOP and ask for guidance, including logs and what you tried.
+
+When you fix an error, run a test to verify the fix. If the test still fails, STOP and summarize the root cause and the failing step.
+
+At the end, run the validation steps (below) and report the results.
+
+Pre-Flight Checklist (verify first)
+
+Secrets in Replit:
+
+OPENROUTER_API_KEY
+
+SITE_URL (dev or prod URL)
+
+SITE_NAME (e.g., “Mixology App”)
+If any are missing, stop and ask.
+
+Security: CORS/helmet already configured—do not loosen.
+
+Assets present? MixiIconBartender.tsx, /public/mixi-bot.png, /public/favicon.ico. If missing, stop and ask.
+
+Tasks
+A) Backend — /api/mixi/chat endpoint (streaming + free model fallbacks)
+
+Implement POST /api/mixi/chat in server/routes.ts.
+
+Call OpenRouter /chat/completions with headers:
+
+Authorization: Bearer ${OPENROUTER_API_KEY}
+
+HTTP-Referer: ${SITE_URL}
+
+X-Title: ${SITE_NAME}
+
+Model order (fallback on non-200/rate limit):
+deepseek/deepseek-v3:free → deepseek/deepseek-r1:free → meta-llama/llama-3.2-11b-vision-instruct:free → qwen/qwen2.5-coder:free
+
+Enable streaming, proxy as text/event-stream, parse/forward data: { choices[0].delta.content }.
+
+System Prompt (append to any existing prompt):
+
+You are Mixi, a friendly AI bartender.
+
+Pitcher scaling: Fit to target volume (e.g., 64 oz) without exceeding; round each ingredient to 0.25 oz; preserve ratios; support oz/ml/tbsp/tsp/barspoon/dash/parts.
+
+Citrus yields: lime ≈ 1 oz; lemon ≈ 2–3 Tbsp (~1–1.5 oz); provide min/max fruit counts.
+
+Simple syrup: “rich” syrup = 2 parts sugar : 1 part water; provide quick method.
+
+Tags: understand holiday, dessert, tiki; prefer app DB results.
+
+Read-only; never modify data. Prefer our API for named cocktails/ingredients.
+
+When unsure, ask a brief, targeted follow-up.
+
+Context Hydration (optional but preferred):
+
+If context.cocktailId → fetch /api/cocktails/:id, include name + ingredients.
+
+If context.ingredientId → fetch /api/ingredients/:id, include name/category/usedInCount.
+
+If context.myBar array present → include names/ids to tailor suggestions.
+
+Tag Search Helper (read-only):
+
+Add a small util to fetch cocktails by tags (e.g., /api/cocktails?tags=tiki,holiday) when requested; return top 5 with names/links. No writes.
+
+(Optional) Web Lookup:
+
+If user explicitly requests verification (e.g., yields/syrup), fetch 1–2 reputable sources (short timeout) and return citation links in the response. Skip if too time-consuming.
+
+B) Backend — Scaling Utility
+
+Create server/utils/scaleToPitcher.ts:
+
+Unit conversions to oz:
+
+ml→oz (29.5735 ml/oz), tbsp=0.5 oz, tsp≈0.1667 oz, barspoon≈tsp, dash≈0.02 oz.
+
+Parts handling: ozPerPart = targetOz / totalParts (continuous), then apply and round per-ingredient to 0.25 oz.
+
+Non-parts: compute scale s = target / baseTotalOz; apply; round to 0.25 oz.
+If rounding pushes the sum over target, iteratively reduce the largest contributors by 0.25 until total ≤ target.
+
+Return scaled lines + final total oz.
+
+C) Client — Chat UI (stream handling + seeding)
+
+Ensure the streaming parser appends choices[0].delta.content text incrementally.
+
+Allow CTAs to open chat with an initial seed message and { context } payload.
+
+D) Sitewide CTAs with Icon
+
+Add Ask Mixi entry points:
+
+Home
+
+Placeholder: “Mixi is here to help you”.
+
+Replace search button with gold Ask Mixi button using MixiIconBartender (size 18, mr-2). Opens chat.
+
+Cocktails List
+
+Link-style CTA above filter pills: “Need ideas? Ask Mixi” (icon).
+
+Seeds: “Tell me your spirits or mood and I’ll suggest cocktails.”
+
+Cocktail Detail
+
+Button: “Ask Mixi about this recipe” (icon).
+
+Opens chat with { context: { cocktailId } }.
+
+Seed: “Scale this to a 64 oz pitcher (round to 0.25 oz).”
+
+Ingredients
+
+Top-right button: “Ask Mixi about ingredients” (icon).
+
+If an item is focused/selected, pass { context: { ingredientId } }.
+
+Seed: “What can I substitute for this ingredient and what’s a good ratio?”
+
+Preferred Brands
+
+Near search: “Ask Mixi about this brand” (icon).
+
+Seed contains brand name; Mixi lists cocktails and close substitutes.
+
+My Bar
+
+Above filters: “Ask Mixi what I can make” (icon).
+
+Pass myBar inventory (ids or names) to tailor suggestions.
+
+E) Chat Header Branding
+
+In MixiChat.tsx, show MixiIconBartender (22–28 px) inside rounded-full border border-yellow-500/40 p-1 text-yellow-400, next to title “Mixi”.
+
+F) Accessibility & Styling
+
+Buttons: bg-yellow-500 text-black hover:bg-yellow-400.
+
+Link CTAs: gold text, underline on hover.
+
+All CTAs tabbable, aria-labels present, and when chat closes, return focus to the CTA that opened it.
+
+Validation (run and report)
+
+Secrets: verify the three secrets exist.
+
+Endpoint smoke test: curl -N -X POST /api/mixi/chat with {"messages":[{"role":"user","content":"Hi Mixi!"}]} → streaming frames appear.
+
+Pitcher scaling: Ask Mixi to fill a 64 oz pitcher with a Margarita. Verify:
+
+Ingredient lines rounded to 0.25 oz
+
+Total ≤ 64 oz
+
+Lime/lemon shopping guidance present
+
+Simple syrup 2:1 guidance available on request
+
+Tag search: “Show 3 tiki cocktails” → names/links from our DB, no writes.
+
+CTAs: Each page CTA opens chat; Cocktail Detail passes cocktailId; Ingredients passes ingredientId when focused; My Bar passes inventory.
+
+Security: Confirm no POST/PUT/PATCH/DELETE requests are made by Mixi.
+
+A11y: Keyboard focus/return + visible focus rings; aria-labels verified.
+
+Important: If the same error repeats, STOP and ask with logs + what you tried. If you fix an error, test the fix; if it still fails, STOP and summarize root cause + failing step.
