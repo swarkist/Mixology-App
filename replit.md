@@ -8,6 +8,9 @@ Preferred communication style: Simple, everyday language.
 Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
 Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
 
+## Recent Changes (August 16, 2025)
+- **Mixi Bot Assets Added**: New icon assets for upcoming bot functionality including multi-resolution Mixi Bot icons (16px-512px) in PNG format in `client/public/icons/` directory. Added custom `MixiIconBartender` SVG component with configurable size and className props for future AI bartender feature integration.
+
 ## Recent Changes (August 15, 2025)
 - **Password Reset Flow Implementation**: Complete forgot/reset password functionality with secure token-based authentication. Fixed frontend API endpoint mismatch and created ResetPassword component for token handling. Implemented NIST-aligned security controls including 30-minute token expiry, SHA-256 hashing, single-use enforcement, and neutral responses to prevent account enumeration. Configured production SMTP email delivery with all required secrets (SMTP_HOST, SMTP_USER, SMTP_PASS, SMTP_PORT, FROM_EMAIL). Verified complete flow: email request → token generation → password reset → automatic login → session revocation.
 - **Enhanced Regression Testing**: Added critical API endpoint validation test (`api-endpoint-validation.test.ts`) to prevent frontend-backend integration mismatches that could break user flows. This addresses the root cause of the forgot password bug where frontend called `/forgot-password` but backend only had `/forgot`. New test validates all authentication routes, core endpoints, query parameters, and ensures critical user journeys have proper API coverage.
