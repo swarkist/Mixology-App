@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Send, X } from "lucide-react";
+import { Link } from "wouter";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { onMixiOpen, type MixiOpenDetail } from "@/lib/mixiBus";
 
@@ -11,6 +12,48 @@ interface Message {
   role: "user" | "assistant";
   content: string;
 }
+
+// Helper function to parse and render links in messages
+const parseMessageContent = (content: string, setOpen: (open: boolean) => void) => {
+  // Parse markdown-style links [text](/path)
+  const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+  const parts: (string | React.ReactElement)[] = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = linkRegex.exec(content)) !== null) {
+    // Add text before the link
+    if (match.index > lastIndex) {
+      parts.push(content.slice(lastIndex, match.index));
+    }
+    
+    // Add the link
+    const linkText = match[1];
+    const linkPath = match[2];
+    parts.push(
+      <Link 
+        key={match.index} 
+        href={linkPath}
+        className="text-yellow-400 hover:text-yellow-300 underline hover:no-underline"
+        onClick={() => {
+          // Close the chat when navigating
+          setOpen(false);
+        }}
+      >
+        {linkText}
+      </Link>
+    );
+    
+    lastIndex = linkRegex.lastIndex;
+  }
+  
+  // Add remaining text
+  if (lastIndex < content.length) {
+    parts.push(content.slice(lastIndex));
+  }
+  
+  return parts.length > 0 ? parts : [content];
+};
 
 export default function MixiChat() {
   const [open, setOpen] = useState(false);
@@ -224,7 +267,7 @@ export default function MixiChat() {
                       : "bg-[#26261c] border border-[#544f3a] text-white"
                   }`}
                 >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="whitespace-pre-wrap">{parseMessageContent(message.content, setOpen)}</div>
                 </div>
               </div>
             ))}

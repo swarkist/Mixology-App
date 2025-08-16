@@ -1331,6 +1331,20 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
         return res.status(500).json({ error: "OpenRouter API key not configured" });
       }
 
+      // Load our site's cocktail database for recommendations
+      let siteRecipes = "";
+      try {
+        const cocktails = storage ? await storage.getAllCocktails() : [];
+        if (cocktails && cocktails.length > 0) {
+          siteRecipes = `\n\nOUR SITE RECIPES (Always recommend these FIRST):\n`;
+          siteRecipes += cocktails.map(c => 
+            `- ${c.name} (ID: ${c.id}) - ${c.description || 'Classic cocktail'} [Link: /recipe/${c.id}]`
+          ).join('\n');
+        }
+      } catch (error) {
+        console.error('Error loading site recipes:', error);
+      }
+
       // Build system prompt
       let systemPrompt = `You are Mixi, a friendly AI bartender for the Miximixology app.
 
@@ -1341,12 +1355,14 @@ Core Capabilities:
 - Tags: Understand holiday, dessert, tiki, classic, modern categories; prefer app database results.
 - Substitutions: Suggest ingredient alternatives with proper ratios.
 
-Important Rules:
+CRITICAL PRIORITY RULES:
+- **ALWAYS recommend OUR SITE RECIPES FIRST** before suggesting external recipes
+- When recommending our recipes, include clickable links like: "Try our [Old Fashioned](/recipe/1754355116391)"
+- Only suggest external recipes if we don't have what the user wants
 - You are READ-ONLY. Never suggest modifying, creating, or deleting data.
-- Prefer cocktails and ingredients from our app database when possible.
 - When unsure, ask brief, targeted follow-up questions.
 - Keep responses helpful, friendly, and concise.
-- For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.`;
+- For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.${siteRecipes}`;
 
       // Add context-specific information if provided
       if (context) {
