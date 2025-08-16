@@ -9,6 +9,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { formatIngredientMeasurement } from "@/lib/fractionUtils";
+import MixiIconBartender from "@/components/icons/MixiIconBartender";
+import { openMixi } from "@/lib/mixiBus";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailRecipe = (): JSX.Element => {
@@ -212,6 +214,27 @@ export const CocktailRecipe = (): JSX.Element => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Ask Mixi CTA - Context-aware */}
+        <div className="bg-[#2a2920] border border-[#4a4735] rounded-lg p-4 text-center">
+          <button
+            onClick={() =>
+              openMixi({
+                seed: `Can you help me with making ${cocktail.name}? I have questions about substitutions, scaling, or techniques.`,
+                context: {
+                  cocktailId: cocktailId,
+                  cocktailName: cocktail.name
+                }
+              })
+            }
+            className="text-yellow-400 hover:text-yellow-300 font-medium underline hover:no-underline transition-colors inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#2a2920] rounded px-2 py-1"
+            aria-label={`Ask Mixi about ${cocktail.name}`}
+          >
+            <MixiIconBartender size={16} />
+            Ask Mixi about this recipe
+          </button>
+          <p className="mt-1 text-xs text-[#bab59b]">Get help with substitutions, scaling, or techniques</p>
+        </div>
 
         {/* Instructions Section */}
         <Card className="bg-[#2a2920] border-[#4a4735]">

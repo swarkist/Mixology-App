@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import MixiChat from "@/components/MixiChat";
 import NotFound from "@/pages/not-found";
 
 import { Frame } from "@/pages/Frame";
@@ -122,6 +123,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <MixiChat />
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>

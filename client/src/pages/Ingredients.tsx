@@ -17,6 +17,8 @@ import SearchBar from "@/components/SearchBar";
 import EmptyState from "@/components/EmptyState";
 import { useDebounce } from "@/lib/useDebounce";
 import { getQueryParam, setQueryParamReplace } from "@/lib/url";
+import MixiIconBartender from "@/components/icons/MixiIconBartender";
+import { openMixi } from "@/lib/mixiBus";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const Ingredients = (): JSX.Element => {
@@ -154,6 +156,23 @@ export const Ingredients = (): JSX.Element => {
           onChange={setTerm}
           placeholder="Search ingredients..."
         />
+
+        {/* Ask Mixi CTA */}
+        <div className="px-3 py-2">
+          <button
+            onClick={() =>
+              openMixi({
+                seed: "Help me understand ingredients and cocktail substitutions for my bar.",
+                context: null
+              })
+            }
+            className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline hover:no-underline transition-colors inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#171712] rounded"
+            aria-label="Ask Mixi about ingredients"
+          >
+            <MixiIconBartender size={14} />
+            Ask Mixi about ingredients
+          </button>
+        </div>
 
         {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">

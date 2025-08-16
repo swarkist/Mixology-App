@@ -862,7 +862,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       console.log(`Calling storage.updatePreferredBrand(${id}, { inMyBar: ${!currentInMyBar} })...`);
       const updated = await storage.updatePreferredBrand(id, {
         inMyBar: !currentInMyBar
-      });
+      } as any);
       
       console.log(`Toggle My Bar result:`, JSON.stringify(updated, null, 2));
       res.json(updated);
@@ -1311,6 +1311,178 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
       console.error("URL scraping failed:", error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : "Failed to scrape URL" 
+      });
+    }
+  });
+
+  // =================== MIXI CHAT ENDPOINT ===================
+  
+  // Streaming chat endpoint for Mixi AI
+  app.post("/api/mixi/chat", async (req, res) => {
+    try {
+      const { messages, context } = req.body;
+      
+      if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: "Messages array is required" });
+      }
+
+      // Check if OpenRouter API key is available
+      if (!process.env.OPENROUTER_API_KEY) {
+        return res.status(500).json({ error: "OpenRouter API key not configured" });
+      }
+
+      // Build system prompt
+      let systemPrompt = `You are Mixi, a friendly AI bartender for the Miximixology app.
+
+Core Capabilities:
+- Pitcher scaling: Scale recipes to target volume (e.g., 64 oz) without exceeding; round each ingredient to 0.25 oz; preserve ratios; support oz/ml/tbsp/tsp/barspoon/dash/parts.
+- Citrus yields: lime ≈ 1 oz; lemon ≈ 2–3 Tbsp (~1–1.5 oz); provide min/max fruit counts when scaling.
+- Simple syrup: "rich" syrup = 2 parts sugar : 1 part water; provide quick preparation method when asked.
+- Tags: Understand holiday, dessert, tiki, classic, modern categories; prefer app database results.
+- Substitutions: Suggest ingredient alternatives with proper ratios.
+
+Important Rules:
+- You are READ-ONLY. Never suggest modifying, creating, or deleting data.
+- Prefer cocktails and ingredients from our app database when possible.
+- When unsure, ask brief, targeted follow-up questions.
+- Keep responses helpful, friendly, and concise.
+- For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.`;
+
+      // Add context-specific information if provided
+      if (context) {
+        if (context.cocktailId && storage) {
+          try {
+            const cocktail = await storage.getCocktailWithDetails(context.cocktailId);
+            if (cocktail) {
+              systemPrompt += `\n\nContext: User is viewing "${cocktail.cocktail.name}" cocktail. Ingredients: ${cocktail.ingredients.map(i => `${i.amount} ${i.unit} ${i.ingredient.name}`).join(', ')}.`;
+            }
+          } catch (error) {
+            console.error('Error fetching cocktail context:', error);
+          }
+        }
+        
+        if (context.ingredientId && storage) {
+          try {
+            const ingredient = await storage.getIngredient(context.ingredientId);
+            if (ingredient) {
+              systemPrompt += `\n\nContext: User is viewing "${ingredient.name}" ingredient (${ingredient.category}). Used in ${ingredient.usedInRecipesCount || 0} recipes.`;
+            }
+          } catch (error) {
+            console.error('Error fetching ingredient context:', error);
+          }
+        }
+        
+        if (context.myBar && Array.isArray(context.myBar)) {
+          const barItems = context.myBar.map((item: any) => item.name || `ID:${item.id}`).join(', ');
+          systemPrompt += `\n\nContext: User's bar contains: ${barItems}. Tailor suggestions to what they have available.`;
+        }
+      }
+
+      // Model fallback order
+      const models = [
+        "deepseek/deepseek-v3:free",
+        "deepseek/deepseek-r1:free", 
+        "meta-llama/llama-3.2-11b-vision-instruct:free",
+        "qwen/qwen2.5-coder:free"
+      ];
+
+      let lastError: any = null;
+      
+      // Try each model in order
+      for (const model of models) {
+        try {
+          console.log(`Trying model: ${model}`);
+          
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": process.env.SITE_URL || "",
+              "X-Title": process.env.SITE_NAME || "Miximixology"
+            },
+            body: JSON.stringify({
+              model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...messages
+              ],
+              stream: true,
+              temperature: 0.7,
+              max_tokens: 2000
+            })
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.log(`Model ${model} failed with status ${response.status}: ${errorText}`);
+            lastError = new Error(`HTTP ${response.status}: ${errorText}`);
+            continue; // Try next model
+          }
+
+          // Success! Set up streaming response
+          res.setHeader('Content-Type', 'text/event-stream');
+          res.setHeader('Cache-Control', 'no-cache');
+          res.setHeader('Connection', 'keep-alive');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+
+          const reader = response.body?.getReader();
+          if (!reader) {
+            throw new Error('No response body reader available');
+          }
+
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = new TextDecoder().decode(value);
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  const data = line.slice(6);
+                  if (data === '[DONE]') {
+                    res.write('data: [DONE]\n\n');
+                    res.end();
+                    return;
+                  }
+
+                  try {
+                    const parsed = JSON.parse(data);
+                    if (parsed.choices?.[0]?.delta?.content) {
+                      res.write(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`);
+                    }
+                  } catch (parseError) {
+                    // Skip invalid JSON chunks
+                  }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+          }
+
+          res.end();
+          return; // Successfully streamed response
+
+        } catch (error) {
+          console.error(`Model ${model} error:`, error);
+          lastError = error;
+          continue; // Try next model
+        }
+      }
+
+      // All models failed
+      console.error('All models failed, last error:', lastError);
+      res.status(500).json({ 
+        error: "I'm sorry. Looks like my mind is not working at the moment. Please try again later." 
+      });
+
+    } catch (error) {
+      console.error('Chat endpoint error:', error);
+      res.status(500).json({ 
+        error: "I'm sorry. Looks like my mind is not working at the moment. Please try again later." 
       });
     }
   });

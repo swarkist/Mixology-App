@@ -1,6 +1,8 @@
 import { SearchIcon, ChevronDown } from "lucide-react";
 import React from "react";
 import { Link } from "wouter";
+import MixiIconBartender from "@/components/icons/MixiIconBartender";
+import { openMixi } from "@/lib/mixiBus";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -43,20 +45,24 @@ export const FilterByIngredientSection = (): JSX.Element => {
               <p className="text-white text-center [font-family:'Plus_Jakarta_Sans',Helvetica]">My bar where I pull recipes and tweak them to fit my flavor pallet.</p>
             </div>
 
-            {/* SearchIcon Bar */}
+            {/* Ask Mixi CTA (replaces the old Search bar) */}
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-full max-w-[480px] px-4">
               <div className="flex h-16 rounded-lg overflow-hidden">
-                <div className="flex items-center bg-[#26261c] border-l border-t border-b border-[#544f3a] rounded-l-lg pl-4">
-                  <SearchIcon className="h-5 w-5 text-[#bab59b]" />
-                </div>
-                <Input
-                  className="flex-1 h-full bg-[#26261c] border-t border-b border-l-0 border-r-0 border-[#544f3a] rounded-none text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-[#bab59b]"
-                  placeholder="Search for recipes or ingredients"
-                />
-                <div className="bg-[#26261c] border-r border-t border-b border-l-0 border-[#544f3a] rounded-r-lg p-2">
-                  <Button className="h-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-lg">Search</Button>
-                </div>
+                <button
+                  onClick={() =>
+                    openMixi({
+                      seed: "Tell me your spirits or mood and I'll suggest cocktails.",
+                      context: null
+                    })
+                  }
+                  className="flex w-full items-center justify-center gap-2 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611]"
+                  aria-label="Ask Mixi for help"
+                >
+                  <MixiIconBartender size={18} />
+                  Ask Mixi
+                </button>
               </div>
+              <p className="mt-2 text-center text-[#bab59b]">Mixi is here to help you</p>
             </div>
           </div>
         </div>

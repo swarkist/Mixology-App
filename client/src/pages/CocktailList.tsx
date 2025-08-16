@@ -27,6 +27,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import type { Cocktail } from "@shared/schema";
 import { SPIRIT_SUBCATEGORIES } from "@shared/schema";
+import MixiIconBartender from "@/components/icons/MixiIconBartender";
+import { openMixi } from "@/lib/mixiBus";
 import TopNavigation from "@/components/TopNavigation";
 import { Navigation } from "@/components/Navigation";
 import SearchBar from "@/components/SearchBar";
@@ -214,6 +216,23 @@ export const CocktailList = (): JSX.Element => {
           placeholder="Search cocktails..."
           autoFocus
         />
+
+        {/* Ask Mixi CTA */}
+        <div className="px-3 py-2">
+          <button
+            onClick={() =>
+              openMixi({
+                seed: "Tell me your spirits or mood and I'll suggest cocktails.",
+                context: null
+              })
+            }
+            className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline hover:no-underline transition-colors inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#171712] rounded"
+            aria-label="Ask Mixi for cocktail suggestions"
+          >
+            <MixiIconBartender size={14} />
+            Need ideas? Ask Mixi
+          </button>
+        </div>
 
         {/* Filter and Action Buttons */}
         <div className="px-3 py-3 space-y-3">
