@@ -1411,14 +1411,16 @@ CRITICAL PRIORITY RULES:
         try {
           console.log(`Trying model: ${model}`);
           
+          const headers = {
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+            ...(process.env.SITE_URL && { "HTTP-Referer": process.env.SITE_URL }),
+            ...(process.env.SITE_NAME && { "X-Title": process.env.SITE_NAME })
+          };
+
           const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
-            headers: {
-              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": process.env.SITE_URL || "",
-              "X-Title": process.env.SITE_NAME || "Miximixology"
-            },
+            headers,
             body: JSON.stringify({
               model,
               messages: [
