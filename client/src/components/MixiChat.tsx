@@ -203,10 +203,10 @@ export default function MixiChat() {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[512px] h-[80vh] flex flex-col p-0 bg-[#181711] border-[#393628]">
-        <DialogHeader className="flex-shrink-0 px-4 py-3 border-b border-[#393628]">
+      <DialogContent className="w-[95vw] max-w-[512px] h-[85vh] md:h-[80vh] flex flex-col p-0 bg-[#181711] border-[#393628] mx-auto">
+        <DialogHeader className="flex-shrink-0 px-3 md:px-4 py-3 border-b border-[#393628]">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-white text-[22px] font-bold leading-tight tracking-[-0.015em]">
+            <DialogTitle className="text-white text-lg md:text-[22px] font-bold leading-tight tracking-[-0.015em]">
               Chat with Mixology Assistant
             </DialogTitle>
             <Button
@@ -221,21 +221,21 @@ export default function MixiChat() {
           </div>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 px-4">
-          <div className="py-5 max-w-[512px]">
+        <ScrollArea className="flex-1 px-2 md:px-4">
+          <div className="py-3 md:py-5 w-full">
             {messages.map((message, index) => (
-              <div key={index} className={`flex items-end gap-3 p-4 ${message.role === "user" ? "justify-end" : ""}`}>
+              <div key={index} className={`flex items-end gap-2 md:gap-3 p-2 md:p-4 ${message.role === "user" ? "justify-end" : ""}`}>
                 {message.role === "assistant" && (
-                  <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0 flex items-center justify-center bg-[#393628]">
-                    <MixiIconBartender size={20} className="text-[#f3d035]" />
+                  <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#393628]">
+                    <MixiIconBartender size={16} className="text-[#f3d035] md:w-5 md:h-5" />
                   </div>
                 )}
                 
-                <div className="flex flex-1 flex-col gap-1 items-start">
-                  <p className="text-[#bab49c] text-[13px] font-normal leading-normal max-w-[360px]">
+                <div className={`flex flex-1 flex-col gap-1 ${message.role === "user" ? "items-end" : "items-start"}`}>
+                  <p className={`text-[#bab49c] text-xs md:text-[13px] font-normal leading-normal ${message.role === "user" ? "text-right" : ""}`}>
                     {message.role === "assistant" ? "Mixology Assistant" : "You"}
                   </p>
-                  <div className={`text-base font-normal leading-normal flex max-w-[360px] rounded-xl px-4 py-3 ${
+                  <div className={`text-sm md:text-base font-normal leading-normal rounded-xl px-3 md:px-4 py-2 md:py-3 max-w-[280px] md:max-w-[360px] break-words ${
                     message.role === "user" 
                       ? "bg-[#f3d035] text-[#181711]" 
                       : "bg-[#393628] text-white"
@@ -248,7 +248,7 @@ export default function MixiChat() {
                 </div>
 
                 {message.role === "user" && (
-                  <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0 flex items-center justify-center bg-[#f3d035] text-[#181711] font-bold">
+                  <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#f3d035] text-[#181711] font-bold text-xs md:text-sm">
                     U
                   </div>
                 )}
@@ -256,19 +256,19 @@ export default function MixiChat() {
             ))}
             
             {isStreaming && (
-              <div className="flex items-end gap-3 p-4">
-                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-10 shrink-0 flex items-center justify-center bg-[#393628]">
-                  <MixiIconBartender size={20} className="text-[#f3d035]" />
+              <div className="flex items-end gap-2 md:gap-3 p-2 md:p-4">
+                <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#393628]">
+                  <MixiIconBartender size={16} className="text-[#f3d035] md:w-5 md:h-5" />
                 </div>
                 <div className="flex flex-1 flex-col gap-1 items-start">
-                  <p className="text-[#bab49c] text-[13px] font-normal leading-normal max-w-[360px]">
+                  <p className="text-[#bab49c] text-xs md:text-[13px] font-normal leading-normal">
                     Mixology Assistant
                   </p>
-                  <div className="bg-[#393628] text-white rounded-xl px-4 py-3">
+                  <div className="bg-[#393628] text-white rounded-xl px-3 md:px-4 py-2 md:py-3">
                     <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-[#f3d035] rounded-full animate-pulse"></div>
-                      <div className="w-2 h-2 bg-[#f3d035] rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
-                      <div className="w-2 h-2 bg-[#f3d035] rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-[#f3d035] rounded-full animate-pulse"></div>
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-[#f3d035] rounded-full animate-pulse" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-[#f3d035] rounded-full animate-pulse" style={{ animationDelay: "0.4s" }}></div>
                     </div>
                   </div>
                 </div>
@@ -279,34 +279,34 @@ export default function MixiChat() {
           </div>
         </ScrollArea>
 
-        <div className="flex-shrink-0 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col min-w-40 h-12 flex-1">
+        <div className="flex-shrink-0 px-3 md:px-4 py-3">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="flex flex-col min-w-0 h-10 md:h-12 flex-1">
               <div className="flex w-full flex-1 items-stretch rounded-xl h-full">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type your message..."
-                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#393628] focus:border-none h-full placeholder:text-[#bab49c] px-4 rounded-r-none border-r-0 pr-2 text-base font-normal leading-normal"
+                  className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#393628] focus:border-none h-full placeholder:text-[#bab49c] px-3 md:px-4 rounded-r-none border-r-0 pr-2 text-sm md:text-base font-normal leading-normal"
                   disabled={isStreaming}
                 />
-                <div className="flex border-none bg-[#393628] items-center justify-center pr-4 rounded-r-xl border-l-0 !pr-2">
-                  <div className="flex items-center gap-4 justify-end">
-                    <div className="flex items-center gap-1">
+                <div className="flex border-none bg-[#393628] items-center justify-center pr-2 md:pr-4 rounded-r-xl border-l-0">
+                  <div className="flex items-center gap-2 md:gap-4 justify-end">
+                    <div className="hidden md:flex items-center gap-1">
                       <Button
                         variant="ghost"
                         size="sm"
                         className="flex items-center justify-center p-1.5 h-auto text-[#bab49c] hover:text-white"
                         disabled={isStreaming}
                       >
-                        <Image className="w-5 h-5" />
+                        <Image className="w-4 h-4 md:w-5 md:h-5" />
                       </Button>
                     </div>
                     <Button
                       onClick={sendMessage}
                       disabled={!input.trim() || isStreaming}
-                      className="min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f3d035] hover:bg-[#f3d035]/90 text-[#181711] text-sm font-medium leading-normal"
+                      className="min-w-[60px] md:min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-7 md:h-8 px-3 md:px-4 bg-[#f3d035] hover:bg-[#f3d035]/90 text-[#181711] text-xs md:text-sm font-medium leading-normal"
                     >
                       <span className="truncate">Send</span>
                     </Button>
