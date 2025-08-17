@@ -547,7 +547,7 @@ export default function MixiChat() {
               >
                 {message.role === "assistant" && (
                   <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#393628]">
-                    <MixiIconBartender size={16} className="text-[#f3d035] md:w-5 md:h-5" />
+                    <MixiIconBartender size={20} className="text-[#f3d035] md:w-6 md:h-6" />
                   </div>
                 )}
 
@@ -579,7 +579,7 @@ export default function MixiChat() {
             {isStreaming && (
               <div className="flex items-end gap-2 md:gap-3 p-2 md:p-4">
                 <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#393628]">
-                  <MixiIconBartender size={16} className="text-[#f3d035] md:w-5 md:h-5" />
+                  <MixiIconBartender size={20} className="text-[#f3d035] md:w-6 md:h-6" />
                 </div>
                 <div className="flex flex-1 flex-col gap-1 items-start">
                   <p className="text-[#bab49c] text-xs md:text-[13px] font-normal leading-normal">Mixi</p>
