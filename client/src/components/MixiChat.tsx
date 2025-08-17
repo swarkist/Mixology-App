@@ -253,6 +253,8 @@ export default function MixiChat() {
     // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
     text = text.replace(/\s*(\*{0,2}\s*Ingredients:?\s*\*{0,2})/gi, "\n\n$1\n");
     text = text.replace(/\s*(\*{0,2}\s*Instructions:?\s*\*{0,2})/gi, "\n\n$1\n");
+    // Ensure bold headings (e.g., **Margarita**) are isolated on their own lines
+    text = text.replace(/(^|\n)\s*(\*\*[^*\n]+\*\*)/g, (m, p1, p2) => `${p1}\n${p2}\n`);
     return text;
   }
 
@@ -275,7 +277,14 @@ export default function MixiChat() {
     while (i < lines.length) {
       const line = lines[i];
 
-      // headers
+      // recipe headings written in bold (e.g., **Margarita**)
+      if (/^\*\*[^*]+\*\*$/.test(line)) {
+        out.push({ kind: "h", text: line });
+        i++;
+        continue;
+      }
+
+      // section headers like Ingredients or Instructions
       if (/^\*{0,2}\s*ingredients:?/i.test(line) || /^\*{0,2}\s*instructions:?/i.test(line)) {
         out.push({ kind: "h", text: line.replace(/\*/g, "").trim() });
         i++;
@@ -326,48 +335,124 @@ export default function MixiChat() {
 
   function renderAssistantMessage(text: string) {
     const blocks = splitIntoBlocks(text);
-    return (
-      <>
-        {blocks.map((b, idx) => {
-          if (b.kind === "h") {
-            const label = b.text.replace(/\*+/g, "");
-            return (
-              <div key={idx} className="mt-2 mb-1 font-semibold text-[#f3d035]">
-                {label}
-              </div>
-            );
-          }
-          if (b.kind === "ol") {
-            return (
-              <ol key={idx} className="list-decimal ml-5 space-y-1">
-                {b.items.map((it, i2) => (
-                  <li key={i2} className="text-white">
-                    {renderSafeInline(it)}
-                  </li>
-                ))}
-              </ol>
-            );
-          }
-          if (b.kind === "ul") {
-            return (
-              <ul key={idx} className="list-disc ml-5 space-y-1">
-                {b.items.map((it, i2) => (
-                  <li key={i2} className="text-white">
+    const elements: JSX.Element[] = [];
+
+    type Recipe = { title: string; ingredients: string[]; instructions: string[] };
+    let currentRecipe: Recipe | null = null;
+    let currentSection: "ingredients" | "instructions" | null = null;
+
+    const flushRecipe = () => {
+      if (!currentRecipe) return;
+      elements.push(
+        <div key={elements.length} className="mt-2">
+          <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{currentRecipe.title}</div>
+          {currentRecipe.ingredients.length > 0 && (
+            <>
+              <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Ingredients:</div>
+              <ul className="list-disc ml-5 space-y-1">
+                {currentRecipe.ingredients.map((it, idx) => (
+                  <li key={idx} className="text-white">
                     {renderSafeInline(it)}
                   </li>
                 ))}
               </ul>
-            );
-          }
-          // paragraph
-          return (
-            <p key={idx} className="text-white">
-              {renderSafeInline(b.text)}
-            </p>
-          );
-        })}
-      </>
-    );
+            </>
+          )}
+          {currentRecipe.instructions.length > 0 && (
+            <>
+              <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Instructions:</div>
+              <ol className="list-decimal ml-5 space-y-1">
+                {currentRecipe.instructions.map((it, idx) => (
+                  <li key={idx} className="text-white">
+                    {renderSafeInline(it)}
+                  </li>
+                ))}
+              </ol>
+            </>
+          )}
+        </div>
+      );
+      currentRecipe = null;
+      currentSection = null;
+    };
+
+    function pushGenericBlock(b: Block) {
+      const key = elements.length;
+      if (b.kind === "h") {
+        const label = b.text.replace(/\*+/g, "");
+        elements.push(
+          <div key={key} className="mt-2 mb-1 font-semibold text-[#f3d035]">
+            {label}
+          </div>
+        );
+        return;
+      }
+      if (b.kind === "ol") {
+        elements.push(
+          <ol key={key} className="list-decimal ml-5 space-y-1">
+            {b.items.map((it, i2) => (
+              <li key={i2} className="text-white">
+                {renderSafeInline(it)}
+              </li>
+            ))}
+          </ol>
+        );
+        return;
+      }
+      if (b.kind === "ul") {
+        elements.push(
+          <ul key={key} className="list-disc ml-5 space-y-1">
+            {b.items.map((it, i2) => (
+              <li key={i2} className="text-white">
+                {renderSafeInline(it)}
+              </li>
+            ))}
+          </ul>
+        );
+        return;
+      }
+      elements.push(
+        <p key={key} className="text-white">
+          {renderSafeInline(b.text)}
+        </p>
+      );
+    }
+
+    for (const b of blocks) {
+      if (b.kind === "h") {
+        const label = b.text.replace(/\*+/g, "").trim();
+        if (/^ingredients:?/i.test(label)) {
+          currentSection = "ingredients";
+          continue;
+        }
+        if (/^instructions:?/i.test(label)) {
+          currentSection = "instructions";
+          continue;
+        }
+        // New recipe heading
+        flushRecipe();
+        currentRecipe = { title: label, ingredients: [], instructions: [] };
+        continue;
+      }
+
+      if (currentSection && currentRecipe) {
+        const target =
+          currentSection === "ingredients"
+            ? currentRecipe.ingredients
+            : currentRecipe.instructions;
+        if (b.kind === "p") target.push(b.text);
+        else if (b.kind === "ul" || b.kind === "ol") target.push(...b.items);
+        continue;
+      }
+
+      // block outside any recipe section
+      flushRecipe();
+      pushGenericBlock(b);
+    }
+
+    flushRecipe();
+
+    return <>{elements}</>;
   }
   // ---------------------------------------------------------------------------
 
