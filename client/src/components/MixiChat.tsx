@@ -58,7 +58,7 @@ export default function MixiChat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Listen for global open events
+  // Listen for global open events  
   useEffect(() => {
     return onMixiOpen(({ seed, context, initialUserMessage }) => {
       setLastOpenedBy(document.activeElement as HTMLElement);
@@ -68,17 +68,84 @@ export default function MixiChat() {
       
       const assistantMessage = {
         role: "assistant" as const,
-        content: seed || "Hi there! I'm here to help you find the perfect cocktail. What are you in the mood for?",
+        content: seed || "Hi there! I'm here to help you find the perfect cocktail. What are you in the mode for?",
       };
       
       if (initialUserMessage) {
         // If there's an initial user message, add it and immediately send it
         const userMessage = { role: "user" as const, content: initialUserMessage };
         setMessages([assistantMessage, userMessage]);
-        // Trigger the API call with the initial message
         // Trigger the API call with the initial message after component settles
         setTimeout(() => {
-          sendMessageWithContent(initialUserMessage);
+          // Call sendMessageWithContent but make sure it's defined first
+          const sendInitialMessage = async () => {
+            if (!initialUserMessage.trim() || isStreaming) return;
+
+            setIsStreaming(true);
+
+            try {
+              abortControllerRef.current = new AbortController();
+
+              const response = await fetch("/api/mixi/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  messages: [assistantMessage, { role: "user", content: initialUserMessage }],
+                  context: context,
+                }),
+                signal: abortControllerRef.current.signal,
+              });
+
+              if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+              const reader = response.body?.getReader();
+              if (!reader) throw new Error("No response body");
+
+              let streamingResponse = "";
+              setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+              const decoder = new TextDecoder();
+              let partial = "";
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                partial += decoder.decode(value, { stream: true });
+                const lines = partial.split("\n");
+                partial = lines.pop() || "";
+
+                for (const line of lines) {
+                  if (!line.startsWith("data: ")) continue;
+                  const jsonStr = line.slice(6).trim();
+                  if (!jsonStr || jsonStr === "[DONE]") continue;
+                  try {
+                    const data = JSON.parse(jsonStr);
+                    const delta = data.content || data.choices?.[0]?.delta?.content || "";
+                    if (delta) {
+                      streamingResponse += delta;
+                      setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: streamingResponse }]);
+                    }
+                  } catch {
+                    // ignore malformed frames
+                  }
+                }
+              }
+            } catch (error: any) {
+              if (error.name !== "AbortError") {
+                console.error("Chat error:", error);
+                setMessages(prev => [
+                  ...prev,
+                  { role: "assistant", content: "Sorry, I'm having trouble connecting right now. Please try again." },
+                ]);
+              }
+            } finally {
+              setIsStreaming(false);
+              abortControllerRef.current = null;
+              setPendingContext(null);
+            }
+          };
+          sendInitialMessage();
         }, 100);
       } else {
         setMessages([assistantMessage]);
