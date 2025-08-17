@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, X, Image } from "lucide-react";
+import { X, Image } from "lucide-react";
 import { Link } from "wouter";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { onMixiOpen } from "@/lib/mixiBus";
@@ -21,11 +21,10 @@ export default function MixiChat() {
   const [pendingContext, setPendingContext] = useState<any>(null);
   const [lastOpenedBy, setLastOpenedBy] = useState<HTMLElement | null>(null);
 
-  // Cocktail index for safe linking
+  // Cocktail index for safe linking (fetched once here; no extra hook required)
   const [cocktailIndex, setCocktailIndex] = useState<Array<{ id: string | number; name: string }>>([]);
   const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
 
-  const validIds = useMemo(() => new Set(cocktailIndex.map(c => String(c.id))), [cocktailIndex]);
   const nameToId = useMemo(() => {
     const m = new Map<string, string>();
     for (const c of cocktailIndex) m.set(normalize(c.name), String(c.id));
@@ -90,17 +89,16 @@ export default function MixiChat() {
     }
   };
 
-  // --- Safe rendering: only link internal recipes that exist -------------------
+  // --- Safe rendering: link by NAME only (ignore any ID the model wrote) ------
+  // Matches markdown-style internal links like [Name](/recipe/something)
   const internalLinkRegex = /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi;
 
   function sanitizeAssistantMarkdown(md: string): string {
-    // Allow internal links only if id exists; try to auto-correct by name; else plain text
-    md = md.replace(internalLinkRegex, (_full, label: string, _url: string, rawId: string) => {
-      const id = String(rawId).trim();
-      if (validIds.has(id)) return `[${label}](/recipe/${id})`;
-      const corrected = nameToId.get(normalize(label));
-      if (corrected) return `[${label}](/recipe/${corrected})`;
-      return `${label} (not in our library)`;
+    // Rebuild internal links by name only; if name not in DB, render plain text with note.
+    md = md.replace(internalLinkRegex, (_full, label: string) => {
+      const idByName = nameToId.get(normalize(label));
+      if (idByName) return `[${label}](/recipe/${idByName})`;
+      return `${label} (not in our library)`; // no link
     });
 
     // Strip any other markdown links (e.g., external) to plain text label (optional hardening)
@@ -114,15 +112,16 @@ export default function MixiChat() {
     let m: RegExpExecArray | null;
 
     while ((m = internalLinkRegex.exec(text))) {
-      const [full, label, _url, idRaw] = m;
-      const id = String(idRaw);
+      const [full, label] = m;
       if (m.index > last) nodes.push(text.slice(last, m.index));
 
-      if (validIds.has(id)) {
+      // Link only if the *name* exists; build URL using our real id
+      const idByName = nameToId.get(normalize(label));
+      if (idByName) {
         nodes.push(
           <Link
             key={m.index}
-            href={`/recipe/${id}`}
+            href={`/recipe/${idByName}`}
             className="text-[#f3d035] hover:text-[#f3d035]/80 underline hover:no-underline"
             onClick={() => setOpen(false)}
           >
@@ -138,7 +137,15 @@ export default function MixiChat() {
       }
       last = m.index + full.length;
     }
-    if (last < text.length) nodes.push(text.slice(last));
+
+    // Also neutralize any bare "/recipe/anything" strings (not markdown) in the tail
+    if (last < text.length) {
+      const tail = text.slice(last).replace(/\/recipe\/([^\s)]+)\b/gi, (full) => {
+        return `${full} (not linked)`;
+      });
+      nodes.push(tail);
+    }
+
     return <>{nodes}</>;
   }
   // ---------------------------------------------------------------------------
@@ -200,7 +207,7 @@ export default function MixiChat() {
         }
       }
 
-      // Final pass: sanitize links based on the index we loaded
+      // Final pass: sanitize links based on the loaded index
       setMessages(prev => {
         const out = [...prev];
         const last = out[out.length - 1];
@@ -221,13 +228,6 @@ export default function MixiChat() {
       setIsStreaming(false);
       abortControllerRef.current = null;
       setPendingContext(null);
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
     }
   };
 
@@ -318,7 +318,7 @@ export default function MixiChat() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())}
+                  onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), !isStreaming && sendMessage())}
                   placeholder="Type your message..."
                   className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#393628] focus:border-none h-full placeholder:text-[#bab49c] px-3 md:px-4 rounded-r-none border-r-0 pr-2 text-sm md:text-base font-normal leading-normal"
                   disabled={isStreaming}
