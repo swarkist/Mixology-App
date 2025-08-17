@@ -1417,21 +1417,30 @@ FORMATTING RULES (MANDATORY):
         }
       }
 
-      // Model fallback order
-      const models = [
-        "deepseek/deepseek-v3:free",
-        "deepseek/deepseek-r1:free", 
-        "meta-llama/llama-3.2-11b-vision-instruct:free",
-        "qwen/qwen2.5-coder:free"
-      ];
+      // Determine model order from environment
+      const primaryModel = process.env.OPENROUTER_MODEL_PRIMARY ||
+        "deepseek/deepseek-chat-v3-0324:free";
+      const fallbackModels = (process.env.OPENROUTER_MODEL_FALLBACKS ||
+        "qwen/qwen-2.5-coder-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free")
+        .split(",")
+        .map(m => m.trim())
+        .filter(Boolean);
+      const models = [primaryModel, ...fallbackModels];
 
       let lastError: any = null;
-      
+      let delay = 0;
+      let backoff = 2000;
+
       // Try each model in order
       for (const model of models) {
+        if (delay > 0) {
+          console.log(`Waiting ${delay}ms before trying next model`);
+          await new Promise(r => setTimeout(r, delay));
+        }
+
         try {
           console.log(`Trying model: ${model}`);
-          
+
           const headers = {
             "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
             "Content-Type": "application/json",
@@ -1454,11 +1463,33 @@ FORMATTING RULES (MANDATORY):
             })
           });
 
+          const reset = response.headers.get("X-RateLimit-Reset");
+          if (reset) {
+            const resetTime = new Date(Number(reset) * 1000).toISOString();
+            console.log(`OpenRouter rate limit resets at ${resetTime}`);
+          }
+
           if (!response.ok) {
             const errorText = await response.text();
             console.log(`Model ${model} failed with status ${response.status}: ${errorText}`);
+
+            const isInvalidModel = /model/i.test(errorText) && /(not exist|invalid)/i.test(errorText);
+
+            if (response.status === 429) {
+              lastError = new Error(`HTTP 429: ${errorText}`);
+              delay = backoff;
+              backoff = Math.min(backoff * 2, 8000);
+              continue;
+            }
+
+            if (response.status === 502 || isInvalidModel) {
+              lastError = new Error(`HTTP ${response.status}: ${errorText}`);
+              delay = 0;
+              continue;
+            }
+
             lastError = new Error(`HTTP ${response.status}: ${errorText}`);
-            continue; // Try next model
+            break;
           }
 
           // Success! Set up streaming response
@@ -1510,14 +1541,15 @@ FORMATTING RULES (MANDATORY):
         } catch (error) {
           console.error(`Model ${model} error:`, error);
           lastError = error;
+          delay = 0;
           continue; // Try next model
         }
       }
 
       // All models failed
       console.error('All models failed, last error:', lastError);
-      res.status(500).json({ 
-        error: "I'm sorry. Looks like my mind is not working at the moment. Please try again later." 
+      res.status(503).json({
+        error: "We're temporarily rate-limited on the free models. Please try again later or switch to a paid model."
       });
 
     } catch (error) {
