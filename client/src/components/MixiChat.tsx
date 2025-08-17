@@ -174,7 +174,26 @@ export default function MixiChat() {
   // Matches markdown-style internal links like [Name](/recipe/something)
   const internalLinkRegex = /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi;
 
+  function renderSimpleMarkdown(segment: string) {
+    const parts: (string | JSX.Element)[] = [];
+    const mdRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
 
+    while ((match = mdRegex.exec(segment))) {
+      if (match.index > lastIndex) parts.push(segment.slice(lastIndex, match.index));
+      const token = match[0];
+      if (token.startsWith("**")) {
+        parts.push(<strong key={match.index}>{token.slice(2, -2)}</strong>);
+      } else {
+        parts.push(<em key={match.index}>{token.slice(1, -1)}</em>);
+      }
+      lastIndex = match.index + token.length;
+    }
+
+    if (lastIndex < segment.length) parts.push(segment.slice(lastIndex));
+    return parts;
+  }
 
   function renderSafeInline(text: string) {
     // Render inline text but preserve safe internal links only
@@ -184,7 +203,7 @@ export default function MixiChat() {
 
     while ((m = internalLinkRegex.exec(text))) {
       const [full, label] = m;
-      if (m.index > last) nodes.push(text.slice(last, m.index));
+      if (m.index > last) nodes.push(...renderSimpleMarkdown(text.slice(last, m.index)));
 
       const idByName = nameToId.get(normalize(label));
       if (idByName) {
@@ -195,13 +214,13 @@ export default function MixiChat() {
             className="text-[#f3d035] hover:text-[#f3d035]/80 underline hover:no-underline"
             onClick={() => setOpen(false)}
           >
-            {label}
+            {renderSimpleMarkdown(label)}
           </Link>
         );
       } else {
         nodes.push(
           <span key={m.index}>
-            {label} <span className="text-xs text-zinc-400">(not in our library)</span>
+            {renderSimpleMarkdown(label)} <span className="text-xs text-zinc-400">(not in our library)</span>
           </span>
         );
       }
@@ -209,8 +228,10 @@ export default function MixiChat() {
     }
 
     if (last < text.length) {
-      const tail = text.slice(last).replace(/\/recipe\/([^\s)]+)\b/gi, (full) => `${full} (not linked)`);
-      nodes.push(tail);
+      const tail = text
+        .slice(last)
+        .replace(/\/recipe\/([^\s)]+)\b/gi, full => `${full} (not linked)`);
+      nodes.push(...renderSimpleMarkdown(tail));
     }
     return <>{nodes}</>;
   }
