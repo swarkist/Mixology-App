@@ -85,10 +85,10 @@ export const FilterByIngredientSection = (): JSX.Element => {
                 />
                 <button
                   onClick={handleAskMixi}
-                  className="px-6 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-r-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611] flex items-center gap-2"
+                  className="px-6 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-r-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611] flex items-center gap-3 text-lg"
                   aria-label="Ask Mixi for help"
                 >
-                  <MixiIconBartender size={24} />
+                  <MixiIconBartender size={32} />
                   Ask Mixi
                 </button>
               </div>
