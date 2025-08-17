@@ -76,6 +76,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
                   onChange={(e) => setMixiInput(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
+                      e.preventDefault();
                       handleAskMixi();
                     }
                   }}
