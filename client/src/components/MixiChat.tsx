@@ -155,12 +155,17 @@ export default function MixiChat() {
 
   const handleClose = () => {
     if (abortControllerRef.current) {
-      try {
-        abortControllerRef.current.abort();
-      } catch (error) {
-        // Ignore abort errors when closing
-      }
+      // Silently abort the request without throwing any errors
+      const controller = abortControllerRef.current;
       abortControllerRef.current = null;
+      // Use setTimeout to avoid any synchronous abort errors
+      setTimeout(() => {
+        try {
+          controller.abort();
+        } catch {
+          // Completely silent - no logging, no error handling
+        }
+      }, 0);
     }
     setOpen(false);
     setIsStreaming(false);
