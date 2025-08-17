@@ -1366,23 +1366,26 @@ CRITICAL PRIORITY RULES:
 - Keep responses helpful, friendly, and concise.
 - For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.
 
-FORMATTING GUIDELINES:
-- When listing multiple recipes, use numbered lists (1. 2. 3.) with each recipe on its own line
-- When providing individual recipes, format them clearly with:
-  - **Ingredients:** as bullet points using •
-  - **Instructions:** as numbered steps
-- Preserve existing descriptions after recipe names in lists
-- Use clear section headers and line breaks for readability
-- Example recipe format:
+FORMATTING RULES (MANDATORY):
+- ALWAYS use numbered lists when listing multiple recipes. Each recipe MUST be on its own line starting with a number:
+  1. **Recipe Name** - Description
+  2. **Recipe Name** - Description
+  3. **Recipe Name** - Description
+
+- When providing a single recipe, ALWAYS format with clear sections:
   **Ingredients:**
-  • 2 oz bourbon
-  • 1 sugar cube
-  • 2-3 dashes Angostura bitters
+  • Ingredient 1
+  • Ingredient 2
+  • Ingredient 3
   
   **Instructions:**
-  1. Muddle sugar cube with bitters
-  2. Add bourbon and ice
-  3. Stir and garnish${siteRecipes}`;
+  1. Step one
+  2. Step two
+  3. Step three
+
+- NEVER write recipe lists as continuous paragraphs with bullets (•) or dashes (-)
+- ALWAYS put each numbered recipe on a separate line
+- Use line breaks between sections for readability${siteRecipes}`;
 
       // Add context-specific information if provided
       if (context) {
