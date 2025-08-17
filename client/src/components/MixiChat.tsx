@@ -89,7 +89,7 @@ export default function MixiChat() {
     }
   };
 
-  // --- Safe rendering: link by NAME only (ignore any ID the model wrote) ------
+  // --- Safe linking helpers (link by NAME only, ignore model IDs) -------------
   // Matches markdown-style internal links like [Name](/recipe/something)
   const internalLinkRegex = /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi;
 
@@ -106,7 +106,8 @@ export default function MixiChat() {
     return md;
   }
 
-  function renderWithSafeLinks(text: string) {
+  function renderSafeInline(text: string) {
+    // Render inline text but preserve safe internal links only
     const nodes: (string | JSX.Element)[] = [];
     let last = 0;
     let m: RegExpExecArray | null;
@@ -115,7 +116,6 @@ export default function MixiChat() {
       const [full, label] = m;
       if (m.index > last) nodes.push(text.slice(last, m.index));
 
-      // Link only if the *name* exists; build URL using our real id
       const idByName = nameToId.get(normalize(label));
       if (idByName) {
         nodes.push(
@@ -138,15 +138,139 @@ export default function MixiChat() {
       last = m.index + full.length;
     }
 
-    // Also neutralize any bare "/recipe/anything" strings (not markdown) in the tail
     if (last < text.length) {
-      const tail = text.slice(last).replace(/\/recipe\/([^\s)]+)\b/gi, (full) => {
-        return `${full} (not linked)`;
-      });
+      const tail = text.slice(last).replace(/\/recipe\/([^\s)]+)\b/gi, (full) => `${full} (not linked)`);
       nodes.push(tail);
     }
-
     return <>{nodes}</>;
+  }
+  // ---------------------------------------------------------------------------
+
+  // --- Formatting helpers (lists/sections) ------------------------------------
+  // Normalize paragraphs that cram "1. X 2. Y 3. Z" into a single line → line-per-item
+  function normalizeForLists(text: string) {
+    // Ensure a newline before any numbered item not at line-start
+    text = text.replace(/(?<!^|\n)(\s*)(\d+)\.\s+/g, "\n$2. ");
+    // Ensure a newline before bullets like " • "
+    text = text.replace(/\s+•\s+/g, "\n• ");
+    // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
+    text = text.replace(/\s*(\*\*?Ingredients:?[\*\*]?)/gi, "\n\n$1\n");
+    text = text.replace(/\s*(\*\*?Instructions:?[\*\*]?)/gi, "\n\n$1\n");
+    return text;
+  }
+
+  type Block =
+    | { kind: "ol"; items: string[] }
+    | { kind: "ul"; items: string[] }
+    | { kind: "p"; text: string }
+    | { kind: "h"; text: string };
+
+  function splitIntoBlocks(text: string): Block[] {
+    const out: Block[] = [];
+    const lines = normalizeForLists(text).split(/\r?\n/).map(l => l.trim());
+    let i = 0;
+
+    function flushParagraph(buf: string[]) {
+      const joined = buf.join(" ").trim();
+      if (joined) out.push({ kind: "p", text: joined });
+    }
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // headers
+      if (/^\*{0,2}ingredients:?/i.test(line) || /^\*{0,2}instructions:?/i.test(line)) {
+        out.push({ kind: "h", text: line.replace(/\*/g, "") });
+        i++;
+        continue;
+      }
+
+      // ordered list block (consecutive lines starting with "1. ", "2. ", etc.)
+      if (/^\d+\.\s+/.test(line)) {
+        const items: string[] = [];
+        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^\d+\.\s+/, "").trim());
+          i++;
+        }
+        out.push({ kind: "ol", items });
+        continue;
+      }
+
+      // unordered list block (• or -)
+      if (/^(•|-)\s+/.test(line)) {
+        const items: string[] = [];
+        while (i < lines.length && /^(•|-)\s+/.test(lines[i])) {
+          items.push(lines[i].replace(/^(•|-)\s+/, "").trim());
+          i++;
+        }
+        out.push({ kind: "ul", items });
+        continue;
+      }
+
+      // paragraph accumulation
+      if (line) {
+        const buf: string[] = [line];
+        // absorb subsequent non-list, non-header lines into same paragraph
+        let j = i + 1;
+        while (j < lines.length && lines[j] && !/^\d+\.\s+/.test(lines[j]) && !/^(•|-)\s+/.test(lines[j]) && !/^\*{0,2}(ingredients|instructions):?/i.test(lines[j])) {
+          buf.push(lines[j]);
+          j++;
+        }
+        flushParagraph(buf);
+        i = j;
+        continue;
+      }
+
+      i++; // empty line
+    }
+
+    return out;
+  }
+
+  function renderAssistantMessage(text: string) {
+    const blocks = splitIntoBlocks(text);
+    return (
+      <>
+        {blocks.map((b, idx) => {
+          if (b.kind === "h") {
+            const label = b.text.replace(/\*+/g, "");
+            return (
+              <div key={idx} className="mt-2 mb-1 font-semibold text-[#f3d035]">
+                {label}
+              </div>
+            );
+          }
+          if (b.kind === "ol") {
+            return (
+              <ol key={idx} className="list-decimal ml-5 space-y-1">
+                {b.items.map((it, i2) => (
+                  <li key={i2} className="text-white">
+                    {renderSafeInline(it)}
+                  </li>
+                ))}
+              </ol>
+            );
+          }
+          if (b.kind === "ul") {
+            return (
+              <ul key={idx} className="list-disc ml-5 space-y-1">
+                {b.items.map((it, i2) => (
+                  <li key={i2} className="text-white">
+                    {renderSafeInline(it)}
+                  </li>
+                ))}
+              </ul>
+            );
+          }
+          // paragraph
+          return (
+            <p key={idx} className="text-white">
+              {renderSafeInline(b.text)}
+            </p>
+          );
+        })}
+      </>
+    );
   }
   // ---------------------------------------------------------------------------
 
@@ -252,7 +376,7 @@ export default function MixiChat() {
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-2 md:px-4">
-          <div className="py-3 md:py-5 w-full">
+          <div className="py-3 md:py-5 w-full space-y-2">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -277,7 +401,7 @@ export default function MixiChat() {
                       message.role === "user" ? "bg-[#f3d035] text-[#181711]" : "bg-[#393628] text-white"
                     }`}
                   >
-                    {message.role === "assistant" ? renderWithSafeLinks(message.content) : message.content}
+                    {message.role === "assistant" ? renderAssistantMessage(message.content) : message.content}
                   </div>
                 </div>
 
