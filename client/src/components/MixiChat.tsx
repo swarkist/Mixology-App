@@ -489,7 +489,13 @@ export default function MixiChat() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (next) setOpen(true);
+        else handleClose();
+      }}
+    >
       <DialogContent className="w-[95vw] max-w-[512px] h-[85vh] md:h-[80vh] flex flex-col p-0 bg-[#181711] border-[#393628] mx-auto">
         <DialogHeader className="flex-shrink-0 px-3 md:px-4 py-3 border-b border-[#393628]">
           <div className="flex items-center justify-between">
