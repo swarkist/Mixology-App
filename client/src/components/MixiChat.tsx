@@ -132,7 +132,11 @@ export default function MixiChat() {
                 }
               }
             } catch (error: any) {
-              if (error.name !== "AbortError") {
+              if (
+                error !== "chat closed" &&
+                error?.message !== "chat closed" &&
+                error?.name !== "AbortError"
+              ) {
                 console.error("Chat error:", error);
                 setMessages(prev => [
                   ...prev,
@@ -155,17 +159,8 @@ export default function MixiChat() {
 
   const handleClose = () => {
     if (abortControllerRef.current) {
-      // Silently abort the request without throwing any errors
-      const controller = abortControllerRef.current;
+      abortControllerRef.current.abort("chat closed");
       abortControllerRef.current = null;
-      // Use setTimeout to avoid any synchronous abort errors
-      setTimeout(() => {
-        try {
-          controller.abort();
-        } catch {
-          // Completely silent - no logging, no error handling
-        }
-      }, 0);
     }
     setOpen(false);
     setIsStreaming(false);
@@ -403,7 +398,11 @@ export default function MixiChat() {
         }
       }
     } catch (error: any) {
-      if (error.name !== "AbortError") {
+      if (
+        error !== "chat closed" &&
+        error?.message !== "chat closed" &&
+        error?.name !== "AbortError"
+      ) {
         console.error("Chat error:", error);
         setMessages(prev => [
           ...prev,
@@ -474,7 +473,11 @@ export default function MixiChat() {
         }
       }
     } catch (error: any) {
-      if (error.name !== "AbortError") {
+      if (
+        error !== "chat closed" &&
+        error?.message !== "chat closed" &&
+        error?.name !== "AbortError"
+      ) {
         console.error("Chat error:", error);
         setMessages(prev => [
           ...prev,
