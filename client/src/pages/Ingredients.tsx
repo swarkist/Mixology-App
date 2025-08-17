@@ -162,7 +162,7 @@ export const Ingredients = (): JSX.Element => {
           <button
             onClick={() =>
               openMixi({
-                seed: "Help me understand ingredients and cocktail substitutions for my bar.",
+                seed: "I am here to help you with any questions you may have about ingredients.",
                 context: null
               })
             }
