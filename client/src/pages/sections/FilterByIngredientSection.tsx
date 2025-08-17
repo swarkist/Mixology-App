@@ -88,7 +88,7 @@ export const FilterByIngredientSection = (): JSX.Element => {
                   className="px-6 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-r-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611] flex items-center gap-2"
                   aria-label="Ask Mixi for help"
                 >
-                  <MixiIconBartender size={18} />
+                  <MixiIconBartender size={24} />
                   Ask Mixi
                 </button>
               </div>
