@@ -176,22 +176,28 @@ export default function MixiChat() {
 
   function renderSimpleMarkdown(segment: string) {
     const parts: (string | JSX.Element)[] = [];
-    const mdRegex = /(\*\*[^*]+\*\*|\*[^*]+\*)/g;
+    const mdRegex = /\*\*(.+?)\*\*|\*(.+?)\*/g;
     let lastIndex = 0;
     let match: RegExpExecArray | null;
 
     while ((match = mdRegex.exec(segment))) {
-      if (match.index > lastIndex) parts.push(segment.slice(lastIndex, match.index));
-      const token = match[0];
-      if (token.startsWith("**")) {
-        parts.push(<strong key={match.index}>{token.slice(2, -2)}</strong>);
-      } else {
-        parts.push(<em key={match.index}>{token.slice(1, -1)}</em>);
+      if (match.index > lastIndex) {
+        parts.push(segment.slice(lastIndex, match.index));
       }
-      lastIndex = match.index + token.length;
+
+      const [, bold, italic] = match;
+      if (bold !== undefined) {
+        parts.push(<strong key={match.index}>{bold}</strong>);
+      } else if (italic !== undefined) {
+        parts.push(<em key={match.index}>{italic}</em>);
+      }
+
+      lastIndex = mdRegex.lastIndex;
     }
 
-    if (lastIndex < segment.length) parts.push(segment.slice(lastIndex));
+    if (lastIndex < segment.length) {
+      parts.push(segment.slice(lastIndex));
+    }
     return parts;
   }
 
