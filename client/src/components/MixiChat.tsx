@@ -524,7 +524,7 @@ export default function MixiChat() {
         <DialogHeader className="flex-shrink-0 px-3 md:px-4 py-3 border-b border-[#393628]">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-white text-lg md:text-[22px] font-bold leading-tight tracking-[-0.015em]">
-              Chat with Mixology Assistant
+              Chat with Mixi
             </DialogTitle>
             <Button
               variant="ghost"
@@ -557,7 +557,7 @@ export default function MixiChat() {
                       message.role === "user" ? "text-right" : ""
                     }`}
                   >
-                    {message.role === "assistant" ? "Mixology Assistant" : "You"}
+                    {message.role === "assistant" ? "Mixi" : "You"}
                   </p>
                   <div
                     className={`text-sm md:text-base font-normal leading-normal rounded-xl px-3 md:px-4 py-2 md:py-3 max-w-[280px] md:max-w-[360px] break-words ${
@@ -582,7 +582,7 @@ export default function MixiChat() {
                   <MixiIconBartender size={16} className="text-[#f3d035] md:w-5 md:h-5" />
                 </div>
                 <div className="flex flex-1 flex-col gap-1 items-start">
-                  <p className="text-[#bab49c] text-xs md:text-[13px] font-normal leading-normal">Mixology Assistant</p>
+                  <p className="text-[#bab49c] text-xs md:text-[13px] font-normal leading-normal">Mixi</p>
                   <div className="bg-[#393628] text-white rounded-xl px-3 md:px-4 py-2 md:py-3">
                     <div className="flex items-center space-x-1">
                       <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-[#f3d035] rounded-full animate-pulse"></div>
