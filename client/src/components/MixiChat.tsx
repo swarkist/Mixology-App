@@ -251,8 +251,8 @@ export default function MixiChat() {
     // Ensure a newline before bullets like " • "
     text = text.replace(/\s+•\s+/g, "\n• ");
     // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
-    text = text.replace(/\s*(\*\*?Ingredients:?[\*\*]?)/gi, "\n\n$1\n");
-    text = text.replace(/\s*(\*\*?Instructions:?[\*\*]?)/gi, "\n\n$1\n");
+    text = text.replace(/\s*(\*{0,2}\s*Ingredients:?\s*\*{0,2})/gi, "\n\n$1\n");
+    text = text.replace(/\s*(\*{0,2}\s*Instructions:?\s*\*{0,2})/gi, "\n\n$1\n");
     return text;
   }
 
@@ -276,8 +276,8 @@ export default function MixiChat() {
       const line = lines[i];
 
       // headers
-      if (/^\*{0,2}ingredients:?/i.test(line) || /^\*{0,2}instructions:?/i.test(line)) {
-        out.push({ kind: "h", text: line.replace(/\*/g, "") });
+      if (/^\*{0,2}\s*ingredients:?/i.test(line) || /^\*{0,2}\s*instructions:?/i.test(line)) {
+        out.push({ kind: "h", text: line.replace(/\*/g, "").trim() });
         i++;
         continue;
       }
@@ -309,7 +309,7 @@ export default function MixiChat() {
         const buf: string[] = [line];
         // absorb subsequent non-list, non-header lines into same paragraph
         let j = i + 1;
-        while (j < lines.length && lines[j] && !/^\d+\.\s+/.test(lines[j]) && !/^(•|-)\s+/.test(lines[j]) && !/^\*{0,2}(ingredients|instructions):?/i.test(lines[j])) {
+        while (j < lines.length && lines[j] && !/^\d+\.\s+/.test(lines[j]) && !/^(•|-)\s+/.test(lines[j]) && !/^\*{0,2}\s*(ingredients|instructions):?/i.test(lines[j])) {
           buf.push(lines[j]);
           j++;
         }
