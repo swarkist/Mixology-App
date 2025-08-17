@@ -5,8 +5,9 @@ This is a full-stack web application for cocktail recipes and mixology, featurin
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-Documentation updates: Only update replit.md when running regression tests, not after individual fixes.
+Documentation updates: Keep replit.md current with architectural changes and major feature implementations.
 Project documentation: Focus on replit.md as primary documentation; archived detailed file structure docs as they are superseded by architectural information here.
+Chat interface design: Modern dialog-based UI with responsive mobile optimization, matching provided reference designs.
 
 ## System Architecture
 
@@ -18,13 +19,13 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **Forms**: React Hook Form with Zod validation.
 - **Styling**: Consistent dark theme with gold accents, Plus Jakarta Sans font.
 - **Accessibility**: Comprehensive button accessibility, horizontal scrolling fixes for mobile.
-- **UI/UX Decisions**: Consistent dark theme with gold accents, Plus Jakarta Sans font. Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages. URL state synchronization for filter persistence. PWA support with "Miximixology" branding, standalone display mode, dark theme, and comprehensive icon set.
+- **UI/UX Decisions**: Consistent dark theme (#181711) with gold accents (#f3d035), Plus Jakarta Sans font. Modern chat interface with message bubbles, responsive design for mobile devices (iPhone 14/15 optimized). Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages. URL state synchronization for filter persistence. PWA support with "Miximixology" branding, standalone display mode, dark theme, and comprehensive icon set.
 - **Application Structure**: Multi-page application including Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages. Responsive navigation system (desktop header + mobile bottom nav).
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
 - **Database**: Firebase Firestore with server-only access via Admin SDK.
-- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset.
+- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset. OpenRouter API integration with graceful environment variable handling.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
 - **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
@@ -38,7 +39,7 @@ Project documentation: Focus on replit.md as primary documentation; archived det
 - **My Bar Functionality**: Dedicated section with category-based filtering (spirits, liqueurs, mixers, bitters, syrups, other) for tracking user's personal ingredient collection, with dynamic cocktail count. Features smart brand categorization and real-time search filtering.
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression (800px max, 70% JPEG quality).
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
-- **AI-Powered Features**: AI-powered chatbot with streaming SSE API and 4-model fallback, recipe database integration for context-aware recommendations, and clickable navigation links. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements.
+- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and 4-model fallback system (deepseek-r1:free, meta-llama, qwen). Features recipe database integration for context-aware recommendations, clickable navigation links to site recipes only, and mobile-responsive design. Sitewide "Ask Mixi" CTAs with context-aware opening. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements.
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships, complete tags support, and consistent styling.
