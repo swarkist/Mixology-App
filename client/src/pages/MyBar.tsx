@@ -254,10 +254,11 @@ export default function MyBar() {
           <button
             onClick={() =>
               openMixi({
-                seed: "I want cocktail suggestions based on what's in my bar. What can I make?",
+                seed: "Hi there! I'm here to help you find cocktails you can make with your bar items.",
                 context: {
                   myBar: visibleMyBarItems
-                }
+                },
+                initialUserMessage: "I want cocktail suggestions based on what's in my bar. What can I make?"
               })
             }
             className="text-yellow-400 hover:text-yellow-300 text-sm font-medium underline hover:no-underline transition-colors inline-flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#171712] rounded"
