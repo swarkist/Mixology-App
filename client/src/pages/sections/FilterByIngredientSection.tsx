@@ -1,5 +1,5 @@
 import { SearchIcon, ChevronDown } from "lucide-react";
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "wouter";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { openMixi } from "@/lib/mixiBus";
@@ -13,6 +13,8 @@ import type { Cocktail } from "@shared/schema";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const FilterByIngredientSection = (): JSX.Element => {
+  const [mixiInput, setMixiInput] = useState("");
+
   // Fetch featured cocktails from API
   const { data: featuredCocktails } = useQuery<Cocktail[]>({
     queryKey: ["/api/cocktails?featured=true"],
@@ -22,6 +24,17 @@ export const FilterByIngredientSection = (): JSX.Element => {
   const { data: popularRecipes } = useQuery<Cocktail[]>({
     queryKey: ["/api/cocktails?popular=true"],
   });
+
+  const handleAskMixi = () => {
+    const userInput = mixiInput.trim();
+    setMixiInput(""); // Clear input
+    
+    openMixi({
+      seed: undefined, // No seed message since we're submitting user input directly
+      context: undefined,
+      initialUserMessage: userInput || "Tell me your spirits or mood and I'll suggest cocktails."
+    });
+  };
 
   return (
     <>
@@ -45,24 +58,29 @@ export const FilterByIngredientSection = (): JSX.Element => {
               <p className="text-white text-center [font-family:'Plus_Jakarta_Sans',Helvetica]">My bar where I pull recipes and tweak them to fit my flavor pallet.</p>
             </div>
 
-            {/* Ask Mixi CTA (replaces the old Search bar) */}
+            {/* Ask Mixi Input Field */}
             <div className="absolute left-1/2 transform -translate-x-1/2 bottom-1/4 w-full max-w-[480px] px-4">
               <div className="flex h-16 rounded-lg overflow-hidden">
+                <Input
+                  value={mixiInput}
+                  onChange={(e) => setMixiInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAskMixi();
+                    }
+                  }}
+                  placeholder="Mixi is here to help you"
+                  className="flex-1 h-full bg-[#2a2a2a] border-0 text-white placeholder:text-[#bab59b] text-base rounded-none rounded-l-lg focus:ring-0 focus-visible:ring-0 focus-visible:ring-offset-0"
+                />
                 <button
-                  onClick={() =>
-                    openMixi({
-                      seed: "Tell me your spirits or mood and I'll suggest cocktails.",
-                      context: null
-                    })
-                  }
-                  className="flex w-full items-center justify-center gap-2 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611]"
+                  onClick={handleAskMixi}
+                  className="px-6 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold rounded-r-lg border border-[#544f3a] transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-[#161611] flex items-center gap-2"
                   aria-label="Ask Mixi for help"
                 >
                   <MixiIconBartender size={18} />
                   Ask Mixi
                 </button>
               </div>
-              <p className="mt-2 text-center text-[#bab59b]">Mixi is here to help you</p>
             </div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 // Global event bus for Mixi chat communication
 export type MixiOpenDetail = { 
   seed?: string; 
-  context?: any 
+  context?: any;
+  initialUserMessage?: string;
 };
 
 export function openMixi(detail?: MixiOpenDetail) {

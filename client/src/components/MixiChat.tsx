@@ -60,19 +60,29 @@ export default function MixiChat() {
 
   // Listen for global open events
   useEffect(() => {
-    return onMixiOpen(({ seed, context }) => {
+    return onMixiOpen(({ seed, context, initialUserMessage }) => {
       setLastOpenedBy(document.activeElement as HTMLElement);
       setOpen(true);
       setMessages([]);
       setPendingContext(context);
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            seed ||
-            "Hi there! I'm here to help you find the perfect cocktail. What are you in the mood for?",
-        },
-      ]);
+      
+      const assistantMessage = {
+        role: "assistant" as const,
+        content: seed || "Hi there! I'm here to help you find the perfect cocktail. What are you in the mood for?",
+      };
+      
+      if (initialUserMessage) {
+        // If there's an initial user message, add it and immediately send it
+        const userMessage = { role: "user" as const, content: initialUserMessage };
+        setMessages([assistantMessage, userMessage]);
+        // Trigger the API call with the initial message
+        // Trigger the API call with the initial message after component settles
+        setTimeout(() => {
+          sendMessageWithContent(initialUserMessage);
+        }, 100);
+      } else {
+        setMessages([assistantMessage]);
+      }
     });
   }, []);
 
@@ -273,6 +283,84 @@ export default function MixiChat() {
     );
   }
   // ---------------------------------------------------------------------------
+
+  const sendMessageWithContent = async (messageContent: string) => {
+    if (!messageContent.trim() || isStreaming) return;
+
+    setIsStreaming(true);
+
+    try {
+      abortControllerRef.current = new AbortController();
+
+      const response = await fetch("/api/mixi/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, { role: "user", content: messageContent }],
+          context: pendingContext,
+        }),
+        signal: abortControllerRef.current.signal,
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response body");
+
+      let assistantMessage = "";
+      setMessages(prev => [...prev, { role: "assistant", content: "" }]);
+
+      const decoder = new TextDecoder();
+      let partial = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        partial += decoder.decode(value, { stream: true });
+        const lines = partial.split("\n");
+        partial = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr || jsonStr === "[DONE]") continue;
+          try {
+            const data = JSON.parse(jsonStr);
+            const delta = data.content || data.choices?.[0]?.delta?.content || "";
+            if (delta) {
+              assistantMessage += delta;
+              setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: assistantMessage }]);
+            }
+          } catch {
+            // ignore malformed frames
+          }
+        }
+      }
+
+      // Final pass: sanitize links based on the loaded index
+      setMessages(prev => {
+        const out = [...prev];
+        const last = out[out.length - 1];
+        if (last?.role === "assistant" && typeof last.content === "string") {
+          last.content = sanitizeAssistantMarkdown(last.content);
+        }
+        return out;
+      });
+    } catch (error: any) {
+      if (error.name !== "AbortError") {
+        console.error("Chat error:", error);
+        setMessages(prev => [
+          ...prev,
+          { role: "assistant", content: "Sorry, I'm having trouble connecting right now. Please try again." },
+        ]);
+      }
+    } finally {
+      setIsStreaming(false);
+      abortControllerRef.current = null;
+      setPendingContext(null);
+    }
+  };
 
   const sendMessage = async () => {
     if (!input.trim() || isStreaming) return;
