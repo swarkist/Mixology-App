@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { X, Image } from "lucide-react";
+import { X } from "lucide-react";
 import { Link } from "wouter";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { onMixiOpen } from "@/lib/mixiBus";
@@ -590,17 +590,7 @@ export default function MixiChat() {
                   disabled={isStreaming}
                 />
                 <div className="flex border-none bg-[#393628] items-center justify-center pr-2 md:pr-4 rounded-r-xl border-l-0">
-                  <div className="flex items-center gap-2 md:gap-4 justify-end">
-                    <div className="hidden md:flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="flex items-center justify-center p-1.5 h-auto text-[#bab49c] hover:text-white"
-                        disabled={isStreaming}
-                      >
-                        <Image className="w-4 h-4 md:w-5 md:h-5" />
-                      </Button>
-                    </div>
+                  <div className="flex items-center justify-end">
                     <Button
                       onClick={sendMessage}
                       disabled={!input.trim() || isStreaming}
