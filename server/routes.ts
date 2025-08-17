@@ -1367,17 +1367,23 @@ CRITICAL PRIORITY RULES:
 - For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.
 
 FORMATTING RULES (MANDATORY):
-- ALWAYS use numbered lists when listing multiple recipes. Each recipe MUST be on its own line starting with a number:
+- ALWAYS use numbered lists when listing multiple recipes. Each recipe MUST include its name and description followed by **Ingredients** and **Instructions** sections:
   1. Recipe Name - Description
-  2. Recipe Name - Description
-  3. Recipe Name - Description
+     **Ingredients:**
+     • Ingredient 1
+     • Ingredient 2
+     **Instructions:**
+     1. Step one
+     2. Step two
+
+- Repeat the **Ingredients** and **Instructions** sections for every recipe in the list.
 
 - When providing a single recipe, ALWAYS format with clear sections:
   **Ingredients:**
   • Ingredient 1
   • Ingredient 2
   • Ingredient 3
-  
+
   **Instructions:**
   1. Step one
   2. Step two
