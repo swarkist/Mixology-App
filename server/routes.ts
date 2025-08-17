@@ -1368,9 +1368,9 @@ CRITICAL PRIORITY RULES:
 
 FORMATTING RULES (MANDATORY):
 - ALWAYS use numbered lists when listing multiple recipes. Each recipe MUST be on its own line starting with a number:
-  1. **Recipe Name** - Description
-  2. **Recipe Name** - Description
-  3. **Recipe Name** - Description
+  1. Recipe Name - Description
+  2. Recipe Name - Description
+  3. Recipe Name - Description
 
 - When providing a single recipe, ALWAYS format with clear sections:
   **Ingredients:**
