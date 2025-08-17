@@ -11,6 +11,7 @@ Chat interface design: Modern dialog-based UI with responsive mobile optimizatio
 Testing approach: User feedback required for AI formatting validation; system prompt changes need user testing to verify effectiveness.
 Homepage input design: Prefers original Figma search field styling with dark input (#2a2a2a) and yellow "Ask Mixi" button, replacing simple button-only interface.
 Development constraints: Do not attempt to fix Enter key dialog temporary showing/hiding behavior - user acknowledges this cannot be resolved through code changes.
+Development workflow: User now implements independent code changes and requests reviews rather than full implementations from agent.
 
 ## System Architecture
 
@@ -42,7 +43,7 @@ Development constraints: Do not attempt to fix Enter key dialog temporary showin
 - **My Bar Functionality**: Dedicated section with category-based filtering (spirits, liqueurs, mixers, bitters, syrups, other) for tracking user's personal ingredient collection, with dynamic cocktail count. Features smart brand categorization and real-time search filtering.
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression (800px max, 70% JPEG quality).
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
-- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing (default primary `deepseek/deepseek-chat-v3-0324:free` with fallbacks `qwen/qwen-2.5-coder-32b-instruct:free` and `meta-llama/llama-3.2-11b-vision-instruct:free`). Features recipe database integration for context-aware recommendations, clickable navigation links to site recipes only, and mobile-responsive design. Homepage features input field matching original Figma design with "Ask Mixi" button for direct chat initiation and automatic message submission. Silent error handling prevents user-facing abort messages when closing dialog during AI responses. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements. System prompt includes formatting guidelines for ordered lists with plain-text recipe names and structured recipe display, though implementation requires further refinement. Name-based linking system prevents 404 errors by validating recipe names against database before creating clickable links. Known limitation: Enter key triggers temporary dialog showing/hiding behavior that cannot be resolved through code modifications.
+- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing with robust fallback system. Environment variables `OPENROUTER_MODEL_PRIMARY` and `OPENROUTER_MODEL_FALLBACKS` allow flexible model configuration (defaults: primary `deepseek/deepseek-chat-v3-0324:free`, fallbacks `qwen/qwen-2.5-coder-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free`). Features recipe database integration for context-aware recommendations, performance-optimized cocktail index with useMemo mapping, and basic markdown rendering support (**bold**, *italic* text). Clickable navigation links validated against site database prevent 404 errors, with "not in our library" indicators for external recipes. Homepage features input field matching original Figma design with "Ask Mixi" button for direct chat initiation. Silent error handling prevents user-facing abort messages when closing dialog during AI responses. Enhanced branding with consistent "Mixi" agent identity. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements. Known limitation: Enter key triggers temporary dialog showing/hiding behavior that cannot be resolved through code modifications.
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships, complete tags support, and consistent styling.
@@ -64,6 +65,24 @@ Development constraints: Do not attempt to fix Enter key dialog temporary showin
 
 ### Development & Testing Dependencies
 - **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation.
+
+## Recent Technical Improvements (August 2025)
+
+### Performance Optimizations
+- **Cocktail Index Caching**: Implemented `useMemo` hook for efficient cocktail name-to-ID mapping in MixiChat component, reducing repeated computations during recipe name validation.
+- **Normalize Function**: Added optimized string normalization for consistent recipe name matching across the application.
+- **Selective API Calls**: Enhanced cocktail fetching with `?fields=id,name` parameter for minimal data transfer in chat context.
+
+### AI Integration Enhancements  
+- **Model Fallback System**: Implemented robust OpenRouter model failover with environment variable configuration (`OPENROUTER_MODEL_PRIMARY`, `OPENROUTER_MODEL_FALLBACKS`).
+- **Enhanced Markdown Support**: Added basic markdown rendering for **bold** and *italic* text formatting in chat responses.
+- **Branding Consistency**: Unified chatbot identity as "Mixi" across all interfaces and prompts.
+- **Dialog Cleanup**: Removed legacy image handling components from chat interface for improved performance and reduced complexity.
+
+### User Experience Improvements
+- **Error Handling**: Enhanced silent error handling for aborted chat requests to prevent user-facing error messages.
+- **Link Validation**: Improved recipe link validation system with "not in our library" indicators for external references.
+- **Accessibility**: Ongoing dialog accessibility improvements (DialogContent description requirements identified for future enhancement).
 
 ## OpenRouter Limits & Configuration
 
