@@ -1,0 +1,51 @@
+Title: Fix Mixi chat links showing “(not in our library)” and restore internal linking
+
+Context & Files to touch:
+
+client/src/components/MixiChat.tsx (only)
+
+Do not change client/src/pages/sections/FilterByIngredientSection.tsx (homepage input is correct).
+
+What to do (dev-level):
+
+In MixiChat.tsx, remove the “Final pass: sanitize links…” blocks at the end of both sendMessageWithContent and sendMessage. These blocks currently call sanitizeAssistantMarkdown on the last assistant message after the stream completes.
+
+Do not modify renderAssistantMessage or renderSafeInline. They already:
+
+Parse internal markdown links [Label](/recipe/anything).
+
+Map Label → cocktail id using the cocktailIndex name map.
+
+Render <Link href=/recipe/<id>>Label</Link> when found, else show label with a small “not in our library” badge.
+
+Optional cleanup: remove the now-unused sanitizeAssistantMarkdown helper and its associated regex constants if they’re not referenced elsewhere.
+
+Design/behavior expectations:
+
+If the assistant returns [Old Fashioned](/recipe/whatever), the UI must link to /recipe/<real-id> as soon as the index is available.
+
+If a label doesn’t exist in the DB, show the label with the small “(not in our library)” note only at render time.
+
+No content rewriting of assistant messages should occur after streaming.
+
+Tests to run (please execute and report results):
+
+Race test: Hard-refresh, immediately type “what are some bourbon recipes” in the homepage field and click Ask Mixi. When the first assistant message lists recipes, verify:
+
+Known drinks (e.g., “Old Fashioned”, “Whiskey Sour”) render as clickable links to /recipe/<id>.
+
+No incorrect “(not in our library)” on known items.
+
+Late index test: Temporarily throttle network or add a small delay (200–400ms) to /api/cocktails?fields=id,name in dev to simulate slow fetch. Links should still appear once the index arrives (no permanent plain text).
+
+Regression test: Ask for a specific recipe you don’t have; verify the name shows with the small “(not in our library)” note and no broken links.
+
+Formatting test: When the assistant returns “1. X 2. Y 3. Z” in one line, confirm it renders as a proper ordered list (this is handled by splitIntoBlocks).
+
+If any step fails: stop, show the exact console/network logs, and ask for guidance (don’t keep coding past repeated failures).
+
+Please confirm before coding if you see any conflicting dependencies or if sanitizeAssistantMarkdown is used elsewhere.
+
+One tiny UX nicety (optional)
+
+If you want extra resilience without removing the helper entirely, you could keep sanitizeAssistantMarkdown but gate it on the index being loaded, e.g. only sanitize when nameToId.size > 0. But the simpler, safer path is to skip the final-pass rewrite altogether and rely on the renderer.

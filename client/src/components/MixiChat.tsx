@@ -103,18 +103,7 @@ export default function MixiChat() {
   // Matches markdown-style internal links like [Name](/recipe/something)
   const internalLinkRegex = /\[([^\]]+)\]\((\/recipe\/([^)#?\s]+))\)/gi;
 
-  function sanitizeAssistantMarkdown(md: string): string {
-    // Rebuild internal links by name only; if name not in DB, render plain text with note.
-    md = md.replace(internalLinkRegex, (_full, label: string) => {
-      const idByName = nameToId.get(normalize(label));
-      if (idByName) return `[${label}](/recipe/${idByName})`;
-      return `${label} (not in our library)`; // no link
-    });
 
-    // Strip any other markdown links (e.g., external) to plain text label (optional hardening)
-    md = md.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/gi, (_full, label: string) => `${label} (external)`);
-    return md;
-  }
 
   function renderSafeInline(text: string) {
     // Render inline text but preserve safe internal links only
@@ -337,16 +326,6 @@ export default function MixiChat() {
           }
         }
       }
-
-      // Final pass: sanitize links based on the loaded index
-      setMessages(prev => {
-        const out = [...prev];
-        const last = out[out.length - 1];
-        if (last?.role === "assistant" && typeof last.content === "string") {
-          last.content = sanitizeAssistantMarkdown(last.content);
-        }
-        return out;
-      });
     } catch (error: any) {
       if (error.name !== "AbortError") {
         console.error("Chat error:", error);
@@ -418,16 +397,6 @@ export default function MixiChat() {
           }
         }
       }
-
-      // Final pass: sanitize links based on the loaded index
-      setMessages(prev => {
-        const out = [...prev];
-        const last = out[out.length - 1];
-        if (last?.role === "assistant" && typeof last.content === "string") {
-          last.content = sanitizeAssistantMarkdown(last.content);
-        }
-        return out;
-      });
     } catch (error: any) {
       if (error.name !== "AbortError") {
         console.error("Chat error:", error);
