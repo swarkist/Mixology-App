@@ -27,13 +27,23 @@ export const FilterByIngredientSection = (): JSX.Element => {
 
   const handleAskMixi = () => {
     const userInput = mixiInput.trim();
-    setMixiInput(""); // Clear input
     
-    openMixi({
-      seed: undefined, // No seed message since we're submitting user input directly
-      context: undefined,
-      initialUserMessage: userInput || "Tell me your spirits or mood and I'll suggest cocktails."
-    });
+    // Only clear input and open chat if there's actual input
+    if (userInput) {
+      setMixiInput(""); // Clear input
+      openMixi({
+        seed: undefined, // No seed message since we're submitting user input directly
+        context: undefined,
+        initialUserMessage: userInput
+      });
+    } else {
+      // If no input, open chat with default message
+      openMixi({
+        seed: "Tell me your spirits or mood and I'll suggest cocktails.",
+        context: undefined,
+        initialUserMessage: undefined
+      });
+    }
   };
 
   return (

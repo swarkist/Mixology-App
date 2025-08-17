@@ -88,7 +88,11 @@ export default function MixiChat() {
 
   const handleClose = () => {
     if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+      try {
+        abortControllerRef.current.abort();
+      } catch (error) {
+        // Ignore abort errors when closing
+      }
       abortControllerRef.current = null;
     }
     setOpen(false);
