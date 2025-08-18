@@ -220,7 +220,7 @@ export const CocktailRecipe = (): JSX.Element => {
           <button
             onClick={() =>
               openMixi({
-                seed: `Can you help me with making ${cocktail.name}? I have questions about substitutions, scaling, or techniques.`,
+                seed: `Do you have any questions about the ${cocktail.name}? You can ask questions about substitutions, scaling, or techniques.`,
                 context: {
                   cocktailId: cocktailId,
                   cocktailName: cocktail.name
