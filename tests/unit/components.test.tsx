@@ -27,6 +27,8 @@ const TestWrapper = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+const originalFetch = global.fetch;
+
 describe('Component Unit Tests', () => {
   let testManager: TestDataManager;
 
@@ -37,6 +39,8 @@ describe('Component Unit Tests', () => {
 
   afterEach(async () => {
     await testManager.cleanupAllTestData();
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
   });
 
   describe('CocktailCard Component', () => {
@@ -144,8 +148,15 @@ describe('Component Unit Tests', () => {
         inMyBar: false
       };
 
+      const fetchSpy = vi
+        .spyOn(global, 'fetch')
+        .mockResolvedValue({
+          ok: true,
+          json: async () => ({ success: true })
+        } as Response);
+
       const { IngredientCard } = await import('../../client/src/components/IngredientCard');
-      
+
       render(
         <TestWrapper>
           <IngredientCard ingredient={mockIngredient} />
@@ -155,11 +166,20 @@ describe('Component Unit Tests', () => {
       // Find and click My Bar toggle button
       const addToBarButton = screen.getByText(/add to.*bar/i);
       expect(addToBarButton).toBeInTheDocument();
-      
+
       fireEvent.click(addToBarButton);
-      
-      // Should trigger API call to update My Bar status
-      // (This would require mocking the API call)
+
+      await waitFor(() => {
+        expect(fetchSpy).toHaveBeenCalledWith(
+          `/api/ingredients/${mockIngredient.id}/toggle-mybar`,
+          expect.objectContaining({
+            method: 'PATCH',
+            body: JSON.stringify({ inMyBar: true })
+          })
+        );
+      });
+
+      expect(screen.getByText(/in my bar/i)).toBeInTheDocument();
     });
 
     it('should display correct category and subcategory', async () => {
