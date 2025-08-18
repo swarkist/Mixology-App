@@ -28,7 +28,7 @@ Development workflow: User now implements independent code changes and requests 
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
-- **Database**: Firebase Firestore with server-only access via Admin SDK.
+- **Database**: Firebase Firestore with server-only access via Admin SDK. Environment-based database switching supporting separate development (`FIREBASE_SERVICE_ACCOUNT_JSON`) and production (`FIREBASE_SERVICE_ACCOUNT_JSON_PROD`) instances.
 - **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset. OpenRouter API integration with graceful environment variable handling.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
 - **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
@@ -36,6 +36,7 @@ Development workflow: User now implements independent code changes and requests 
 - **AI Integration**: OpenRouter API proxy with model routing.
 - **YouTube Processing**: Transcript extraction and AI-powered recipe parsing from video content.
 - **Error Handling**: Global error middleware, custom request logging.
+- **Deployment Infrastructure**: Environment detection, production database migration tools, connection testing utilities.
 
 ### Key Features & Design Decisions
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
@@ -68,6 +69,13 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Technical Improvements (August 2025)
 
+### Environment & Deployment Infrastructure
+- **Database Environment Separation**: Implemented environment-based Firebase database switching supporting separate development and production Firestore instances.
+- **Environment Detection**: Added automatic environment detection via `NODE_ENV` or `ENVIRONMENT` variables.
+- **Production Database Support**: Created infrastructure for `FIREBASE_SERVICE_ACCOUNT_JSON_PROD` secret management.
+- **Data Migration Tools**: Built comprehensive migration script for one-time transfer of cocktails, ingredients, and tags from development to production.
+- **Connection Testing**: Created production database connection testing utilities for deployment verification.
+
 ### Performance Optimizations
 - **Cocktail Index Caching**: Implemented `useMemo` hook for efficient cocktail name-to-ID mapping in MixiChat component, reducing repeated computations during recipe name validation.
 - **Normalize Function**: Added optimized string normalization for consistent recipe name matching across the application.
@@ -83,6 +91,7 @@ Development workflow: User now implements independent code changes and requests 
 - **Error Handling**: Enhanced silent error handling for aborted chat requests to prevent user-facing error messages.
 - **Link Validation**: Improved recipe link validation system with "not in our library" indicators for external references.
 - **Accessibility**: Ongoing dialog accessibility improvements (DialogContent description requirements identified for future enhancement).
+- **Auto-Execution Enhancement**: Implemented auto-execution for My Bar "What can I make?" button, matching homepage Ask Mixi functionality.
 
 ## OpenRouter Limits & Configuration
 
