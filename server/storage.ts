@@ -1,4 +1,3 @@
-// @ts-nocheck
 import {
   users, cocktails, ingredients, tags, cocktailIngredients, cocktailInstructions, 
   cocktailTags, ingredientTags, preferredBrands, preferredBrandIngredients, preferredBrandTags,
@@ -11,6 +10,8 @@ import {
   type PreferredBrand, type InsertPreferredBrand,
   type CocktailIngredient, type CocktailInstruction, type CocktailForm, type IngredientForm, type PreferredBrandForm
 } from "@shared/schema";
+
+type IngredientWithMyBar = Ingredient & { inMyBar: boolean };
 
 // Comprehensive storage interface for all MVP features
 export interface IStorage {
@@ -138,10 +139,10 @@ export interface IStorage {
   } | undefined>;
 }
 
-export class MemStorage implements IStorage {
+export class MemStorage {
   private users: Map<number, User>;
   private cocktails: Map<number, Cocktail>;
-  private ingredients: Map<number, Ingredient>;
+  private ingredients: Map<number, IngredientWithMyBar>;
   private tags: Map<number, Tag>;
   private cocktailIngredients: Map<number, CocktailIngredient>;
   private cocktailInstructions: Map<number, CocktailInstruction>;
@@ -185,13 +186,9 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
-  }
-
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user = { ...insertUser, id } as unknown as User;
     this.users.set(id, user);
     return user;
   }
@@ -352,12 +349,14 @@ export class MemStorage implements IStorage {
   }
 
   async getIngredientsInMyBar(): Promise<Ingredient[]> {
-    return Array.from(this.ingredients.values()).filter(ingredient => ingredient.inMyBar);
+    return Array.from(this.ingredients.values()).filter(
+      ingredient => ingredient.inMyBar
+    );
   }
 
   async createIngredient(ingredientData: IngredientForm): Promise<Ingredient> {
     const id = this.currentIngredientId++;
-    const ingredient: Ingredient = {
+    const ingredient: IngredientWithMyBar = {
       id,
       name: ingredientData.name,
       category: ingredientData.category,
@@ -366,7 +365,7 @@ export class MemStorage implements IStorage {
       preferredBrand: ingredientData.preferredBrand || null,
       abv: ingredientData.abv || null,
       imageUrl: ingredientData.imageUrl || null,
-      inMyBar: ingredientData.inMyBar || false,
+      inMyBar: (ingredientData as any).inMyBar || false,
       usedInRecipesCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -844,7 +843,7 @@ export class MemStorage implements IStorage {
   // Seed some sample data
   private seedData(): void {
     // Create some sample ingredients
-    const vodka: Ingredient = {
+    const vodka: IngredientWithMyBar = {
       id: this.currentIngredientId++,
       name: "Premium Vodka",
       category: "spirits",
@@ -860,7 +859,7 @@ export class MemStorage implements IStorage {
     };
     this.ingredients.set(vodka.id, vodka);
 
-    const lime: Ingredient = {
+    const lime: IngredientWithMyBar = {
       id: this.currentIngredientId++,
       name: "Lime Juice",
       category: "juices",
@@ -916,4 +915,4 @@ console.log(`FIREBASE_PROJECT_ID present: ${!!process.env.FIREBASE_PROJECT_ID}`)
 
 export const storage: IStorage = useFirebase
   ? new FirebaseStorageAdapter()
-  : new PersistentMemStorage();
+  : (new PersistentMemStorage() as unknown as IStorage);

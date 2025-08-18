@@ -1,6 +1,6 @@
-// @ts-nocheck
 import { Router } from 'express';
 import { storage } from '../storage';
+import type { Ingredient, Cocktail } from '@shared/schema';
 
 const router = Router();
 
@@ -23,12 +23,12 @@ router.post('/migrate-to-firebase', async (req, res) => {
     }
     
     // Read local storage data
-    const storageData = JSON.parse(await fs.readFile(storageFile, 'utf-8'));
+    const storageData: any = JSON.parse(await fs.readFile(storageFile, 'utf-8'));
     
     // Migrate ingredients
-    const migratedIngredients = [];
+    const migratedIngredients: Ingredient[] = [];
     if (storageData.ingredients) {
-      for (const [id, ingredient] of storageData.ingredients) {
+      for (const [, ingredient] of storageData.ingredients as [number, any][]) {
         try {
           const newIngredient = await storage.createIngredient({
             name: ingredient.name,
@@ -47,15 +47,15 @@ router.post('/migrate-to-firebase', async (req, res) => {
     }
     
     // Migrate cocktails
-    const migratedCocktails = [];
+    const migratedCocktails: Cocktail[] = [];
     if (storageData.cocktails) {
-      for (const [id, cocktail] of storageData.cocktails) {
+      for (const [, cocktail] of storageData.cocktails as [number, any][]) {
         try {
           const newCocktail = await storage.createCocktail({
             name: cocktail.name,
             description: cocktail.description,
             imageUrl: cocktail.imageUrl
-          });
+          } as any);
           migratedCocktails.push(newCocktail);
         } catch (error) {
           console.log(`Skipping cocktail ${cocktail.name}: ${error}`);
@@ -129,13 +129,13 @@ router.post('/test-firebase', async (req, res) => {
         name: "Cosmopolitan",
         description: "A classic pink cocktail with vodka and cranberry",
         imageUrl: null,
-      });
-      
+      } as any);
+
       await storage.createCocktail({
-        name: "Mojito", 
+        name: "Mojito",
         description: "A refreshing Cuban cocktail with mint and lime",
         imageUrl: null,
-      });
+      } as any);
       
       console.log('Sample cocktails created');
     }
