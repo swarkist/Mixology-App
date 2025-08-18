@@ -1,11 +1,13 @@
-import { vi } from 'vitest';
-import '@testing-library/jest-dom';
+import { vi, beforeAll, afterAll } from 'vitest';
+import express from 'express';
+import type { Server } from 'http';
 
 // Global test setup
 
 // Mock environment variables
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = 'test://test';
+process.env.API_BASE_URL = 'http://localhost:4000';
 
 // Mock window and document for component tests
 Object.defineProperty(window, 'matchMedia', {
@@ -36,8 +38,37 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }));
 
-// Mock fetch for API tests
-global.fetch = vi.fn();
+// In-memory Express server to mock API responses
+let mockServer: Server;
+
+beforeAll(async () => {
+  const app = express();
+  app.use(express.json());
+
+  app.post('/api/auth/forgot', (_req, res) => {
+    res.json({
+      success: true,
+      message: 'If an account with that email exists, we have sent instructions.',
+    });
+  });
+
+  app.post('/api/auth/reset', (_req, res) => {
+    res.json({ success: false, message: 'Invalid token' });
+  });
+
+  app.get('/api/cocktails/999999', (_req, res) => {
+    res.status(404).json({ error: 'Not found' });
+  });
+
+  // Catch-all handler for other requests
+  app.all('*', (_req, res) => {
+    res.status(200).json({ success: true });
+  });
+
+  await new Promise<void>(resolve => {
+    mockServer = app.listen(4000, resolve);
+  });
+});
 
 // Mock console methods to reduce test noise
 const originalConsole = console;
@@ -50,8 +81,9 @@ global.console = {
   debug: vi.fn(),
 };
 
-// Restore console after tests if needed
-afterAll(() => {
+// Restore console and shut down mock server after tests
+afterAll(async () => {
+  await new Promise(resolve => mockServer.close(resolve));
   global.console = originalConsole;
 });
 

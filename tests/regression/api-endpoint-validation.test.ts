@@ -15,7 +15,8 @@ import { TestDataManager } from './data-isolation.js';
 
 // Helper to make API requests
 async function apiRequest(endpoint: string, options: RequestInit = {}) {
-  const response = await fetch(`http://localhost:5000${endpoint}`, {
+  const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
+  const response = await fetch(`${baseUrl}${endpoint}`, {
     headers: {
       'Content-Type': 'application/json',
       ...options.headers,
@@ -23,10 +24,12 @@ async function apiRequest(endpoint: string, options: RequestInit = {}) {
     ...options,
   });
 
+  const data = await response.json().catch(() => null);
+
   return {
     response,
     status: response.status,
-    data: response.ok ? await response.json() : null,
+    data,
   };
 }
 
