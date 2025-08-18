@@ -154,7 +154,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/ingredients", allowRoles('admin'), async (req, res) => {
+  app.post("/api/ingredients", requireAuth, allowRoles('admin'), async (req, res) => {
     try {
       console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
       
@@ -196,7 +196,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/ingredients/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
@@ -260,7 +260,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/ingredients/:id", allowRoles('admin'), async (req, res) => {
+  app.delete("/api/ingredients/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== DELETE /api/ingredients/${id} ===`);
@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(cocktailWithDetails);
   });
 
-  app.post("/api/cocktails", allowRoles('admin'), async (req, res) => {
+  app.post("/api/cocktails", requireAuth, allowRoles('admin'), async (req, res) => {
     try {
       console.log('\n=== POST /api/cocktails ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -396,7 +396,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/cocktails/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id} ===`);
@@ -496,7 +496,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/featured", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/cocktails/:id/featured", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     const { featured } = req.body;
     
@@ -516,7 +516,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id/toggle-featured", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/cocktails/:id/toggle-featured", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id}/toggle-featured ===`);
@@ -568,7 +568,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/cocktails/:id", allowRoles('admin'), async (req, res) => {
+  app.delete("/api/cocktails/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -785,7 +785,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(brandWithDetails);
   });
 
-  app.post("/api/preferred-brands", allowRoles('admin'), async (req, res) => {
+  app.post("/api/preferred-brands", requireAuth, allowRoles('admin'), async (req, res) => {
     try {
       console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
       
@@ -814,7 +814,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/preferred-brands/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id} ===`);
@@ -842,7 +842,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id/toggle-mybar", allowRoles('admin'), async (req, res) => {
+  app.patch("/api/preferred-brands/:id/toggle-mybar", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id}/toggle-mybar ===`);
@@ -872,7 +872,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/preferred-brands/:id", allowRoles('admin'), async (req, res) => {
+  app.delete("/api/preferred-brands/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== DELETE /api/preferred-brands/${id} ===`);
