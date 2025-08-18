@@ -100,6 +100,20 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
+  app.delete("/api/tags/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTag(id);
+      if (success) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ message: "Tag not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tag", error });
+    }
+  });
+
   // =================== INGREDIENTS ===================
   app.get("/api/ingredients", async (req, res) => {
     const { search, category, subcategory, mybar, inMyBar } = req.query;

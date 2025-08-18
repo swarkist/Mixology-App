@@ -419,6 +419,23 @@ export class TestDataManager {
       }
     }
 
+    // Clean up tracked tags
+    if (this.createdTags.length > 0) {
+      try {
+        const allTags = await this.apiRequest('/tags').catch(() => []);
+        const tagMap = new Map(allTags.map((t: any) => [t.name, t.id]));
+        for (const tagName of Array.from(new Set(this.createdTags))) {
+          const tagId = tagMap.get(tagName);
+          if (tagId) {
+            await this.protectedApiRequest(`/tags/${tagId}`, { method: 'DELETE' });
+            console.log(`✅ Deleted tracked tag ${tagName} (ID: ${tagId})`);
+          }
+        }
+      } catch (error: any) {
+        errors.push(`Failed to delete tracked tags: ${error.message}`);
+      }
+    }
+
     // Clean up tracked test users
     for (const userId of this.createdUsers) {
       try {
@@ -433,10 +450,11 @@ export class TestDataManager {
   private async scanAndCleanRemainingTestData(errors: string[]) {
     try {
       // Scan for any remaining test data that wasn't tracked
-      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
+      const [currentCocktails, currentIngredients, currentBrands, currentTags] = await Promise.all([
         this.apiRequest('/cocktails').catch(() => []),
         this.apiRequest('/ingredients').catch(() => []),
-        this.apiRequest('/preferred-brands').catch(() => [])
+        this.apiRequest('/preferred-brands').catch(() => []),
+        this.apiRequest('/tags').catch(() => [])
       ]);
 
       // Find and delete any remaining test items
@@ -448,8 +466,12 @@ export class TestDataManager {
         i.name.includes('REGRESSION_TEST_') && !this.createdIngredients.includes(i.id)
       );
 
-      const remainingTestBrands = currentBrands.filter((b: any) => 
+      const remainingTestBrands = currentBrands.filter((b: any) =>
         b.name.includes('REGRESSION_TEST_') && !this.createdPreferredBrands.includes(b.id)
+      );
+
+      const remainingTestTags = currentTags.filter((t: any) =>
+        t.name.includes('REGRESSION_TEST_') && !this.createdTags.includes(t.name)
       );
 
       // Clean up remaining test data
@@ -480,6 +502,15 @@ export class TestDataManager {
         }
       }
 
+      for (const tag of remainingTestTags) {
+        try {
+          await this.apiRequest(`/tags/${tag.id}`, { method: 'DELETE' });
+          console.log(`✅ Cleaned untracked test tag: ${tag.name} (ID: ${tag.id})`);
+        } catch (error: any) {
+          errors.push(`Failed to clean untracked tag ${tag.id}: ${error.message}`);
+        }
+      }
+
     } catch (error: any) {
       errors.push(`Failed to scan for remaining test data: ${error.message}`);
     }
@@ -492,10 +523,11 @@ export class TestDataManager {
     }
 
     try {
-      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
+      const [currentCocktails, currentIngredients, currentBrands, currentTags] = await Promise.all([
         this.apiRequest('/cocktails').catch(() => []),
         this.apiRequest('/ingredients').catch(() => []),
-        this.apiRequest('/preferred-brands').catch(() => [])
+        this.apiRequest('/preferred-brands').catch(() => []),
+        this.apiRequest('/tags').catch(() => [])
       ]);
 
       // Filter out any remaining test data to get pure production data
@@ -505,21 +537,26 @@ export class TestDataManager {
       const productionIngredients = currentIngredients.filter((i: any) => 
         !i.name.includes('REGRESSION_TEST_')
       );
-      const productionBrands = currentBrands.filter((b: any) => 
+      const productionBrands = currentBrands.filter((b: any) =>
         !b.name.includes('REGRESSION_TEST_')
+      );
+      const productionTags = currentTags.filter((t: any) =>
+        !t.name.includes('REGRESSION_TEST_')
       );
 
       // Verify data integrity
       const cocktailIntegrityOk = this.databaseSnapshot.cocktails.length === productionCocktails.length;
       const ingredientIntegrityOk = this.databaseSnapshot.ingredients.length === productionIngredients.length;
       const brandIntegrityOk = this.databaseSnapshot.preferredBrands.length === productionBrands.length;
+      const tagIntegrityOk = this.databaseSnapshot.tags.length === productionTags.length;
 
       console.log(`📊 Database integrity check:`);
       console.log(`  - Cocktails: ${cocktailIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.cocktails.length}, current: ${productionCocktails.length})`);
       console.log(`  - Ingredients: ${ingredientIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.ingredients.length}, current: ${productionIngredients.length})`);
       console.log(`  - Brands: ${brandIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.preferredBrands.length}, current: ${productionBrands.length})`);
+      console.log(`  - Tags: ${tagIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.tags.length}, current: ${productionTags.length})`);
 
-      if (!cocktailIntegrityOk || !ingredientIntegrityOk || !brandIntegrityOk) {
+      if (!cocktailIntegrityOk || !ingredientIntegrityOk || !brandIntegrityOk || !tagIntegrityOk) {
         errors.push('Database state does not match snapshot - production data may have been modified');
       }
 
@@ -527,7 +564,8 @@ export class TestDataManager {
       const remainingTestItems = [
         ...currentCocktails.filter((c: any) => c.name.includes('REGRESSION_TEST_')),
         ...currentIngredients.filter((i: any) => i.name.includes('REGRESSION_TEST_')),
-        ...currentBrands.filter((b: any) => b.name.includes('REGRESSION_TEST_'))
+        ...currentBrands.filter((b: any) => b.name.includes('REGRESSION_TEST_')),
+        ...currentTags.filter((t: any) => t.name.includes('REGRESSION_TEST_'))
       ];
 
       if (remainingTestItems.length > 0) {
