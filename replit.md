@@ -21,30 +21,29 @@ Development workflow: User now implements independent code changes and requests 
 - **State Management**: TanStack Query for server state.
 - **Routing**: Wouter for client-side routing.
 - **Forms**: React Hook Form with Zod validation.
-- **Styling**: Consistent dark theme with gold accents, Plus Jakarta Sans font.
+- **Styling**: Consistent dark theme (#181711) with gold accents (#f3d035), Plus Jakarta Sans font.
 - **Accessibility**: Comprehensive button accessibility, horizontal scrolling fixes for mobile.
-- **UI/UX Decisions**: Consistent dark theme (#181711) with gold accents (#f3d035), Plus Jakarta Sans font. Modern chat interface with message bubbles, responsive design for mobile devices (iPhone 14/15 optimized). Standardized pill-based filtering and enhanced EmptyState component with differentiated messaging across major pages. URL state synchronization for filter persistence. PWA support with "Miximixology" branding, standalone display mode, dark theme, and comprehensive icon set.
-- **Application Structure**: Multi-page application including Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages. Responsive navigation system (desktop header + mobile bottom nav).
+- **UI/UX Decisions**: Modern chat interface with message bubbles, responsive design optimized for iPhone 14/15. Standardized pill-based filtering and enhanced EmptyState component. URL state synchronization for filter persistence. PWA support with "Miximixology" branding, standalone display mode, dark theme, and comprehensive icon set.
+- **Application Structure**: Multi-page application including Home, Cocktail List, Individual Recipe, Ingredients, My Bar, and Preferred Brands pages. Responsive navigation system.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
-- **Database**: Firebase Firestore with server-only access via Admin SDK. Environment-based database switching supporting separate development (`FIREBASE_SERVICE_ACCOUNT_JSON`) and production (`FIREBASE_SERVICE_ACCOUNT_JSON_PROD`) instances.
-- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset. OpenRouter API integration with graceful environment variable handling.
+- **Database**: Firebase Firestore with server-only access via Admin SDK. Supports separate development and production instances.
+- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
 - **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
-- **AI Integration**: OpenRouter API proxy with model routing.
-- **YouTube Processing**: Transcript extraction and AI-powered recipe parsing from video content.
+- **AI Integration**: OpenRouter API proxy with model routing. YouTube transcript extraction and AI-powered recipe parsing from video content.
 - **Error Handling**: Global error middleware, custom request logging.
 - **Deployment Infrastructure**: Environment detection, production database migration tools, connection testing utilities.
 
 ### Key Features & Design Decisions
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
 - **Data Persistence**: Firebase Firestore with server-only access.
-- **My Bar Functionality**: Dedicated section with category-based filtering (spirits, liqueurs, mixers, bitters, syrups, other) for tracking user's personal ingredient collection, with dynamic cocktail count. Features smart brand categorization and real-time search filtering.
-- **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression (800px max, 70% JPEG quality).
-- **Dynamic Content**: Featured and Popular Recipes sections with real-time data from the API.
-- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing with robust fallback system. Environment variables `OPENROUTER_MODEL_PRIMARY` and `OPENROUTER_MODEL_FALLBACKS` allow flexible model configuration (defaults: primary `deepseek/deepseek-chat-v3-0324:free`, fallbacks `qwen/qwen-2.5-coder-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free`). Features recipe database integration for context-aware recommendations, performance-optimized cocktail index with useMemo mapping, and basic markdown rendering support (**bold**, *italic* text). Clickable navigation links validated against site database prevent 404 errors, with "not in our library" indicators for external recipes. Homepage features input field matching original Figma design with "Ask Mixi" button for direct chat initiation. Silent error handling prevents user-facing abort messages when closing dialog during AI responses. Enhanced branding with consistent "Mixi" agent identity. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection with category assignment, and preservation of "part" measurements. Known limitation: Enter key triggers temporary dialog showing/hiding behavior that cannot be resolved through code modifications.
+- **My Bar Functionality**: Dedicated section with category-based filtering for tracking user's personal ingredient collection, with dynamic cocktail count, smart brand categorization, and real-time search filtering.
+- **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression.
+- **Dynamic Content**: Featured and Popular Recipes sections with real-time API data.
+- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing with robust fallback system. Features recipe database integration for context-aware recommendations, performance-optimized cocktail index, and basic markdown rendering. Clickable navigation links validated against site database. Homepage features input field matching original Figma design with "Ask Mixi" button. Silent error handling prevents user-facing abort messages. Enhanced branding with consistent "Mixi" agent identity. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection, and preservation of "part" measurements.
 - **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships, complete tags support, and consistent styling.
@@ -54,64 +53,14 @@ Development workflow: User now implements independent code changes and requests 
 ## External Dependencies
 
 ### Core Dependencies
-- **Frontend**: React 18, TypeScript, Vite, Wouter (routing), TanStack Query (state management).
-- **UI Framework**: shadcn/ui, Radix UI primitives, Tailwind CSS, Lucide React icons.
+- **Frontend**: React 18, TypeScript, Vite, Wouter (routing), TanStack Query (state management), shadcn/ui, Radix UI primitives, Tailwind CSS, Lucide React icons.
 - **Backend**: Express.js, Node.js, TypeScript, Firebase Admin SDK.
 - **Database**: Firebase Firestore.
-- **Authentication**: Express sessions, bcrypt, passport-local, secure password reset with email tokens.
+- **Authentication**: Express sessions, bcrypt, passport-local, SMTP email integration.
 - **Validation**: Zod, React Hook Form with `zodResolver`.
-- **Security**: Helmet, CORS, `express-rate-limit`, Morgan logging, SMTP email integration.
+- **Security**: Helmet, CORS, `express-rate-limit`, Morgan logging.
 - **AI Integration**: OpenRouter API, YouTube transcript extraction, Cheerio web scraping.
 - **Image Processing**: Custom image compression utilities (`imageCompression.ts`).
 
 ### Development & Testing Dependencies
-- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation.
-
-## Recent Technical Improvements (August 2025)
-
-### Critical Security & RBAC Resolution (August 19, 2025)
-- **Role-Based Access Control System Fixed**: Resolved critical issue where global admin middleware was incorrectly blocking all content editing operations for non-admin users. Root cause: `server/index.ts` admin middleware was treating cocktail/ingredient routes as admin-only, bypassing role-based permissions.
-- **Admin Middleware Refinement**: Updated global admin middleware to exclude content editing routes from admin-only requirements, allowing proper role-based access control through route-specific middleware.
-- **Comprehensive Role Testing Completed**: Systematic testing verified all three user roles (basic, reviewer, admin) have correct API permissions matching requirements. Basic users blocked from content editing, reviewers can access edit forms, admins have full access.
-- **User Promotion System Verified**: Successfully promoted test users between roles using Firebase Admin SDK, confirming role management functionality works correctly.
-
-### Bug Fixes & System Maintenance (August 19, 2025)
-- **My Bar Persistence Issue Resolution**: Fixed critical bug where My Bar item additions/removals weren't persisting correctly. Root causes identified and resolved:
-  - Authorization bug: Toggle endpoint incorrectly required admin privileges for regular users to manage their own bar
-  - API routing bug: Preferred brands API was calling `getAllPreferredBrands()` instead of filtered `getPreferredBrandsInMyBar()` method
-  - Interface compatibility: Missing `getPreferredBrandsInMyBar` method definition in IStorage interface
-- **Multi-Role Testing Completed**: Verified My Bar functionality works correctly for both basic and reviewer user roles with proper data persistence
-- **Firebase Query Optimization**: Confirmed efficient Firestore querying with `inMyBar=true` filter reduces data transfer and improves performance
-
-### Environment & Deployment Infrastructure
-- **Database Environment Separation**: Implemented environment-based Firebase database switching supporting separate development and production Firestore instances.
-- **Environment Detection**: Added automatic environment detection via `NODE_ENV` or `ENVIRONMENT` variables.
-- **Production Database Support**: Created infrastructure for `FIREBASE_SERVICE_ACCOUNT_JSON_PROD` secret management.
-- **Data Migration Tools**: Built comprehensive migration script for one-time transfer of cocktails, ingredients, and tags from development to production.
-- **Connection Testing**: Created production database connection testing utilities for deployment verification.
-
-### Performance Optimizations
-- **Cocktail Index Caching**: Implemented `useMemo` hook for efficient cocktail name-to-ID mapping in MixiChat component, reducing repeated computations during recipe name validation.
-- **Normalize Function**: Added optimized string normalization for consistent recipe name matching across the application.
-- **Selective API Calls**: Enhanced cocktail fetching with `?fields=id,name` parameter for minimal data transfer in chat context.
-
-### AI Integration Enhancements  
-- **Model Fallback System**: Implemented robust OpenRouter model failover with environment variable configuration (`OPENROUTER_MODEL_PRIMARY`, `OPENROUTER_MODEL_FALLBACKS`).
-- **Enhanced Markdown Support**: Added basic markdown rendering for **bold** and *italic* text formatting in chat responses.
-- **Branding Consistency**: Unified chatbot identity as "Mixi" across all interfaces and prompts.
-- **Dialog Cleanup**: Removed legacy image handling components from chat interface for improved performance and reduced complexity.
-
-### User Experience Improvements
-- **Error Handling**: Enhanced silent error handling for aborted chat requests to prevent user-facing error messages.
-- **Link Validation**: Improved recipe link validation system with "not in our library" indicators for external references.
-- **Accessibility**: Ongoing dialog accessibility improvements (DialogContent description requirements identified for future enhancement).
-- **Auto-Execution Enhancement**: Implemented auto-execution for My Bar "What can I make?" button, matching homepage Ask Mixi functionality.
-
-## OpenRouter Limits & Configuration
-
-- Free tier limits: 20 requests per minute, 50 per day (increases to 1000 per day with ≥10 credits purchased).
-- Daily usage resets at 00:00 UTC.
-- Environment variables:
-  - `OPENROUTER_MODEL_PRIMARY` — primary model ID (defaults to `deepseek/deepseek-chat-v3-0324:free`).
-  - `OPENROUTER_MODEL_FALLBACKS` — comma-separated fallback model IDs (defaults to `qwen/qwen-2.5-coder-32b-instruct:free,meta-llama/llama-3.2-11b-vision-instruct:free`).
-- For production reliability, configure a paid model (e.g., `qwen/qwen3-coder`) as the primary model.
+- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation. Complete test infrastructure for authentication rules and role-based access control.
