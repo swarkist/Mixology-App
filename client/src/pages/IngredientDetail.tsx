@@ -8,6 +8,7 @@ import { Navigation } from "@/components/Navigation";
 import { RoleGate } from "@/components/RoleGate";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/lib/queryClient";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
@@ -50,6 +51,7 @@ export const IngredientDetail = (): JSX.Element => {
   const { ingredientId } = useParams<{ ingredientId: string }>();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -212,7 +214,7 @@ export const IngredientDetail = (): JSX.Element => {
         </div>
 
         {/* Preferred Brands Section */}
-        {preferredBrands && preferredBrands.length > 0 && (
+        {user && preferredBrands && preferredBrands.length > 0 && (
           <Card className="bg-[#2a2920] border-[#4a4735]">
             <CardContent className="p-6">
               <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
