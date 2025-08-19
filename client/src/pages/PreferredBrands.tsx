@@ -18,6 +18,8 @@ import { useDebounce } from "@/lib/useDebounce";
 import { setQueryParamReplace, getQueryParam } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
+const preferredBrandsQueryKey = ["/api/preferred-brands", { inMyBar: true }] as const;
+
 export default function PreferredBrands() {
   const { user } = useAuth();
   const [term, setTerm] = useState(() => getQueryParam("search") || "");
@@ -74,6 +76,7 @@ export default function PreferredBrands() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
+      queryClient.invalidateQueries({ queryKey: preferredBrandsQueryKey });
     },
   });
 

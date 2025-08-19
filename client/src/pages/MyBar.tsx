@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus, X } from "lucide-react";
+import { BarChart3, Check, Plus, X } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,26 +21,23 @@ import noPhotoImage from "@assets/no-photo_1753579606993.png";
 // Define brand type categories based on common spirits and mixers
 const BRAND_CATEGORIES = [
   "spirits",
-  "liqueurs", 
+  "liqueurs",
   "mixers",
   "bitters",
   "syrups",
-  "other"
+  "other",
 ] as const;
 
-export default function MyBar() {
-  const { user } = useAuth();
-  const [term, setTerm] = useState(() => getQueryParam("search") || "");
-  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
-  const queryClient = useQueryClient();
-  
-  const isLoggedIn = !!user;
-  const debounced = useDebounce(term, 300);
-  
-  // Check if category filters are active (not search)
-  const hasCategoryFilters = Boolean(selectedCategory);
+const preferredBrandsQueryKey = ["/api/preferred-brands", { inMyBar: true }] as const;
 
-  // Show login message for non-logged-in users
+export default function MyBar() {
+  return <MyBarContent />;
+}
+
+function MyBarContent() {
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
@@ -68,6 +64,14 @@ export default function MyBar() {
     );
   }
 
+  const [term, setTerm] = useState(() => getQueryParam("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
+  const queryClient = useQueryClient();
+
+  const debounced = useDebounce(term, 300);
+
+  const hasCategoryFilters = Boolean(selectedCategory);
+
   // Handle URL state synchronization
   useEffect(() => {
     if (debounced.trim()) {
@@ -87,7 +91,7 @@ export default function MyBar() {
 
   // Fetch all preferred brands with inMyBar filter
   const { data: allMyBarItems = [], isLoading, error } = useQuery({
-    queryKey: ["/api/preferred-brands", { inMyBar: true }],
+    queryKey: preferredBrandsQueryKey,
     queryFn: async () => {
       try {
         const params = new URLSearchParams();
@@ -105,6 +109,7 @@ export default function MyBar() {
     },
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isLoggedIn,
   });
 
   // Helper function to categorize brands based on name patterns
@@ -176,7 +181,7 @@ export default function MyBar() {
       return apiRequest(`/api/preferred-brands/${brandId}/toggle-mybar`, { method: "PATCH" });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
+      queryClient.invalidateQueries({ queryKey: preferredBrandsQueryKey });
     },
   });
 
