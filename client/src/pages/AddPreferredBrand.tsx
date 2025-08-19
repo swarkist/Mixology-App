@@ -24,7 +24,6 @@ export default function AddPreferredBrand() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isReviewer = user?.role === 'reviewer';
 
   const form = useForm<PreferredBrandForm>({
     resolver: zodResolver(preferredBrandFormSchema),
@@ -100,7 +99,7 @@ export default function AddPreferredBrand() {
             form="brand-form"
             type="submit"
             className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={createMutation.isPending || isReviewer}
+            disabled={createMutation.isPending}
           >
             {createMutation.isPending ? (
               <span className="hidden sm:inline">Saving...</span>

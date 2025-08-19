@@ -26,8 +26,34 @@ export default function PreferredBrands() {
   const queryClient = useQueryClient();
   
   const isLoggedIn = !!user;
-  const canEdit = user?.role === 'admin' || user?.role === 'reviewer';
   const debounced = useDebounce(term, 300);
+
+  // Show login message for non-logged-in users
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Preferred Brands
+            </h1>
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg mb-4">
+                Please login to see or manage your preferred brands.
+              </p>
+              <Link href="/login">
+                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                  Login to Continue
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Navigation />
+      </div>
+    );
+  }
 
   // Handle URL state synchronization
   useEffect(() => {
@@ -285,17 +311,15 @@ export default function PreferredBrands() {
                         <Heart className={`w-3 h-3 mr-1 ${(brand as any).inMyBar ? 'fill-current' : ''}`} />
                         {(brand as any).inMyBar ? "In My Bar" : "Add to Bar"}
                       </Button>
-                      {canEdit && (
-                        <Link href={`/edit-preferred-brand/${brand.id}`}>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                          >
-                            <Edit2 className="h-3 w-3" />
-                          </Button>
-                        </Link>
-                      )}
+                      <Link href={`/edit-preferred-brand/${brand.id}`}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>

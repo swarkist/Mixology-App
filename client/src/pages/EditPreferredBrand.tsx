@@ -26,7 +26,6 @@ export default function EditPreferredBrand() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const isReviewer = user?.role === 'reviewer';
   
   const brandId = parseInt(params?.id || "0");
 
@@ -165,7 +164,7 @@ export default function EditPreferredBrand() {
           <Button 
             form="preferred-brand-form"
             type="submit"
-            disabled={updateMutation.isPending || isReviewer}
+            disabled={updateMutation.isPending}
             className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] h-10 px-4 text-sm md:text-base flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <span className="hidden sm:inline">
@@ -301,7 +300,7 @@ export default function EditPreferredBrand() {
             <Button 
               form="preferred-brand-form"
               type="submit"
-              disabled={updateMutation.isPending || isReviewer}
+              disabled={updateMutation.isPending}
               className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold h-12 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {updateMutation.isPending ? "Saving..." : "Save Changes"}
@@ -319,7 +318,7 @@ export default function EditPreferredBrand() {
               </Link>
               <Button 
                 onClick={handleDelete}
-                disabled={deleteMutation.isPending || isReviewer}
+                disabled={deleteMutation.isPending}
                 variant="outline"
                 className="flex-1 border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
