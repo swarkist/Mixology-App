@@ -21,7 +21,7 @@ export const CocktailRecipe = (): JSX.Element => {
   const { user } = useAuth();
   
   const cocktailId = params?.id ? parseInt(params.id) : null;
-  const isAdmin = user?.role === 'admin' || user?.role === 'reviewer';
+  const canEdit = user?.role === 'admin' || user?.role === 'reviewer';
 
   // Fetch cocktail details
   const { data: cocktailDetails, isLoading, error } = useQuery({
@@ -296,8 +296,8 @@ export const CocktailRecipe = (): JSX.Element => {
             {incrementPopularityMutation.isPending ? 'Starting...' : 'Start Making This Cocktail'}
           </Button>
           
-          {/* Admin-only Edit/Delete Buttons */}
-          {isAdmin && (
+          {/* Edit/Delete Buttons - Admin and Reviewer only */}
+          {canEdit && (
             <div className="flex gap-3">
               <Link href={`/edit-cocktail/${cocktail.id}`} className="flex-1">
                 <Button className="w-full bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold h-10 text-sm">

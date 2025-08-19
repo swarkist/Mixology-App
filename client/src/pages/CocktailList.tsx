@@ -48,7 +48,7 @@ export const CocktailList = (): JSX.Element => {
   const [showOnlyFeatured, setShowOnlyFeatured] = useState(false);
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
   
-  const isAdmin = user?.role === 'admin' || user?.role === 'reviewer';
+  const canEdit = user?.role === 'admin' || user?.role === 'reviewer';
 
   // Update URL when debounced search term changes
   useEffect(() => { 
@@ -367,7 +367,7 @@ export const CocktailList = (): JSX.Element => {
                           <span>{cocktail.popularityCount} crafted</span>
                         </div>
                       </div>
-                      {isAdmin ? (
+                      {canEdit ? (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -407,7 +407,7 @@ export const CocktailList = (): JSX.Element => {
                           View Recipe
                         </Button>
                       </Link>
-                      {isAdmin && (
+                      {canEdit && (
                         <Link href={`/edit-cocktail/${cocktail.id}`}>
                           <Button
                             size="sm"

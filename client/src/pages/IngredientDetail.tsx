@@ -306,8 +306,8 @@ export const IngredientDetail = (): JSX.Element => {
           </Card>
         )}
 
-        {/* Admin-only Delete Button */}
-        {isAdmin && (
+        {/* Delete Button - Admin and Reviewer only, but disabled for Reviewer */}
+        <RoleGate roles={["admin", "reviewer"]}>
           <div className="space-y-3 pb-6">
             <Button 
               variant="outline" 
@@ -319,7 +319,7 @@ export const IngredientDetail = (): JSX.Element => {
               {deleteMutation.isPending ? 'Deleting...' : 'Delete Ingredient'}
             </Button>
           </div>
-        )}
+        </RoleGate>
       </div>
       <Navigation />
     </div>
