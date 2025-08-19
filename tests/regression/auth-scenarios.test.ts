@@ -58,6 +58,11 @@ async function loginUser(email: string, password: string) {
   return data;
 }
 
+// Logout helper
+async function logoutUser(token?: string) {
+  await authApiRequest('/auth/logout', token, { method: 'POST' });
+}
+
 describe('Authentication and Authorization Regression Tests', () => {
   let testManager: TestDataManager;
   let adminUser: any;
@@ -277,6 +282,39 @@ describe('Authentication and Authorization Regression Tests', () => {
         // Basic users shouldn't be able to set featured status
         expect([403, 401]).toContain(response.status);
       });
+
+      it('should reject ingredient creation by basic user', async () => {
+        const login = await loginUser(BASIC_EMAIL, TEST_PASSWORD);
+        basicUserToken = login.accessToken || login.token || '';
+
+        const { response } = await authApiRequest('/ingredients', basicUserToken, {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Unauthorized Ingredient', category: 'spirits', abv: 40 })
+        });
+
+        expect(response.status).toBe(403);
+        await logoutUser(basicUserToken);
+      });
+
+      it('should reject cocktail deletion by basic user', async () => {
+        const login = await loginUser(BASIC_EMAIL, TEST_PASSWORD);
+        basicUserToken = login.accessToken || login.token || '';
+
+        const cocktail = await testManager.createTestCocktail({
+          name: 'Delete_Test_Cocktail',
+          description: 'Attempted deletion by basic user',
+          ingredients: [{ name: 'TestIngredient', amount: 1, unit: 'oz' }],
+          instructions: ['Mix'],
+          tags: ['delete_test']
+        });
+
+        const { response } = await authApiRequest(`/cocktails/${cocktail.id}`, basicUserToken, {
+          method: 'DELETE'
+        });
+
+        expect(response.status).toBe(403);
+        await logoutUser(basicUserToken);
+      });
     });
 
     describe('Reviewer Permissions', () => {
@@ -464,6 +502,9 @@ describe('Authentication and Authorization Regression Tests', () => {
     });
 
     describe('Anonymous User Restrictions', () => {
+      beforeAll(async () => {
+        await logoutUser();
+      });
       it('should allow anonymous access to public content', async () => {
         const { response, data } = await authApiRequest('/cocktails');
         
@@ -479,7 +520,34 @@ describe('Authentication and Authorization Regression Tests', () => {
 
       it('should prevent anonymous access to admin endpoints', async () => {
         const { response } = await authApiRequest('/admin/users');
-        
+
+        expect(response.status).toBe(401);
+      });
+
+      it('should reject anonymous ingredient creation', async () => {
+        await logoutUser();
+        const { response } = await authApiRequest('/ingredients', undefined, {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Anon Ingredient', category: 'spirits', abv: 40 })
+        });
+
+        expect(response.status).toBe(401);
+      });
+
+      it('should reject anonymous cocktail deletion', async () => {
+        await logoutUser();
+        const cocktail = await testManager.createTestCocktail({
+          name: 'Anon_Delete_Test',
+          description: 'Anonymous delete attempt',
+          ingredients: [{ name: 'TestIngredient', amount: 1, unit: 'oz' }],
+          instructions: ['Mix'],
+          tags: ['delete_test']
+        });
+
+        const { response } = await authApiRequest(`/cocktails/${cocktail.id}`, undefined, {
+          method: 'DELETE'
+        });
+
         expect(response.status).toBe(401);
       });
     });
