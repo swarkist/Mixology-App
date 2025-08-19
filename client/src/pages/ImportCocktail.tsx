@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { ArrowLeft, Link as LinkIcon, Youtube, Loader2, FileText, Wand2, Save, AlertCircle, CheckCircle, ClipboardPaste, Plus, X } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useState } from "react";

@@ -1,4 +1,5 @@
-import {
+
+import { 
   users, cocktails, ingredients, tags, cocktailIngredients, cocktailInstructions, 
   cocktailTags, ingredientTags, preferredBrands, preferredBrandIngredients, preferredBrandTags,
   sessions, audit_logs, my_bar, password_resets,
@@ -10,8 +11,6 @@ import {
   type PreferredBrand, type InsertPreferredBrand,
   type CocktailIngredient, type CocktailInstruction, type CocktailForm, type IngredientForm, type PreferredBrandForm
 } from "@shared/schema";
-
-type IngredientWithMyBar = Ingredient & { inMyBar: boolean };
 
 // Comprehensive storage interface for all MVP features
 export interface IStorage {
@@ -71,7 +70,6 @@ export interface IStorage {
   getMostUsedCocktailTags(limit?: number): Promise<Tag[]>;
   getMostRecentCocktailTags(limit?: number): Promise<Tag[]>;
   incrementTagUsage(tagId: number): Promise<void>;
-  deleteTag(id: number): Promise<boolean>;
 
   // Ingredients
   getAllIngredients(): Promise<Ingredient[]>;
@@ -139,10 +137,10 @@ export interface IStorage {
   } | undefined>;
 }
 
-export class MemStorage {
+export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private cocktails: Map<number, Cocktail>;
-  private ingredients: Map<number, IngredientWithMyBar>;
+  private ingredients: Map<number, Ingredient>;
   private tags: Map<number, Tag>;
   private cocktailIngredients: Map<number, CocktailIngredient>;
   private cocktailInstructions: Map<number, CocktailInstruction>;
@@ -186,9 +184,13 @@ export class MemStorage {
     return this.users.get(id);
   }
 
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(user => user.username === username);
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user = { ...insertUser, id } as unknown as User;
+    const user: User = { ...insertUser, id };
     this.users.set(id, user);
     return user;
   }
@@ -289,27 +291,6 @@ export class MemStorage {
     }
   }
 
-  async deleteTag(id: number): Promise<boolean> {
-    const tag = this.tags.get(id);
-    if (!tag) return false;
-
-    this.tags.delete(id);
-
-    // Remove tag relations
-    for (const [relId, ct] of Array.from(this.cocktailTags.entries())) {
-      if (ct.tagId === id) {
-        this.cocktailTags.delete(relId);
-      }
-    }
-    for (const [relId, it] of Array.from(this.ingredientTags.entries())) {
-      if (it.tagId === id) {
-        this.ingredientTags.delete(relId);
-      }
-    }
-
-    return true;
-  }
-
   // Ingredients
   async getAllIngredients(): Promise<Ingredient[]> {
     return Array.from(this.ingredients.values());
@@ -349,14 +330,12 @@ export class MemStorage {
   }
 
   async getIngredientsInMyBar(): Promise<Ingredient[]> {
-    return Array.from(this.ingredients.values()).filter(
-      ingredient => ingredient.inMyBar
-    );
+    return Array.from(this.ingredients.values()).filter(ingredient => ingredient.inMyBar);
   }
 
   async createIngredient(ingredientData: IngredientForm): Promise<Ingredient> {
     const id = this.currentIngredientId++;
-    const ingredient: IngredientWithMyBar = {
+    const ingredient: Ingredient = {
       id,
       name: ingredientData.name,
       category: ingredientData.category,
@@ -365,7 +344,7 @@ export class MemStorage {
       preferredBrand: ingredientData.preferredBrand || null,
       abv: ingredientData.abv || null,
       imageUrl: ingredientData.imageUrl || null,
-      inMyBar: (ingredientData as any).inMyBar || false,
+      inMyBar: ingredientData.inMyBar || false,
       usedInRecipesCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -843,7 +822,7 @@ export class MemStorage {
   // Seed some sample data
   private seedData(): void {
     // Create some sample ingredients
-    const vodka: IngredientWithMyBar = {
+    const vodka: Ingredient = {
       id: this.currentIngredientId++,
       name: "Premium Vodka",
       category: "spirits",
@@ -859,7 +838,7 @@ export class MemStorage {
     };
     this.ingredients.set(vodka.id, vodka);
 
-    const lime: IngredientWithMyBar = {
+    const lime: Ingredient = {
       id: this.currentIngredientId++,
       name: "Lime Juice",
       category: "juices",
@@ -915,4 +894,4 @@ console.log(`FIREBASE_PROJECT_ID present: ${!!process.env.FIREBASE_PROJECT_ID}`)
 
 export const storage: IStorage = useFirebase
   ? new FirebaseStorageAdapter()
-  : (new PersistentMemStorage() as unknown as IStorage);
+  : new PersistentMemStorage();

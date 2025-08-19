@@ -1,13 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestDataManager } from '../regression/data-isolation.js';
-import { waitForEndpoint } from '../utils/wait-for-endpoint.js';
 
 describe('Full Workflow Integration Tests', () => {
   let testManager: TestDataManager;
 
   beforeAll(async () => {
     testManager = new TestDataManager();
-    await waitForEndpoint('http://localhost:5000/health');
+    await new Promise(resolve => setTimeout(resolve, 2000));
     console.log('🔄 Starting full workflow integration tests');
   });
 

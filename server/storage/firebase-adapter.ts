@@ -8,8 +8,6 @@ import type {
   PasswordReset, InsertPasswordReset
 } from '@shared/schema';
 
-type IngredientWithMyBar = Ingredient & { inMyBar: boolean };
-
 // Adapter class that implements the existing IStorage interface using Firebase
 export class FirebaseStorageAdapter implements IStorage {
   private firebase: FirebaseStorage;
@@ -456,15 +454,6 @@ export class FirebaseStorageAdapter implements IStorage {
     // TODO: Implement tag usage increment
   }
 
-  async deleteTag(id: number): Promise<boolean> {
-    try {
-      return await this.firebase.deleteTag(id);
-    } catch (error) {
-      console.error('Error deleting tag:', error);
-      return false;
-    }
-  }
-
   // Ingredients
   async getAllIngredients(): Promise<Ingredient[]> {
     return this.firebase.getAllIngredients();
@@ -510,7 +499,7 @@ export class FirebaseStorageAdapter implements IStorage {
 
   async createIngredient(ingredient: IngredientForm): Promise<Ingredient> {
     // Convert IngredientForm to InsertIngredient
-    const insertIngredient: InsertIngredient & { inMyBar: boolean } = {
+    const insertIngredient: InsertIngredient = {
       name: ingredient.name,
       description: ingredient.description || null,
       imageUrl: ingredient.imageUrl || null,
@@ -518,7 +507,7 @@ export class FirebaseStorageAdapter implements IStorage {
       subCategory: ingredient.subCategory || null,
       preferredBrand: ingredient.preferredBrand || null,
       abv: ingredient.abv || null,
-      inMyBar: (ingredient as any).inMyBar || false, // Include the inMyBar field
+      inMyBar: ingredient.inMyBar || false, // Include the inMyBar field
     };
     return this.firebase.createIngredient(insertIngredient);
   }
@@ -530,12 +519,12 @@ export class FirebaseStorageAdapter implements IStorage {
   }
 
   async toggleMyBar(ingredientId: number): Promise<Ingredient> {
-    const ingredient = await this.firebase.getIngredientById(ingredientId) as IngredientWithMyBar | null;
+    const ingredient = await this.firebase.getIngredientById(ingredientId);
     if (!ingredient) throw new Error('Ingredient not found');
-
+    
     const updated = await this.firebase.toggleIngredientInMyBar(ingredientId, !ingredient.inMyBar);
     if (!updated) throw new Error('Failed to update ingredient');
-    return updated as Ingredient;
+    return updated;
   }
 
   async incrementIngredientUsage(ingredientId: number): Promise<void> {

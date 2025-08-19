@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { storage } from '../storage';
-import type { Ingredient, Cocktail } from '@shared/schema';
 
 const router = Router();
 
@@ -23,12 +22,12 @@ router.post('/migrate-to-firebase', async (req, res) => {
     }
     
     // Read local storage data
-    const storageData: any = JSON.parse(await fs.readFile(storageFile, 'utf-8'));
+    const storageData = JSON.parse(await fs.readFile(storageFile, 'utf-8'));
     
     // Migrate ingredients
-    const migratedIngredients: Ingredient[] = [];
+    const migratedIngredients = [];
     if (storageData.ingredients) {
-      for (const [, ingredient] of storageData.ingredients as [number, any][]) {
+      for (const [id, ingredient] of storageData.ingredients) {
         try {
           const newIngredient = await storage.createIngredient({
             name: ingredient.name,
@@ -47,15 +46,15 @@ router.post('/migrate-to-firebase', async (req, res) => {
     }
     
     // Migrate cocktails
-    const migratedCocktails: Cocktail[] = [];
+    const migratedCocktails = [];
     if (storageData.cocktails) {
-      for (const [, cocktail] of storageData.cocktails as [number, any][]) {
+      for (const [id, cocktail] of storageData.cocktails) {
         try {
           const newCocktail = await storage.createCocktail({
             name: cocktail.name,
             description: cocktail.description,
             imageUrl: cocktail.imageUrl
-          } as any);
+          });
           migratedCocktails.push(newCocktail);
         } catch (error) {
           console.log(`Skipping cocktail ${cocktail.name}: ${error}`);
@@ -129,13 +128,13 @@ router.post('/test-firebase', async (req, res) => {
         name: "Cosmopolitan",
         description: "A classic pink cocktail with vodka and cranberry",
         imageUrl: null,
-      } as any);
-
+      });
+      
       await storage.createCocktail({
-        name: "Mojito",
+        name: "Mojito", 
         description: "A refreshing Cuban cocktail with mint and lime",
         imageUrl: null,
-      } as any);
+      });
       
       console.log('Sample cocktails created');
     }
@@ -155,41 +154,6 @@ router.post('/test-firebase', async (req, res) => {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
-  }
-});
-
-// Test utility to promote user to admin (only in test mode)
-router.post('/promote-user-to-admin', async (req, res) => {
-  // Only allow in test environment
-  if (process.env.NODE_ENV !== 'test') {
-    return res.status(403).json({ error: 'Only available in test environment' });
-  }
-
-  const { userId, email } = req.body;
-  if (!userId || !email) {
-    return res.status(400).json({ error: 'userId and email are required' });
-  }
-
-  try {
-    // Get the Firebase storage instance
-    const firebaseStorage = storage as any;
-    
-    // Direct database update to set user role to admin
-    if (firebaseStorage.firebase) {
-      const userRef = firebaseStorage.firebase.getFirestore().collection('users').doc(userId.toString());
-      await userRef.update({ 
-        role: 'admin',
-        updatedAt: new Date().toISOString()
-      });
-      
-      console.log(`🧪 Test utility: Promoted user ${email} (ID: ${userId}) to admin`);
-      res.json({ success: true, message: `User ${email} promoted to admin` });
-    } else {
-      res.status(500).json({ error: 'Firebase storage not available' });
-    }
-  } catch (error) {
-    console.error('Failed to promote user to admin:', error);
-    res.status(500).json({ error: 'Failed to promote user' });
   }
 });
 

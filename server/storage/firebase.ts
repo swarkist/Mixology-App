@@ -1,13 +1,10 @@
 import { db } from '../firebase';
 import type { IStorage } from '../storage';
-import type {
-  Cocktail, Ingredient, CocktailIngredient, CocktailInstruction, Tag,
+import type { 
+  Cocktail, Ingredient, CocktailIngredient, CocktailInstruction, Tag, 
   PreferredBrand, InsertCocktail, InsertIngredient, InsertPreferredBrand, InsertTag,
-  CocktailForm, IngredientForm, PreferredBrandForm
+  CocktailForm, IngredientForm, PreferredBrandForm 
 } from '@shared/schema';
-
-type IngredientWithMyBar = Ingredient & { inMyBar: boolean };
-type PreferredBrandWithMyBar = PreferredBrand & { inMyBar: boolean };
 
 export class FirebaseStorage {
   // Public firestore instance for batch operations
@@ -453,7 +450,7 @@ export class FirebaseStorage {
       }
       
       // Ensure all required fields exist with default values
-      const ingredient: IngredientWithMyBar = {
+      const ingredient: Ingredient = {
         id,
         name: data.name || 'Untitled Ingredient',
         category: data.category || 'other',
@@ -467,7 +464,7 @@ export class FirebaseStorage {
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
       };
-
+      
       return ingredient;
     });
   }
@@ -491,7 +488,7 @@ export class FirebaseStorage {
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as IngredientWithMyBar;
+      } as Ingredient;
     } catch (error) {
       console.error('Error fetching ingredient:', error);
       return undefined;
@@ -517,23 +514,23 @@ export class FirebaseStorage {
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as IngredientWithMyBar;
+      } as Ingredient;
     } catch (error) {
       console.error('Error fetching ingredient by ID:', error);
       return null;
     }
   }
 
-  async createIngredient(ingredient: InsertIngredient & { inMyBar?: boolean }): Promise<Ingredient> {
+  async createIngredient(ingredient: InsertIngredient): Promise<Ingredient> {
     // Generate a numeric ID by using timestamp + random
     const numericId = Date.now() + Math.floor(Math.random() * 1000);
-
+    
     console.log('🔥 Firebase createIngredient input:', JSON.stringify(ingredient, null, 2));
-
-    // Extract tags and remove id from ingredient data to handle separately
-    const { tagIds, id: _id, ...basicIngredient } = ingredient as any;
-
-    const ingredientData: Omit<IngredientWithMyBar, 'id'> = {
+    
+    // Extract tags from ingredient data to handle separately
+    const { tagIds, ...basicIngredient } = ingredient as any;
+    
+    const ingredientData = {
       ...basicIngredient,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -968,34 +965,8 @@ export class FirebaseStorage {
     };
     
     await this.tagsCollection.doc(numericId.toString()).set(tagData);
-
+    
     return { id: numericId, ...tagData } as Tag;
-  }
-
-  async deleteTag(id: number): Promise<boolean> {
-    try {
-      const docRef = this.tagsCollection.doc(id.toString());
-      const docSnapshot = await docRef.get();
-      if (!docSnapshot.exists) {
-        return false;
-      }
-
-      // Remove tag document
-      await docRef.delete();
-
-      // Remove tag relations
-      const batch = this.firestore.batch();
-      const cocktailTagSnapshot = await this.cocktailTagsCollection.where('tagId', '==', id).get();
-      cocktailTagSnapshot.forEach((doc: any) => batch.delete(doc.ref));
-      const ingredientTagSnapshot = await this.ingredientTagsCollection.where('tagId', '==', id).get();
-      ingredientTagSnapshot.forEach((doc: any) => batch.delete(doc.ref));
-      await batch.commit();
-
-      return true;
-    } catch (error) {
-      console.error('Error deleting tag from Firebase:', error);
-      return false;
-    }
   }
 
   async deleteCocktail(id: number): Promise<boolean> {
@@ -1115,7 +1086,7 @@ export class FirebaseStorage {
           usedInRecipesCount: data.usedInRecipesCount || 0,
           createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-        } as PreferredBrandWithMyBar;
+        } as PreferredBrand;
       });
     } catch (error) {
       console.error('🔥 Error fetching preferred brands from Firebase:', error);
@@ -1138,7 +1109,7 @@ export class FirebaseStorage {
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as PreferredBrandWithMyBar;
+      } as PreferredBrand;
     } catch (error) {
       console.error('Error fetching preferred brand:', error);
       return undefined;
@@ -1170,7 +1141,7 @@ export class FirebaseStorage {
           usedInRecipesCount: data.usedInRecipesCount || 0,
           createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-        } as PreferredBrandWithMyBar;
+        } as PreferredBrand;
       });
       
       console.log('🔥 Returning', brands.length, 'brands for My Bar');
@@ -1186,11 +1157,11 @@ export class FirebaseStorage {
       const id = Date.now();
       const docRef = this.preferredBrandsCollection.doc(id.toString());
       
-      const brandData: Omit<PreferredBrandWithMyBar, 'id'> = {
+      const brandData = {
         name: brand.name,
         proof: brand.proof || null,
         imageUrl: brand.imageUrl || null,
-        inMyBar: (brand as any).inMyBar || false,
+        inMyBar: brand.inMyBar || false,
         usedInRecipesCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -1238,12 +1209,12 @@ export class FirebaseStorage {
 
   async toggleMyBarBrand(brandId: number): Promise<PreferredBrand> {
     try {
-      const brand = await this.getPreferredBrand(brandId) as PreferredBrandWithMyBar | undefined;
+      const brand = await this.getPreferredBrand(brandId);
       if (!brand) throw new Error('Preferred brand not found');
-
+      
       const newInMyBar = !brand.inMyBar;
-      await this.updatePreferredBrand(brandId, { inMyBar: newInMyBar } as any);
-
+      await this.updatePreferredBrand(brandId, { inMyBar: newInMyBar });
+      
       const updated = await this.getPreferredBrand(brandId);
       if (!updated) throw new Error('Preferred brand not found after toggle');
       return updated;
@@ -1288,7 +1259,7 @@ export class FirebaseStorage {
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as PreferredBrandWithMyBar;
+      } as PreferredBrand;
     } catch (error) {
       console.error('Error finding preferred brand by name:', error);
       return null;

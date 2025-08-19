@@ -103,7 +103,7 @@ export function createAdminRoutes(storage: IStorage): Router {
       }
 
       // Update role
-      const updatedUser = await storage.updateUserRole(userId, role as 'basic' | 'admin');
+      const updatedUser = await storage.updateUserRole(userId, role);
 
       // Log the action
       await storage.createAuditLog({

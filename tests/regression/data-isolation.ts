@@ -22,7 +22,6 @@ export class TestDataManager {
   private createdSessions: number[] = [];
   private testPrefix = `REGRESSION_TEST_${Date.now()}_`;
   private databaseSnapshot: DatabaseSnapshot | null = null;
-  private cookieJar = '';
 
   // Initialize by taking complete database snapshot
   async init() {
@@ -85,23 +84,25 @@ export class TestDataManager {
   private readonly BASIC_EMAIL = `test_basic_${Date.now()}@mixology.test`;
   private readonly TEST_PASSWORD = 'TestPassword123!';
 
-  // Helper function for API requests with cookie-based authentication
+  // Helper function for API requests with authentication
   async apiRequest(endpoint: string, options: RequestInit = {}, useAdminAuth = true) {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      'x-admin-key': process.env.ADMIN_API_KEY || '',
       ...options.headers as Record<string, string>,
     };
 
-    // Add cookies for authentication
-    if (this.cookieJar) {
-      headers['Cookie'] = this.cookieJar;
-    }
-
-    // Ensure authentication for write operations
+    // Add authentication for write operations
     if (options.method && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(options.method)) {
-      if (!this.cookieJar) {
+      if (useAdminAuth && this.adminToken) {
+        headers['Authorization'] = `Bearer ${this.adminToken}`;
+      } else if (!useAdminAuth && this.basicToken) {
+        headers['Authorization'] = `Bearer ${this.basicToken}`;
+      } else {
+        // Try to create admin user if we don't have token
         await this.ensureTestUsersExist();
+        if (useAdminAuth && this.adminToken) {
+          headers['Authorization'] = `Bearer ${this.adminToken}`;
+        }
       }
     }
 
@@ -110,12 +111,6 @@ export class TestDataManager {
       headers,
     });
     
-    // Update cookie jar with any new cookies
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      this.cookieJar = setCookie;
-    }
-    
     if (!response.ok) {
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
@@ -123,19 +118,34 @@ export class TestDataManager {
     return response.json();
   }
 
-  // Ensure test users exist and are authenticated (cookie-based)
+  // Ensure test users exist and are authenticated
   async ensureTestUsersExist() {
-    if (!this.cookieJar) {
+    if (!this.adminToken) {
       try {
         // Try to create admin user
         await this.createTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD, 'admin');
-        await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
+        this.adminToken = await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
       } catch (error) {
         console.log(`⚠️ Admin user may already exist, trying login...`);
         try {
-          await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
+          this.adminToken = await this.loginTestUser(this.ADMIN_EMAIL, this.TEST_PASSWORD);
         } catch (loginError) {
           console.error('Failed to authenticate admin user:', loginError);
+        }
+      }
+    }
+    
+    if (!this.basicToken) {
+      try {
+        // Try to create basic user
+        await this.createTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD, 'basic');
+        this.basicToken = await this.loginTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD);
+      } catch (error) {
+        console.log(`⚠️ Basic user may already exist, trying login...`);
+        try {
+          this.basicToken = await this.loginTestUser(this.BASIC_EMAIL, this.TEST_PASSWORD);
+        } catch (loginError) {
+          console.error('Failed to authenticate basic user:', loginError);
         }
       }
     }
@@ -155,39 +165,14 @@ export class TestDataManager {
       throw new Error(`Failed to create user ${email}: ${response.status}`);
     }
 
-    const userData = response.ok ? await response.json() : null;
-    
-    // If we need an admin user, directly update via Firebase test utilities
-    if (role === 'admin' && userData) {
-      try {
-        // Use Firebase test utilities to directly promote user to admin
-        const promoteResponse = await fetch(`${API_BASE}/firebase-test/promote-user-to-admin`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'x-test-mode': 'true'
-          },
-          body: JSON.stringify({ userId: userData.id, email: email })
-        });
-        
-        if (promoteResponse.ok) {
-          console.log(`✅ User ${email} promoted to admin role via test utilities`);
-          
-          // Force re-login to refresh session with updated role
-          await this.loginTestUser(email, password);
-          console.log(`🔄 Session refreshed for admin user ${email}`);
-        } else {
-          console.log(`⚠️ Failed to promote ${email} to admin: ${promoteResponse.status}`);
-        }
-      } catch (error) {
-        console.log(`⚠️ Could not promote ${email} to admin:`, error.message);
-      }
+    if (role === 'admin') {
+      console.log(`Note: User ${email} created as basic, would need promotion to admin`);
     }
 
-    return userData;
+    return response.ok ? await response.json() : null;
   }
 
-  // Login a test user (using cookie-based auth)
+  // Login a test user and return token
   async loginTestUser(email: string, password: string): Promise<string> {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -201,26 +186,19 @@ export class TestDataManager {
       throw new Error(`Failed to login user ${email}: ${response.status}`);
     }
 
-    // Store cookies for subsequent requests
-    const setCookie = response.headers.get('set-cookie');
-    if (setCookie) {
-      this.cookieJar = setCookie;
-    }
-
     const data = await response.json();
-    // For cookie-based auth, we just return success status
-    return data.success ? 'logged_in' : '';
+    return data.token || data.accessToken || ''; // Handle different token response formats
   }
 
   // Delete test user (for cleanup)
   async deleteTestUser(email: string, password: string) {
     try {
-      // Cookie-based auth - login first to get session cookie
-      await this.loginTestUser(email, password);
+      const token = await this.loginTestUser(email, password);
       const response = await fetch(`${API_BASE}/auth/delete-account`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         }
       });
       return response.ok;
@@ -242,7 +220,7 @@ export class TestDataManager {
     }
   }
 
-  // Enhanced protection: only allow operations on test data with cookie auth
+  // Enhanced protection: only allow operations on test data
   async protectedApiRequest(endpoint: string, options: RequestInit = {}) {
     await this.ensureTestUsersExist();
     
@@ -441,27 +419,10 @@ export class TestDataManager {
       }
     }
 
-    // Clean up tracked tags
-    if (this.createdTags.length > 0) {
-      try {
-        const allTags = await this.apiRequest('/tags').catch(() => []);
-        const tagMap = new Map(allTags.map((t: any) => [t.name, t.id]));
-        for (const tagName of Array.from(new Set(this.createdTags))) {
-          const tagId = tagMap.get(tagName);
-          if (tagId) {
-            await this.protectedApiRequest(`/tags/${tagId}`, { method: 'DELETE' });
-            console.log(`✅ Deleted tracked tag ${tagName} (ID: ${tagId})`);
-          }
-        }
-      } catch (error: any) {
-        errors.push(`Failed to delete tracked tags: ${error.message}`);
-      }
-    }
-
     // Clean up tracked test users
     for (const userId of this.createdUsers) {
       try {
-        await this.deleteTestUser(userId, 'test_password');
+        await this.deleteTestUser(userId);
         console.log(`✅ Deleted tracked test user ID: ${userId}`);
       } catch (error: any) {
         errors.push(`Failed to delete test user ${userId}: ${error.message}`);
@@ -472,11 +433,10 @@ export class TestDataManager {
   private async scanAndCleanRemainingTestData(errors: string[]) {
     try {
       // Scan for any remaining test data that wasn't tracked
-      const [currentCocktails, currentIngredients, currentBrands, currentTags] = await Promise.all([
+      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
         this.apiRequest('/cocktails').catch(() => []),
         this.apiRequest('/ingredients').catch(() => []),
-        this.apiRequest('/preferred-brands').catch(() => []),
-        this.apiRequest('/tags').catch(() => [])
+        this.apiRequest('/preferred-brands').catch(() => [])
       ]);
 
       // Find and delete any remaining test items
@@ -488,12 +448,8 @@ export class TestDataManager {
         i.name.includes('REGRESSION_TEST_') && !this.createdIngredients.includes(i.id)
       );
 
-      const remainingTestBrands = currentBrands.filter((b: any) =>
+      const remainingTestBrands = currentBrands.filter((b: any) => 
         b.name.includes('REGRESSION_TEST_') && !this.createdPreferredBrands.includes(b.id)
-      );
-
-      const remainingTestTags = currentTags.filter((t: any) =>
-        t.name.includes('REGRESSION_TEST_') && !this.createdTags.includes(t.name)
       );
 
       // Clean up remaining test data
@@ -524,15 +480,6 @@ export class TestDataManager {
         }
       }
 
-      for (const tag of remainingTestTags) {
-        try {
-          await this.apiRequest(`/tags/${tag.id}`, { method: 'DELETE' });
-          console.log(`✅ Cleaned untracked test tag: ${tag.name} (ID: ${tag.id})`);
-        } catch (error: any) {
-          errors.push(`Failed to clean untracked tag ${tag.id}: ${error.message}`);
-        }
-      }
-
     } catch (error: any) {
       errors.push(`Failed to scan for remaining test data: ${error.message}`);
     }
@@ -545,11 +492,10 @@ export class TestDataManager {
     }
 
     try {
-      const [currentCocktails, currentIngredients, currentBrands, currentTags] = await Promise.all([
+      const [currentCocktails, currentIngredients, currentBrands] = await Promise.all([
         this.apiRequest('/cocktails').catch(() => []),
         this.apiRequest('/ingredients').catch(() => []),
-        this.apiRequest('/preferred-brands').catch(() => []),
-        this.apiRequest('/tags').catch(() => [])
+        this.apiRequest('/preferred-brands').catch(() => [])
       ]);
 
       // Filter out any remaining test data to get pure production data
@@ -559,26 +505,21 @@ export class TestDataManager {
       const productionIngredients = currentIngredients.filter((i: any) => 
         !i.name.includes('REGRESSION_TEST_')
       );
-      const productionBrands = currentBrands.filter((b: any) =>
+      const productionBrands = currentBrands.filter((b: any) => 
         !b.name.includes('REGRESSION_TEST_')
-      );
-      const productionTags = currentTags.filter((t: any) =>
-        !t.name.includes('REGRESSION_TEST_')
       );
 
       // Verify data integrity
       const cocktailIntegrityOk = this.databaseSnapshot.cocktails.length === productionCocktails.length;
       const ingredientIntegrityOk = this.databaseSnapshot.ingredients.length === productionIngredients.length;
       const brandIntegrityOk = this.databaseSnapshot.preferredBrands.length === productionBrands.length;
-      const tagIntegrityOk = this.databaseSnapshot.tags.length === productionTags.length;
 
       console.log(`📊 Database integrity check:`);
       console.log(`  - Cocktails: ${cocktailIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.cocktails.length}, current: ${productionCocktails.length})`);
       console.log(`  - Ingredients: ${ingredientIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.ingredients.length}, current: ${productionIngredients.length})`);
       console.log(`  - Brands: ${brandIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.preferredBrands.length}, current: ${productionBrands.length})`);
-      console.log(`  - Tags: ${tagIntegrityOk ? '✅' : '❌'} (snapshot: ${this.databaseSnapshot.tags.length}, current: ${productionTags.length})`);
 
-      if (!cocktailIntegrityOk || !ingredientIntegrityOk || !brandIntegrityOk || !tagIntegrityOk) {
+      if (!cocktailIntegrityOk || !ingredientIntegrityOk || !brandIntegrityOk) {
         errors.push('Database state does not match snapshot - production data may have been modified');
       }
 
@@ -586,8 +527,7 @@ export class TestDataManager {
       const remainingTestItems = [
         ...currentCocktails.filter((c: any) => c.name.includes('REGRESSION_TEST_')),
         ...currentIngredients.filter((i: any) => i.name.includes('REGRESSION_TEST_')),
-        ...currentBrands.filter((b: any) => b.name.includes('REGRESSION_TEST_')),
-        ...currentTags.filter((t: any) => t.name.includes('REGRESSION_TEST_'))
+        ...currentBrands.filter((b: any) => b.name.includes('REGRESSION_TEST_'))
       ];
 
       if (remainingTestItems.length > 0) {
@@ -648,24 +588,5 @@ export class TestDataManager {
       users: this.createdUsers.length,
       testPrefix: this.testPrefix
     };
-  }
-
-  // Complete cleanup of all test data (required by integration tests)
-  async cleanupAllTestData() {
-    console.log('🧹 Starting comprehensive test data cleanup...');
-    const errors: string[] = [];
-    
-    try {
-      await this.cleanup();
-    } catch (error: any) {
-      errors.push(`Cleanup failed: ${error.message}`);
-    }
-
-    if (errors.length > 0) {
-      console.log('⚠️ Some cleanup operations failed:');
-      errors.forEach(error => console.log(`  - ${error}`));
-    }
-    
-    console.log('✅ Test data cleanup completed');
   }
 }

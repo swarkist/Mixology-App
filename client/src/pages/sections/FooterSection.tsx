@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React from "react";
 import { Link } from "wouter";
 import { Separator } from "@/components/ui/separator";
