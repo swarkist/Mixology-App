@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus, X } from "lucide-react";
+import { BarChart3, Check, Plus, X } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,11 +32,41 @@ const preferredBrandsQueryKey = ["/api/preferred-brands", { inMyBar: true }] as 
 
 export default function MyBar() {
   const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              My Bar
+            </h1>
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg mb-4">
+                Please login to see or manage your bar.
+              </p>
+              <Link href="/login">
+                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                  Login to Continue
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Navigation />
+      </div>
+    );
+  }
+
+  return <MyBarContent isLoggedIn={true} />;
+}
+
+function MyBarContent({ isLoggedIn }: { isLoggedIn: boolean }) {
   const [term, setTerm] = useState(() => getQueryParam("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
   const queryClient = useQueryClient();
-  
-  const isLoggedIn = !!user;
+
   const debounced = useDebounce(term, 300);
 
   // Check if category filters are active (not search)
@@ -163,33 +192,6 @@ export default function MyBar() {
       console.error("Error toggling My Bar:", error);
     }
   };
-
-  // Show login message for non-logged-in users
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
-        <TopNavigation />
-        <div className="px-4 md:px-40 py-5">
-          <div className="p-4 mb-3">
-            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              My Bar
-            </h1>
-            <div className="text-center py-12">
-              <p className="text-[#bab59c] text-lg mb-4">
-                Please login to see or manage your bar.
-              </p>
-              <Link href="/login">
-                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
-                  Login to Continue
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <Navigation />
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
