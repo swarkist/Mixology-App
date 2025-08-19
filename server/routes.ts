@@ -800,7 +800,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       
       if (inMyBar === 'true') {
         console.log('🔥 Calling getPreferredBrandsInMyBar...');
-        brands = await storage.getAllPreferredBrands();
+        brands = await storage.getPreferredBrandsInMyBar();
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);
@@ -885,7 +885,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id/toggle-mybar", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.patch("/api/preferred-brands/:id/toggle-mybar", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id}/toggle-mybar ===`);

@@ -90,6 +90,7 @@ export interface IStorage {
   // Preferred Brands
   getAllPreferredBrands(): Promise<PreferredBrand[]>;
   getPreferredBrand(id: number): Promise<PreferredBrand | undefined>;
+  getPreferredBrandsInMyBar(): Promise<PreferredBrand[]>;
   searchPreferredBrands(query: string): Promise<PreferredBrand[]>;
   createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand>;
   updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand>;
