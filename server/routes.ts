@@ -14,7 +14,7 @@ import { createMyBarRoutes } from './routes/mybar';
 import { createAdminRoutes } from './routes/admin';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
-import { allowRoles, rejectWritesForReviewer } from './middleware/roles';
+import { allowRoles, rejectContentSavesForReviewer } from './middleware/roles';
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
   // Health check endpoint (before middleware)

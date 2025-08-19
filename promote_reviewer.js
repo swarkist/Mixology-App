@@ -1,43 +1,65 @@
-// Quick script to promote user to reviewer role via Firebase Admin
-const { initializeApp, cert } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+// Script to promote user to reviewer role  
+// Usage: node promote_reviewer.js
 
-// This script directly updates Firebase to promote the reviewer
-async function promoteToReviewer() {
+import admin from 'firebase-admin';
+
+// Initialize with development credentials
+const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+if (!serviceAccountJson) {
+  console.error('FIREBASE_SERVICE_ACCOUNT_JSON environment variable is required');
+  process.exit(1);
+}
+
+const serviceAccount = JSON.parse(serviceAccountJson);
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
+
+const db = admin.firestore();
+
+async function promoteUserToReviewer(email) {
   try {
-    // Use the same Firebase config as the app
-    const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS || '{}');
+    console.log(`Searching for user with email: ${email}`);
     
-    if (!serviceAccount.private_key) {
-      console.log('No Firebase credentials found, trying alternative approach...');
-      // Just call the API directly instead
+    const usersSnapshot = await db.collection('users')
+      .where('email', '==', email)
+      .get();
+    
+    if (usersSnapshot.empty) {
+      console.error(`User with email ${email} not found`);
       return;
     }
     
-    const app = initializeApp({
-      credential: cert(serviceAccount),
-      projectId: serviceAccount.project_id
+    const userDoc = usersSnapshot.docs[0];
+    const userData = userDoc.data();
+    
+    console.log(`Found user:`, {
+      id: userDoc.id,
+      email: userData.email,
+      currentRole: userData.role
     });
     
-    const db = getFirestore(app);
+    // Update role to reviewer
+    await userDoc.ref.update({
+      role: 'reviewer',
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
     
-    // Find and update the reviewer user
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('email', '==', 'reviewer@test.com').get();
+    console.log(`✅ Successfully promoted ${email} to reviewer role`);
     
-    if (snapshot.empty) {
-      console.log('User not found');
-      return;
-    }
-    
-    const userDoc = snapshot.docs[0];
-    await userDoc.ref.update({ role: 'reviewer' });
-    
-    console.log('✅ Successfully promoted reviewer@test.com to reviewer role');
+    // Verify the update
+    const updatedDoc = await userDoc.ref.get();
+    const updatedData = updatedDoc.data();
+    console.log(`Verified: new role is "${updatedData.role}"`);
     
   } catch (error) {
-    console.error('Error promoting user:', error.message);
+    console.error('Error promoting user:', error);
+  } finally {
+    process.exit(0);
   }
 }
 
-promoteToReviewer();
+// Promote the test reviewer user
+promoteUserToReviewer('revieweruser@test.com');

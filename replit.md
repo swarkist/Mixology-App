@@ -69,6 +69,12 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Technical Improvements (August 2025)
 
+### Critical Security & RBAC Resolution (August 19, 2025)
+- **Role-Based Access Control System Fixed**: Resolved critical issue where global admin middleware was incorrectly blocking all content editing operations for non-admin users. Root cause: `server/index.ts` admin middleware was treating cocktail/ingredient routes as admin-only, bypassing role-based permissions.
+- **Admin Middleware Refinement**: Updated global admin middleware to exclude content editing routes from admin-only requirements, allowing proper role-based access control through route-specific middleware.
+- **Comprehensive Role Testing Completed**: Systematic testing verified all three user roles (basic, reviewer, admin) have correct API permissions matching requirements. Basic users blocked from content editing, reviewers can access edit forms, admins have full access.
+- **User Promotion System Verified**: Successfully promoted test users between roles using Firebase Admin SDK, confirming role management functionality works correctly.
+
 ### Bug Fixes & System Maintenance (August 19, 2025)
 - **My Bar Persistence Issue Resolution**: Fixed critical bug where My Bar item additions/removals weren't persisting correctly. Root causes identified and resolved:
   - Authorization bug: Toggle endpoint incorrectly required admin privileges for regular users to manage their own bar
