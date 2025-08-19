@@ -158,4 +158,39 @@ router.post('/test-firebase', async (req, res) => {
   }
 });
 
+// Test utility to promote user to admin (only in test mode)
+router.post('/promote-user-to-admin', async (req, res) => {
+  // Only allow in test environment
+  if (process.env.NODE_ENV !== 'test') {
+    return res.status(403).json({ error: 'Only available in test environment' });
+  }
+
+  const { userId, email } = req.body;
+  if (!userId || !email) {
+    return res.status(400).json({ error: 'userId and email are required' });
+  }
+
+  try {
+    // Get the Firebase storage instance
+    const firebaseStorage = storage as any;
+    
+    // Direct database update to set user role to admin
+    if (firebaseStorage.firebase) {
+      const userRef = firebaseStorage.firebase.getFirestore().collection('users').doc(userId.toString());
+      await userRef.update({ 
+        role: 'admin',
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`🧪 Test utility: Promoted user ${email} (ID: ${userId}) to admin`);
+      res.json({ success: true, message: `User ${email} promoted to admin` });
+    } else {
+      res.status(500).json({ error: 'Firebase storage not available' });
+    }
+  } catch (error) {
+    console.error('Failed to promote user to admin:', error);
+    res.status(500).json({ error: 'Failed to promote user' });
+  }
+});
+
 export default router;
