@@ -49,6 +49,7 @@ export const CocktailList = (): JSX.Element => {
   const [showOnlyPopular, setShowOnlyPopular] = useState(false);
   
   const canEdit = user?.role === 'admin' || user?.role === 'reviewer';
+  const isAdmin = user?.role === 'admin';
 
   // Update URL when debounced search term changes
   useEffect(() => { 
