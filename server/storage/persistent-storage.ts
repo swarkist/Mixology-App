@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
-import type { IStorage } from '../storage';
 import type {
   User, InsertUser,
   Tag, InsertTag,
@@ -9,10 +8,12 @@ import type {
   CocktailIngredient, CocktailInstruction, CocktailTag, IngredientTag
 } from '@shared/schema';
 
+type IngredientWithMyBar = Ingredient & { inMyBar: boolean };
+
 interface StorageData {
   users: [number, User][];
   cocktails: [number, Cocktail][];
-  ingredients: [number, Ingredient][];
+  ingredients: [number, IngredientWithMyBar][];
   tags: [number, Tag][];
   cocktailIngredients: [number, CocktailIngredient][];
   cocktailInstructions: [number, CocktailInstruction][];
@@ -30,10 +31,10 @@ interface StorageData {
   };
 }
 
-export class PersistentMemStorage implements IStorage {
+export class PersistentMemStorage {
   private users = new Map<number, User>();
   private cocktails = new Map<number, Cocktail>();
-  private ingredients = new Map<number, Ingredient>();
+  private ingredients = new Map<number, IngredientWithMyBar>();
   private tags = new Map<number, Tag>();
   private cocktailIngredients = new Map<number, CocktailIngredient>();
   private cocktailInstructions = new Map<number, CocktailInstruction>();
@@ -78,11 +79,16 @@ export class PersistentMemStorage implements IStorage {
         updatedAt: new Date(v.updatedAt),
         featuredAt: v.featuredAt ? new Date(v.featuredAt) : null
       }]));
-      this.ingredients = new Map(parsed.ingredients.map(([k, v]) => [k, { 
-        ...v, 
-        createdAt: new Date(v.createdAt), 
-        updatedAt: new Date(v.updatedAt) 
-      }]));
+      this.ingredients = new Map(
+        parsed.ingredients.map(([k, v]) => [
+          k,
+          {
+            ...(v as any),
+            createdAt: new Date(v.createdAt),
+            updatedAt: new Date(v.updatedAt),
+          } as IngredientWithMyBar,
+        ])
+      );
       this.tags = new Map(parsed.tags.map(([k, v]) => [k, { ...v, createdAt: new Date(v.createdAt) }]));
       this.cocktailIngredients = new Map(parsed.cocktailIngredients);
       this.cocktailInstructions = new Map(parsed.cocktailInstructions);
@@ -133,13 +139,9 @@ export class PersistentMemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
-  }
-
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user = { ...insertUser, id } as unknown as User;
     this.users.set(id, user);
     await this.saveData();
     return user;
@@ -214,6 +216,29 @@ export class PersistentMemStorage implements IStorage {
     }
   }
 
+  async deleteTag(id: number): Promise<boolean> {
+    const tag = this.tags.get(id);
+    if (!tag) return false;
+
+    this.tags.delete(id);
+
+    // Remove relations with cocktails
+    for (const [relId, ct] of Array.from(this.cocktailTags.entries())) {
+      if (ct.tagId === id) {
+        this.cocktailTags.delete(relId);
+      }
+    }
+    // Remove relations with ingredients
+    for (const [relId, it] of Array.from(this.ingredientTags.entries())) {
+      if (it.tagId === id) {
+        this.ingredientTags.delete(relId);
+      }
+    }
+
+    await this.saveData();
+    return true;
+  }
+
   // Ingredients
   async getAllIngredients(): Promise<Ingredient[]> {
     return Array.from(this.ingredients.values());
@@ -258,7 +283,7 @@ export class PersistentMemStorage implements IStorage {
 
   async createIngredient(ingredientData: IngredientForm): Promise<Ingredient> {
     const id = this.currentIngredientId++;
-    const ingredient: Ingredient = {
+    const ingredient: IngredientWithMyBar = {
       id,
       name: ingredientData.name,
       category: ingredientData.category,
@@ -267,7 +292,7 @@ export class PersistentMemStorage implements IStorage {
       preferredBrand: ingredientData.preferredBrand || null,
       abv: ingredientData.abv || null,
       imageUrl: ingredientData.imageUrl || null,
-      inMyBar: ingredientData.inMyBar || false,
+      inMyBar: (ingredientData as any).inMyBar || false,
       usedInRecipesCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),

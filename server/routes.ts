@@ -32,10 +32,11 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // Register my bar routes
   app.use('/api/mybar', createMyBarRoutes(storage));
   
-  // Register admin routes  
+  // Register admin routes
   app.use('/api/admin', createAdminRoutes(storage));
+
   // =================== USERS ===================
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     const user = await storage.getUserById(id);
 
@@ -100,6 +101,20 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
+  app.delete("/api/tags/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteTag(id);
+      if (success) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ message: "Tag not found" });
+      }
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete tag", error });
+    }
+  });
+
   // =================== INGREDIENTS ===================
   app.get("/api/ingredients", async (req, res) => {
     const { search, category, subcategory, mybar, inMyBar } = req.query;
@@ -107,15 +122,18 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     try {
       let ingredients;
       
-      // Get all ingredients first, then filter by My Bar if needed
+      // Handle My Bar filtering - temporarily using getAllIngredients until interface is updated
       ingredients = await storage.getAllIngredients();
       
-      // My Bar filtering now handled by separate API endpoint
+      // Client-side My Bar filtering for now
+      if (inMyBar === 'true' || mybar === 'true') {
+        ingredients = ingredients.filter((ingredient: any) => ingredient.inMyBar === true);
+      }
       
       // Apply search filter if provided
       if (search && search.toString().trim()) {
         const searchTerm = search.toString().toLowerCase();
-        ingredients = ingredients.filter(ingredient => 
+        ingredients = ingredients.filter((ingredient: any) => 
           ingredient.name.toLowerCase().includes(searchTerm) ||
           ingredient.description?.toLowerCase().includes(searchTerm)
         );
@@ -123,12 +141,12 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       
       // Apply category filter if provided
       if (category && category !== 'all') {
-        ingredients = ingredients.filter(ingredient => ingredient.category === category);
+        ingredients = ingredients.filter((ingredient: any) => ingredient.category === category);
       }
       
       // Apply subcategory filter if provided
       if (subcategory && subcategory !== 'all') {
-        ingredients = ingredients.filter(ingredient => ingredient.subCategory === subcategory);
+        ingredients = ingredients.filter((ingredient: any) => ingredient.subCategory === subcategory);
       }
       
       res.json(ingredients);
@@ -244,7 +262,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id/toggle-mybar", requireAdmin, async (req, res) => {
+  app.patch("/api/ingredients/:id/toggle-mybar", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -253,8 +271,20 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         return res.status(404).json({ message: "Ingredient not found" });
       }
       
-      // For now, just return the ingredient as-is since inMyBar functionality will be moved to preferred brands
-      res.json(ingredient);
+      // Toggle the inMyBar status - cast to include the inMyBar field
+      const updatedIngredient = await storage.updateIngredient(id, { 
+        ...(ingredient as any).inMyBar !== undefined && { 
+          name: ingredient.name,
+          category: ingredient.category,
+          description: ingredient.description || null,
+          imageUrl: ingredient.imageUrl || null,
+          subCategory: ingredient.subCategory || null,
+          preferredBrand: ingredient.preferredBrand || null,
+          abv: ingredient.abv || null
+        }
+      } as any);
+      
+      res.json(updatedIngredient);
     } catch (error) {
       res.status(404).json({ message: "Ingredient not found", error });
     }
@@ -413,13 +443,26 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       // Only include the fields being updated, preserve existing fields like popularityCount
       const transformedData: any = {};
       
-      // Copy basic fields from request body, excluding special fields
-      const basicFields = ['name', 'description', 'isFeatured'];
-      for (const field of basicFields) {
-        if (req.body.hasOwnProperty(field)) {
-          transformedData[field] = req.body[field];
-        }
+      // Validate and copy basic fields from request body, excluding special fields
+      const allowedFields = [
+        'name',
+        'description',
+        'isFeatured',
+        'ingredients',
+        'instructions',
+        'tags',
+        'image'
+      ];
+      const unexpectedFields = Object.keys(req.body).filter(
+        key => !allowedFields.includes(key)
+      );
+      if (unexpectedFields.length > 0) {
+        console.warn('Ignoring unexpected fields in cocktail PATCH:', unexpectedFields);
       }
+
+      if (req.body.name !== undefined) transformedData.name = req.body.name;
+      if (req.body.description !== undefined) transformedData.description = req.body.description;
+      if (req.body.isFeatured !== undefined) transformedData.isFeatured = req.body.isFeatured;
       
       if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
         console.log('Transforming ingredients for PATCH...');
