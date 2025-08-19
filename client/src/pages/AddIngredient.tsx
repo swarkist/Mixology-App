@@ -405,7 +405,8 @@ export const AddIngredient = (): JSX.Element => {
             <Button
               type="submit"
               form="ingredient-form"
-              className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] font-bold"
+              disabled={user?.role === 'reviewer'}
+              className="flex-1 bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 font-bold"
             >
               Add Ingredient
             </Button>

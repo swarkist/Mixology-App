@@ -26,6 +26,7 @@ export default function PreferredBrands() {
   const queryClient = useQueryClient();
   
   const isLoggedIn = !!user;
+  const canEdit = user?.role === 'admin' || user?.role === 'reviewer';
   const debounced = useDebounce(term, 300);
 
   // Handle URL state synchronization
@@ -184,25 +185,27 @@ export default function PreferredBrands() {
           placeholder="Search preferred brands..."
         />
 
-        {/* Action Buttons */}
-        <div className="px-4 py-3">
-          <div className="flex flex-col sm:flex-row gap-2 w-full">
-            <Button 
-              variant="outline" 
-              onClick={() => setOcrOpen(true)}
-              className="w-full sm:w-auto border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors font-medium border-2"
-            >
-              <Camera className="w-4 h-4 mr-2 flex-shrink-0" />
-              Add via Photo
-            </Button>
-            <Link href="/add-preferred-brand" className="w-full sm:w-auto">
-              <Button className="w-full bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
-                <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
-                Add Preferred Brand
+        {/* Action Buttons - Only show for logged in users */}
+        {isLoggedIn && (
+          <div className="px-4 py-3">
+            <div className="flex flex-col sm:flex-row gap-2 w-full">
+              <Button 
+                variant="outline" 
+                onClick={() => setOcrOpen(true)}
+                className="w-full sm:w-auto border-[#f2c40c] text-[#f2c40c] bg-transparent hover:bg-[#f2c40c] hover:text-[#161611] transition-colors font-medium border-2"
+              >
+                <Camera className="w-4 h-4 mr-2 flex-shrink-0" />
+                Add via Photo
               </Button>
-            </Link>
+              <Link href="/add-preferred-brand" className="w-full sm:w-auto">
+                <Button className="w-full bg-[#f2c40c] hover:bg-[#d9ad0b] text-black font-semibold px-6 py-2 rounded-lg transition-colors">
+                  <Plus className="w-4 h-4 mr-2 flex-shrink-0" />
+                  Add Preferred Brand
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Stats Bar */}
         {visibleBrands && (
@@ -282,15 +285,17 @@ export default function PreferredBrands() {
                         <Heart className={`w-3 h-3 mr-1 ${(brand as any).inMyBar ? 'fill-current' : ''}`} />
                         {(brand as any).inMyBar ? "In My Bar" : "Add to Bar"}
                       </Button>
-                      <Link href={`/edit-preferred-brand/${brand.id}`}>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
-                        >
-                          <Edit2 className="h-3 w-3" />
-                        </Button>
-                      </Link>
+                      {canEdit && (
+                        <Link href={`/edit-preferred-brand/${brand.id}`}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="px-3 text-[#bab59b] hover:text-[#f2c40c] hover:bg-[#383629]"
+                          >
+                            <Edit2 className="h-3 w-3" />
+                          </Button>
+                        </Link>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
