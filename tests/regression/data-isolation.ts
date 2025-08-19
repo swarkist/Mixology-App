@@ -172,7 +172,7 @@ export class TestDataManager {
     return response.ok ? await response.json() : null;
   }
 
-  // Login a test user and return token
+  // Login a test user (using cookie-based auth)
   async loginTestUser(email: string, password: string): Promise<string> {
     const response = await fetch(`${API_BASE}/auth/login`, {
       method: 'POST',
@@ -187,7 +187,8 @@ export class TestDataManager {
     }
 
     const data = await response.json();
-    return data.token || data.accessToken || ''; // Handle different token response formats
+    // For cookie-based auth, we just return success status
+    return data.success ? 'logged_in' : '';
   }
 
   // Delete test user (for cleanup)
@@ -439,7 +440,7 @@ export class TestDataManager {
     // Clean up tracked test users
     for (const userId of this.createdUsers) {
       try {
-        await this.deleteTestUser(userId);
+        await this.deleteTestUser(userId, 'test_password');
         console.log(`✅ Deleted tracked test user ID: ${userId}`);
       } catch (error: any) {
         errors.push(`Failed to delete test user ${userId}: ${error.message}`);

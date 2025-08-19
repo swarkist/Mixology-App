@@ -34,7 +34,6 @@ describe('SQL injection protection', () => {
       preferredBrand: null,
       abv: 40,
       imageUrl: null,
-      inMyBar: false,
       tagIds: []
     };
     await storage.createIngredient(ingredient);

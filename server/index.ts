@@ -69,14 +69,16 @@ const corsOptions: cors.CorsOptions = origins.length
   : {}; // no origins set -> default allow same-origin only
 app.use(cors(corsOptions));
 
-// Basic rate limiting (tune as needed)
-const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 300,                 // 300 requests per window per IP
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-app.use("/api", apiLimiter);
+// Basic rate limiting (disabled in test environment)
+if (process.env.NODE_ENV !== 'test') {
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 min
+    max: 300,                 // 300 requests per window per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api", apiLimiter);
+}
 
 // Cookie parser for auth tokens
 app.use(cookieParser());
