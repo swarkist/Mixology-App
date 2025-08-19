@@ -69,6 +69,14 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Technical Improvements (August 2025)
 
+### Bug Fixes & System Maintenance (August 19, 2025)
+- **My Bar Persistence Issue Resolution**: Fixed critical bug where My Bar item additions/removals weren't persisting correctly. Root causes identified and resolved:
+  - Authorization bug: Toggle endpoint incorrectly required admin privileges for regular users to manage their own bar
+  - API routing bug: Preferred brands API was calling `getAllPreferredBrands()` instead of filtered `getPreferredBrandsInMyBar()` method
+  - Interface compatibility: Missing `getPreferredBrandsInMyBar` method definition in IStorage interface
+- **Multi-Role Testing Completed**: Verified My Bar functionality works correctly for both basic and reviewer user roles with proper data persistence
+- **Firebase Query Optimization**: Confirmed efficient Firestore querying with `inMyBar=true` filter reduces data transfer and improves performance
+
 ### Environment & Deployment Infrastructure
 - **Database Environment Separation**: Implemented environment-based Firebase database switching supporting separate development and production Firestore instances.
 - **Environment Detection**: Added automatic environment detection via `NODE_ENV` or `ENVIRONMENT` variables.
