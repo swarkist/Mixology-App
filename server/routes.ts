@@ -427,13 +427,26 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       // Only include the fields being updated, preserve existing fields like popularityCount
       const transformedData: any = {};
       
-      // Copy basic fields from request body, excluding special fields
-      const basicFields = ['name', 'description', 'isFeatured'];
-      for (const field of basicFields) {
-        if (req.body.hasOwnProperty(field)) {
-          transformedData[field] = req.body[field];
-        }
+      // Validate and copy basic fields from request body, excluding special fields
+      const allowedFields = [
+        'name',
+        'description',
+        'isFeatured',
+        'ingredients',
+        'instructions',
+        'tags',
+        'image'
+      ];
+      const unexpectedFields = Object.keys(req.body).filter(
+        key => !allowedFields.includes(key)
+      );
+      if (unexpectedFields.length > 0) {
+        console.warn('Ignoring unexpected fields in cocktail PATCH:', unexpectedFields);
       }
+
+      if (req.body.name !== undefined) transformedData.name = req.body.name;
+      if (req.body.description !== undefined) transformedData.description = req.body.description;
+      if (req.body.isFeatured !== undefined) transformedData.isFeatured = req.body.isFeatured;
       
       if (req.body.ingredients && Array.isArray(req.body.ingredients)) {
         console.log('Transforming ingredients for PATCH...');
