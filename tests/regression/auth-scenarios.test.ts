@@ -62,12 +62,15 @@ describe('Authentication and Authorization Regression Tests', () => {
   let testManager: TestDataManager;
   let adminUser: any;
   let basicUser: any;
+  let reviewerUser: any;
   let adminToken: string;
   let basicUserToken: string;
-  
+  let reviewerToken: string;
+
   // Test user credentials
   const ADMIN_EMAIL = `test_admin_${Date.now()}@mixology.test`;
   const BASIC_EMAIL = `test_basic_${Date.now()}@mixology.test`;
+  const REVIEWER_EMAIL = `test_reviewer_${Date.now()}@mixology.test`;
   const TEST_PASSWORD = 'TestPassword123!';
 
   beforeAll(async () => {
@@ -116,6 +119,34 @@ describe('Authentication and Authorization Regression Tests', () => {
       expect(result.user.is_active).toBe(true);
       
       adminUser = result.user;
+    });
+
+    it('should login admin user', async () => {
+      const result = await loginUser(ADMIN_EMAIL, TEST_PASSWORD);
+
+      expect(result.success).toBe(true);
+      adminToken = result.accessToken || 'session-based-auth';
+    });
+
+    it('should register and promote a reviewer user', async () => {
+      const result = await createTestUser(REVIEWER_EMAIL, TEST_PASSWORD, 'basic');
+
+      expect(result.success).toBe(true);
+      reviewerUser = result.user;
+
+      const promote = await authApiRequest(`/admin/users/${reviewerUser.id}/role`, adminToken, {
+        method: 'PATCH',
+        body: JSON.stringify({ role: 'reviewer' })
+      });
+      expect(promote.response.status).toBe(200);
+    });
+
+    it('should login reviewer user', async () => {
+      const result = await loginUser(REVIEWER_EMAIL, TEST_PASSWORD);
+
+      expect(result.success).toBe(true);
+      expect(result.user.role).toBe('reviewer');
+      reviewerToken = result.accessToken || 'session-based-auth';
     });
 
     it('should prevent duplicate user registration', async () => {
@@ -245,6 +276,125 @@ describe('Authentication and Authorization Regression Tests', () => {
         
         // Basic users shouldn't be able to set featured status
         expect([403, 401]).toContain(response.status);
+      });
+    });
+
+    describe('Reviewer Permissions', () => {
+      let reviewerCocktail: any;
+      let reviewerIngredient: any;
+
+      beforeAll(async () => {
+        reviewerCocktail = await testManager.createTestCocktail({
+          name: 'Reviewer_RBAC_Cocktail',
+          description: 'Reviewer permission test cocktail',
+          ingredients: [{ name: 'Reviewer_Test_Ingredient', amount: 1, unit: 'oz' }],
+          instructions: ['Test instruction'],
+          tags: ['reviewer_test']
+        });
+
+        reviewerIngredient = await testManager.createTestIngredient({
+          name: 'Reviewer_RBAC_Ingredient',
+          category: 'spirits',
+          abv: 40
+        });
+      });
+
+      it('should allow reviewer to view cocktails', async () => {
+        const { response, data } = await authApiRequest('/cocktails', reviewerToken);
+
+        expect(response.status).toBe(200);
+        expect(Array.isArray(data)).toBe(true);
+      });
+
+      it('should allow reviewer to view ingredients', async () => {
+        const { response, data } = await authApiRequest('/ingredients', reviewerToken);
+
+        expect(response.status).toBe(200);
+        expect(Array.isArray(data)).toBe(true);
+      });
+
+      it('should block reviewer from creating cocktails', async () => {
+        const { response } = await authApiRequest('/cocktails', reviewerToken, {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Forbidden', description: 'Nope' })
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from updating cocktails', async () => {
+        const { response } = await authApiRequest(`/cocktails/${reviewerCocktail.id}`, reviewerToken, {
+          method: 'PATCH',
+          body: JSON.stringify({ description: 'Updated' })
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from deleting cocktails', async () => {
+        const { response } = await authApiRequest(`/cocktails/${reviewerCocktail.id}`, reviewerToken, {
+          method: 'DELETE'
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from creating ingredients', async () => {
+        const { response } = await authApiRequest('/ingredients', reviewerToken, {
+          method: 'POST',
+          body: JSON.stringify({ name: 'Forbidden Ingredient', category: 'spirits', abv: 10 })
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from updating ingredients', async () => {
+        const { response } = await authApiRequest(`/ingredients/${reviewerIngredient.id}`, reviewerToken, {
+          method: 'PATCH',
+          body: JSON.stringify({ description: 'Updated' })
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from deleting ingredients', async () => {
+        const { response } = await authApiRequest(`/ingredients/${reviewerIngredient.id}`, reviewerToken, {
+          method: 'DELETE'
+        });
+
+        expect(response.status).toBe(403);
+      });
+
+      it('should block reviewer from writing preferred brands', async () => {
+        const { response: postRes } = await authApiRequest('/preferred-brands', reviewerToken, {
+          method: 'POST',
+          body: JSON.stringify({ name: 'ReviewerBrand', category: 'test' })
+        });
+        expect(postRes.status).toBe(403);
+
+        const { response: patchRes } = await authApiRequest('/preferred-brands/1', reviewerToken, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: 'UpdatedBrand' })
+        });
+        expect(patchRes.status).toBe(403);
+
+        const { response: deleteRes } = await authApiRequest('/preferred-brands/1', reviewerToken, {
+          method: 'DELETE'
+        });
+        expect(deleteRes.status).toBe(403);
+      });
+
+      it('should block reviewer from modifying my bar', async () => {
+        const { response: postRes } = await authApiRequest('/mybar/toggle', reviewerToken, {
+          method: 'POST',
+          body: JSON.stringify({ ingredientId: reviewerIngredient.id })
+        });
+        expect(postRes.status).toBe(403);
+
+        const { response: deleteRes } = await authApiRequest('/mybar/1', reviewerToken, {
+          method: 'DELETE'
+        });
+        expect(deleteRes.status).toBe(403);
       });
     });
 
