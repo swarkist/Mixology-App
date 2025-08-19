@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Check, Plus, X } from "lucide-react";
+import { Search, Star, Heart, Edit, Edit2, BarChart3, Check, Plus, X } from "lucide-react";
 import { Link } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -30,8 +31,18 @@ const BRAND_CATEGORIES = [
 
 export default function MyBar() {
   const { user } = useAuth();
+  const [term, setTerm] = useState(() => getQueryParam("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
+  const queryClient = useQueryClient();
+  
+  const isLoggedIn = !!user;
+  const debounced = useDebounce(term, 300);
+  
+  // Check if category filters are active (not search)
+  const hasCategoryFilters = Boolean(selectedCategory);
 
-  if (!user) {
+  // Show login message for non-logged-in users
+  if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
         <TopNavigation />
@@ -56,18 +67,6 @@ export default function MyBar() {
       </div>
     );
   }
-
-  return <MyBarContent />;
-}
-
-function MyBarContent() {
-  const [term, setTerm] = useState(() => getQueryParam("search") || "");
-  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
-  const queryClient = useQueryClient();
-
-  const debounced = useDebounce(term, 300);
-
-  const hasCategoryFilters = Boolean(selectedCategory);
 
   // Handle URL state synchronization
   useEffect(() => {
@@ -111,48 +110,48 @@ function MyBarContent() {
   // Helper function to categorize brands based on name patterns
   const categorizeBrand = (brandName: string): string => {
     const name = brandName.toLowerCase();
-
+    
     // Spirits patterns
-    if (name.includes('whiskey') || name.includes('whisky') || name.includes('bourbon') ||
-        name.includes('scotch') || name.includes('rye') || name.includes('vodka') ||
-        name.includes('gin') || name.includes('rum') || name.includes('tequila') ||
+    if (name.includes('whiskey') || name.includes('whisky') || name.includes('bourbon') || 
+        name.includes('scotch') || name.includes('rye') || name.includes('vodka') || 
+        name.includes('gin') || name.includes('rum') || name.includes('tequila') || 
         name.includes('cognac') || name.includes('brandy') || name.includes('moonshine')) {
       return 'spirits';
     }
-
+    
     // Liqueurs patterns
     if (name.includes('liqueur') || name.includes('schnapps') || name.includes('amaretto') ||
         name.includes('baileys') || name.includes('kahlua') || name.includes('cointreau') ||
         name.includes('grand marnier') || name.includes('triple sec') || name.includes('curacao')) {
       return 'liqueurs';
     }
-
+    
     // Bitters patterns
     if (name.includes('bitter') || name.includes('angostura') || name.includes('peychaud')) {
       return 'bitters';
     }
-
+    
     // Syrups patterns
     if (name.includes('syrup') || name.includes('grenadine') || name.includes('simple syrup') ||
         name.includes('cherry syrup') || name.includes('vanilla syrup')) {
       return 'syrups';
     }
-
-    // Mixers patterns
+    
+    // Mixers patterns  
     if (name.includes('tonic') || name.includes('soda') || name.includes('ginger beer') ||
         name.includes('club soda') || name.includes('mixer') || name.includes('juice')) {
       return 'mixers';
     }
-
+    
     return 'other';
   };
 
   // Filter items based on search and category
   const visibleMyBarItems = useMemo(() => {
     if (!allMyBarItems) return [];
-
+    
     let filtered = allMyBarItems;
-
+    
     // Apply search filter
     if (debounced.trim()) {
       const q = debounced.toLowerCase();
@@ -160,7 +159,7 @@ function MyBarContent() {
         item.name?.toLowerCase().includes(q)
       );
     }
-
+    
     // Apply category filter
     if (selectedCategory) {
       filtered = filtered.filter((item: PreferredBrand) => {
@@ -168,7 +167,7 @@ function MyBarContent() {
         return itemCategory === selectedCategory;
       });
     }
-
+    
     return filtered;
   }, [allMyBarItems, debounced, selectedCategory]);
 
@@ -230,7 +229,7 @@ function MyBarContent() {
   return (
     <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
       <TopNavigation />
-
+      
       <div className="px-4 md:px-40 py-5">
         {/* Header */}
         <div className="p-4 mb-3">
@@ -238,13 +237,13 @@ function MyBarContent() {
             My Bar
           </h1>
           <p className="text-sm text-[#bab59c]">
-            Manage your personal collection of spirits, liqueurs, and ingredients.
+            Manage your personal collection of spirits, liqueurs, and ingredients. 
             Add items to track what you have available for crafting cocktails.
           </p>
         </div>
 
         {/* Search */}
-        <SearchBar
+        <SearchBar 
           value={term}
           onChange={setTerm}
           placeholder="Search my bar..."
@@ -349,8 +348,8 @@ function MyBarContent() {
         {/* Content */}
         <div className="px-4 py-6">
           {visibleMyBarItems.length === 0 ? (
-            <EmptyState
-              term={term}
+            <EmptyState 
+              term={term} 
               onClear={() => setTerm("")}
               isFilterResult={hasCategoryFilters}
               onClearFilters={() => {
