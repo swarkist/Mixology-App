@@ -29,44 +29,18 @@ const BRAND_CATEGORIES = [
   "other"
 ] as const;
 
-export default function MyBar() {
-  const { user } = useAuth();
+// Separate component containing all the hooks and logic for authenticated users
+function MyBarContent() {
   const [term, setTerm] = useState(() => getQueryParam("search") || "");
   const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   const isLoggedIn = !!user;
   const debounced = useDebounce(term, 300);
   
   // Check if category filters are active (not search)
   const hasCategoryFilters = Boolean(selectedCategory);
-
-  // Show login message for non-logged-in users
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
-        <TopNavigation />
-        <div className="px-4 md:px-40 py-5">
-          <div className="p-4 mb-3">
-            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              My Bar
-            </h1>
-            <div className="text-center py-12">
-              <p className="text-[#bab59c] text-lg mb-4">
-                Please login to see or manage your bar.
-              </p>
-              <Link href="/login">
-                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
-                  Login to Continue
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <Navigation />
-      </div>
-    );
-  }
 
   // Handle URL state synchronization
   useEffect(() => {
@@ -103,6 +77,7 @@ export default function MyBar() {
         throw error;
       }
     },
+    enabled: isLoggedIn, // Only run query for authenticated users
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -176,7 +151,8 @@ export default function MyBar() {
       return apiRequest(`/api/preferred-brands/${brandId}/toggle-mybar`, { method: "PATCH" });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands"] });
+      // Invalidate the exact query key to ensure cache updates
+      queryClient.invalidateQueries({ queryKey: ["/api/preferred-brands", { inMyBar: true }] });
     },
   });
 
@@ -416,4 +392,40 @@ export default function MyBar() {
       <Navigation />
     </div>
   );
+}
+
+// Main component that handles authentication gate
+export default function MyBar() {
+  const { user } = useAuth();
+  const isLoggedIn = !!user;
+
+  // Show login message for non-logged-in users
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
+        <TopNavigation />
+        <div className="px-4 md:px-40 py-5">
+          <div className="p-4 mb-3">
+            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              My Bar
+            </h1>
+            <div className="text-center py-12">
+              <p className="text-[#bab59c] text-lg mb-4">
+                Please login to see or manage your bar.
+              </p>
+              <Link href="/login">
+                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                  Login to Continue
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+        <Navigation />
+      </div>
+    );
+  }
+
+  // Render the authenticated content
+  return <MyBarContent />;
 }
