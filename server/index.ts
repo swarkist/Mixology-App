@@ -15,36 +15,47 @@ const app = express();
 // --- Security & hardening ---
 app.set("trust proxy", 1);
 
-// Configure Helmet with CSP that allows Vite development server
+// Configure Helmet with environment-aware CSP
+const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        "'unsafe-inline'", // Allow inline scripts for Vite HMR
-        "'unsafe-eval'",   // Allow eval for Vite development
-        "https://localhost:*",
-        "http://localhost:*"
-      ],
+      scriptSrc: isProduction 
+        ? ["'self'", "https://replit.com"] 
+        : [
+            "'self'",
+            "'unsafe-inline'", // Allow inline scripts for Vite HMR
+            "'unsafe-eval'",   // Allow eval for Vite development
+            "https://localhost:*",
+            "http://localhost:*",
+            "https://replit.com"
+          ],
       styleSrc: [
         "'self'",
-        "'unsafe-inline'", // Allow inline styles for Vite
+        "'unsafe-inline'", // Allow inline styles for dynamic styling
         "https://fonts.googleapis.com"
       ],
       fontSrc: [
         "'self'",
         "https://fonts.gstatic.com"
       ],
-      connectSrc: [
-        "'self'",
-        "ws://localhost:*",
-        "wss://localhost:*",
-        "http://localhost:*",
-        "https://localhost:*",
-        "https://api.allorigins.win", // Allow CORS proxy for web scraping
-        "https://openrouter.ai" // Allow OpenRouter API
-      ],
+      connectSrc: isProduction
+        ? [
+            "'self'",
+            "https://api.allorigins.win", // Allow CORS proxy for web scraping
+            "https://openrouter.ai" // Allow OpenRouter API
+          ]
+        : [
+            "'self'",
+            "ws://localhost:*",
+            "wss://localhost:*",
+            "http://localhost:*",
+            "https://localhost:*",
+            "https://api.allorigins.win", // Allow CORS proxy for web scraping
+            "https://openrouter.ai" // Allow OpenRouter API
+          ],
       imgSrc: ["'self'", "data:", "blob:", "https:"]
     }
   }
@@ -89,17 +100,20 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
   const isWrite = method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
   if (!isWrite) return next();
 
-  // Exclude read-only endpoints that use POST for complex queries
+  // Exclude read-only endpoints that use POST for complex queries and authentication
   const readOnlyEndpoints = [
-    "/api/scrape-url",        // Web scraping (read-only)
-    "/api/openrouter",        // AI processing (read-only)
-    "/api/youtube-transcript" // Video transcript extraction (read-only)
+    "/scrape-url",        // Web scraping (read-only)
+    "/openrouter",        // AI processing (read-only)
+    "/youtube-transcript", // Video transcript extraction (read-only)
+    "/auth/login",        // User authentication
+    "/auth/register",     // User registration
+    "/auth/logout",       // User logout
+    "/auth/forgot-password", // Password reset
+    "/auth/reset-password"   // Password reset confirmation
   ];
   
   console.log(`Admin check: ${method} ${req.path} - isWrite: ${isWrite}`);
-  
   if (readOnlyEndpoints.includes(req.path)) {
-    console.log(`Allowing read-only endpoint: ${req.path}`);
     return next();
   }
 
@@ -120,8 +134,8 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
   registerReadOnlyRoutes(app, undefined);
 })();
 
-// Temporarily disable admin key middleware to test functionality
-// app.use("/api", requireAdminForWrites);
+// Enable admin key middleware for production security
+app.use("/api", requireAdminForWrites);
 
 app.use((req, res, next) => {
   const start = Date.now();

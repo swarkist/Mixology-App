@@ -17,6 +17,15 @@ import { createAuthMiddleware } from './middleware/auth';
 import { allowRoles, rejectWritesForReviewer } from './middleware/roles';
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
+  // Health check endpoint (before middleware)
+  app.get("/api/health", (req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      environment: process.env.NODE_ENV || 'development'
+    });
+  });
+
   // Create auth middleware
   const { requireAuth, requireAdmin } = createAuthMiddleware(storage);
   
