@@ -1,15 +1,21 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestDataManager } from './data-isolation.js';
 
-// API request helper function with authentication
-async function authApiRequest(endpoint: string, token?: string, options: RequestInit = {}): Promise<any> {
+// Simple cookie jar for maintaining session cookies between requests
+const cookieJar: Record<string, string> = {};
+
+// API request helper function that automatically sends stored cookies
+async function authApiRequest(endpoint: string, options: RequestInit = {}): Promise<any> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers as Record<string, string>,
+    ...(options.headers as Record<string, string>),
   };
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  // Attach cookies if we have any stored
+  if (Object.keys(cookieJar).length > 0) {
+    headers['Cookie'] = Object.entries(cookieJar)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('; ');
   }
 
   const response = await fetch(`http://localhost:5000/api${endpoint}`, {
@@ -20,13 +26,13 @@ async function authApiRequest(endpoint: string, token?: string, options: Request
   return {
     response,
     data: response.ok ? await response.json() : null,
-    status: response.status
+    status: response.status,
   };
 }
 
 // User creation helper
 async function createTestUser(email: string, password: string, role: 'admin' | 'basic' = 'basic') {
-  const { response, data } = await authApiRequest('/auth/register', undefined, {
+  const { response, data } = await authApiRequest('/auth/register', {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });
@@ -46,13 +52,22 @@ async function createTestUser(email: string, password: string, role: 'admin' | '
 
 // Login helper
 async function loginUser(email: string, password: string) {
-  const { response, data } = await authApiRequest('/auth/login', undefined, {
+  const { response, data } = await authApiRequest('/auth/login', {
     method: 'POST',
-    body: JSON.stringify({ email, password })
+    body: JSON.stringify({ email, password }),
   });
 
   if (!response.ok) {
     throw new Error(`Failed to login user ${email}: ${response.status}`);
+  }
+
+  // Store session cookie for subsequent requests
+  const setCookie = response.headers.get('set-cookie');
+  if (setCookie) {
+    const match = setCookie.match(/accessToken=([^;]+)/);
+    if (match) {
+      cookieJar['accessToken'] = match[1];
+    }
   }
 
   return data;
@@ -62,8 +77,6 @@ describe('Authentication and Authorization Regression Tests', () => {
   let testManager: TestDataManager;
   let adminUser: any;
   let basicUser: any;
-  let adminToken: string;
-  let basicUserToken: string;
   
   // Test user credentials
   const ADMIN_EMAIL = `test_admin_${Date.now()}@mixology.test`;
@@ -119,11 +132,11 @@ describe('Authentication and Authorization Regression Tests', () => {
     });
 
     it('should prevent duplicate user registration', async () => {
-      const { response } = await authApiRequest('/auth/register', undefined, {
+      const { response } = await authApiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ 
-          email: BASIC_EMAIL, 
-          password: TEST_PASSWORD 
+        body: JSON.stringify({
+          email: BASIC_EMAIL,
+          password: TEST_PASSWORD
         })
       });
 
@@ -133,20 +146,17 @@ describe('Authentication and Authorization Regression Tests', () => {
 
     it('should login with valid credentials', async () => {
       const result = await loginUser(BASIC_EMAIL, TEST_PASSWORD);
-      
+
       expect(result.success).toBe(true);
       expect(result.user.email).toBe(BASIC_EMAIL);
-      
-      // Extract token for subsequent tests
-      basicUserToken = result.accessToken || 'session-based-auth';
     });
 
     it('should reject login with invalid credentials', async () => {
-      const { response } = await authApiRequest('/auth/login', undefined, {
+      const { response } = await authApiRequest('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ 
-          email: BASIC_EMAIL, 
-          password: 'wrong-password' 
+        body: JSON.stringify({
+          email: BASIC_EMAIL,
+          password: 'wrong-password'
         })
       });
 
@@ -176,7 +186,7 @@ describe('Authentication and Authorization Regression Tests', () => {
       // Login first
       await loginUser(BASIC_EMAIL, TEST_PASSWORD);
       
-      const { response } = await authApiRequest('/auth/logout', undefined, {
+      const { response } = await authApiRequest('/auth/logout', {
         method: 'POST'
       });
       
@@ -191,30 +201,29 @@ describe('Authentication and Authorization Regression Tests', () => {
   describe('Role-Based Access Control (RBAC)', () => {
     beforeAll(async () => {
       // Ensure we have fresh sessions for both users
-      const basicLogin = await loginUser(BASIC_EMAIL, TEST_PASSWORD);
-      basicUserToken = basicLogin.accessToken || 'session-based';
-      
+      await loginUser(BASIC_EMAIL, TEST_PASSWORD);
+
       // For admin tests, we'll simulate admin promotion
       // In production, this would be done through proper admin APIs
     });
 
     describe('Basic User Permissions', () => {
       it('should allow basic user to view public cocktails', async () => {
-        const { response, data } = await authApiRequest('/cocktails', basicUserToken);
-        
+        const { response, data } = await authApiRequest('/cocktails');
+
         expect(response.status).toBe(200);
         expect(Array.isArray(data)).toBe(true);
       });
 
       it('should allow basic user to view ingredients', async () => {
-        const { response, data } = await authApiRequest('/ingredients', basicUserToken);
-        
+        const { response, data } = await authApiRequest('/ingredients');
+
         expect(response.status).toBe(200);
         expect(Array.isArray(data)).toBe(true);
       });
 
       it('should allow basic user to manage their bar', async () => {
-        const { response } = await authApiRequest('/mybar/toggle', basicUserToken, {
+        const { response } = await authApiRequest('/mybar/toggle', {
           method: 'POST',
           body: JSON.stringify({ ingredientId: 1 })
         });
@@ -224,7 +233,7 @@ describe('Authentication and Authorization Regression Tests', () => {
       });
 
       it('should prevent basic user from accessing admin endpoints', async () => {
-        const { response } = await authApiRequest('/admin/users', basicUserToken);
+        const { response } = await authApiRequest('/admin/users');
         
         expect(response.status).toBe(403);
       });
@@ -238,7 +247,7 @@ describe('Authentication and Authorization Regression Tests', () => {
           tags: ['rbac_test']
         });
 
-        const { response } = await authApiRequest(`/cocktails/${testCocktail.id}`, basicUserToken, {
+        const { response } = await authApiRequest(`/cocktails/${testCocktail.id}`, {
           method: 'PATCH',
           body: JSON.stringify({ featured: true })
         });
@@ -374,7 +383,7 @@ describe('Authentication and Authorization Regression Tests', () => {
       // Login as basic user and add to their bar
       await loginUser(BASIC_EMAIL, TEST_PASSWORD);
       
-      const { response: toggleResponse } = await authApiRequest('/mybar/toggle', basicUserToken, {
+      const { response: toggleResponse } = await authApiRequest('/mybar/toggle', {
         method: 'POST',
         body: JSON.stringify({ ingredientId: testIngredient.id })
       });
@@ -395,7 +404,7 @@ describe('Authentication and Authorization Regression Tests', () => {
 
   describe('API Security Headers and Validation', () => {
     it('should require proper Content-Type for POST requests', async () => {
-      const { response } = await authApiRequest('/auth/login', undefined, {
+      const { response } = await authApiRequest('/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ email: BASIC_EMAIL, password: TEST_PASSWORD })
@@ -406,10 +415,10 @@ describe('Authentication and Authorization Regression Tests', () => {
     });
 
     it('should validate input schemas', async () => {
-      const { response } = await authApiRequest('/auth/register', undefined, {
+      const { response } = await authApiRequest('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ 
-          email: 'invalid-email', 
+        body: JSON.stringify({
+          email: 'invalid-email',
           password: '123' // too short
         })
       });
@@ -419,15 +428,17 @@ describe('Authentication and Authorization Regression Tests', () => {
 
     it('should enforce rate limiting', async () => {
       // Rapid-fire requests to test rate limiting
-      const requests = Array(10).fill(0).map(() => 
-        authApiRequest('/auth/login', undefined, {
-          method: 'POST',
-          body: JSON.stringify({ 
-            email: 'nonexistent@test.com', 
-            password: 'wrongpassword'
+      const requests = Array(10)
+        .fill(0)
+        .map(() =>
+          authApiRequest('/auth/login', {
+            method: 'POST',
+            body: JSON.stringify({
+              email: 'nonexistent@test.com',
+              password: 'wrongpassword',
+            }),
           })
-        })
-      );
+        );
 
       const results = await Promise.all(requests);
       
