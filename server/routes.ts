@@ -29,11 +29,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // Create auth middleware
   const { requireAuth, requireAdmin } = createAuthMiddleware(storage);
   
-  // Apply write rejection middleware to protected routes
-  app.use('/api/cocktails', rejectWritesForReviewer);
-  app.use('/api/ingredients', rejectWritesForReviewer);  
-  app.use('/api/preferred-brands', rejectWritesForReviewer);
-  app.use('/api/mybar', rejectWritesForReviewer);
+  // Note: Role-based permissions now allow:
+  // - Basic users: My Bar management and favorites
+  // - Reviewers: Content creation/editing + My Bar management
+  // - Admins: Full access including admin operations
   
   // Register authentication routes
   app.use('/api/auth', createAuthRoutes(storage));
@@ -181,7 +180,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/ingredients", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.post("/api/ingredients", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
       
@@ -223,7 +222,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.patch("/api/ingredients/:id", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
@@ -271,7 +270,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id/toggle-mybar", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.patch("/api/ingredients/:id/toggle-mybar", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     try {
@@ -362,7 +361,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(cocktailWithDetails);
   });
 
-  app.post("/api/cocktails", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.post("/api/cocktails", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     try {
       console.log('\n=== POST /api/cocktails ===');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
@@ -435,7 +434,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/cocktails/:id", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.patch("/api/cocktails/:id", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/cocktails/${id} ===`);
@@ -837,7 +836,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(brandWithDetails);
   });
 
-  app.post("/api/preferred-brands", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.post("/api/preferred-brands", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     try {
       console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
       
@@ -866,7 +865,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/preferred-brands/:id", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.patch("/api/preferred-brands/:id", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== PATCH /api/preferred-brands/${id} ===`);

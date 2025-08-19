@@ -94,29 +94,48 @@ if (process.env.NODE_ENV !== 'test') {
 // Cookie parser for auth tokens
 app.use(cookieParser());
 
-// Admin API key gate for write methods on /api/*
+// Admin API key gate - only for admin-level operations and bulk operations
 const requireAdminForWrites: import("express").RequestHandler = (req, res, next) => {
   const method = req.method.toUpperCase();
   const isWrite = method === "POST" || method === "PUT" || method === "PATCH" || method === "DELETE";
   if (!isWrite) return next();
 
-  // Exclude read-only endpoints that use POST for complex queries and authentication
+  // Define admin-only endpoints that require API key
+  const adminOnlyEndpoints = [
+    "/admin/",              // All admin routes
+    "/backup/",             // Backup operations
+    "/recalculate-",        // Bulk operations
+    "/reset-popularity",    // Admin cocktail operations
+    "/toggle-featured",     // Admin cocktail operations
+  ];
+  
+  // Read-only endpoints that use POST but don't need admin key
   const readOnlyEndpoints = [
-    "/scrape-url",        // Web scraping (read-only)
-    "/openrouter",        // AI processing (read-only)
-    "/youtube-transcript", // Video transcript extraction (read-only)
-    "/auth/login",        // User authentication
-    "/auth/register",     // User registration
-    "/auth/logout",       // User logout
+    "/scrape-url",          // Web scraping
+    "/openrouter",          // AI processing
+    "/youtube-transcript",  // Video transcript extraction
+    "/auth/login",          // User authentication
+    "/auth/register",       // User registration
+    "/auth/logout",         // User logout
     "/auth/forgot-password", // Password reset
     "/auth/reset-password"   // Password reset confirmation
   ];
   
   console.log(`Admin check: ${method} ${req.path} - isWrite: ${isWrite}`);
+  
+  // Allow read-only endpoints
   if (readOnlyEndpoints.includes(req.path)) {
     return next();
   }
+  
+  // Check if this is an admin-only operation
+  const isAdminOperation = adminOnlyEndpoints.some(endpoint => req.path.includes(endpoint));
+  if (!isAdminOperation) {
+    // Regular user operation - allow through for role-based middleware to handle
+    return next();
+  }
 
+  // Admin operation - require API key
   const provided = req.header("x-admin-key") || "";
   const expected = process.env.ADMIN_API_KEY || "";
   if (!expected) {
