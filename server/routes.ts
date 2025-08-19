@@ -32,10 +32,11 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // Register my bar routes
   app.use('/api/mybar', createMyBarRoutes(storage));
   
-  // Register admin routes  
+  // Register admin routes
   app.use('/api/admin', createAdminRoutes(storage));
+
   // =================== USERS ===================
-  app.get("/api/users/:id", async (req, res) => {
+  app.get("/api/users/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     const user = await storage.getUserById(id);
 
