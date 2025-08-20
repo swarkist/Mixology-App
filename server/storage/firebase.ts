@@ -709,20 +709,42 @@ export class FirebaseStorage {
     return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Ingredient));
   }
 
-  async getMyBarIngredients(): Promise<Ingredient[]> {
-    const snapshot = await this.ingredientsCollection.where('inMyBar', '==', true).get();
-    return snapshot.docs.map(doc => ({ id: parseInt(doc.id), ...doc.data() } as Ingredient));
+  async getMyBarIngredients(userId: number): Promise<Ingredient[]> {
+    try {
+      console.log('🔥 Querying user-specific My Bar ingredients for user:', userId);
+      
+      // Get user's My Bar items for ingredients
+      const myBarSnapshot = await db.collection('my_bar')
+        .where('user_id', '==', userId)
+        .where('type', '==', 'ingredient')
+        .get();
+      
+      const ingredientIds = myBarSnapshot.docs.map(doc => doc.data().ref_id);
+      console.log('🔥 User', userId, 'has', ingredientIds.length, 'ingredients in My Bar:', ingredientIds);
+      
+      if (ingredientIds.length === 0) {
+        return [];
+      }
+      
+      // Get the actual ingredient details for those IDs
+      const ingredients = await Promise.all(
+        ingredientIds.map(async (id) => {
+          const ingredient = await this.getIngredientById(id);
+          return ingredient;
+        })
+      );
+      
+      const result = ingredients.filter((ingredient): ingredient is Ingredient => ingredient !== null);
+      console.log('🔥 Returning', result.length, 'ingredients for user', userId, 'My Bar');
+      return result;
+    } catch (error) {
+      console.error('Error fetching My Bar ingredients:', error);
+      return [];
+    }
   }
 
-  async toggleIngredientInMyBar(id: number, inMyBar: boolean): Promise<Ingredient | null> {
-    // Direct update to avoid type issues
-    await this.ingredientsCollection.doc(id.toString()).update({
-      inMyBar: inMyBar,
-      updatedAt: new Date()
-    });
-    
-    return this.getIngredientById(id);
-  }
+  // NOTE: toggleIngredientInMyBar removed - use user-specific My Bar collection instead
+  // This method violated data isolation by using global inMyBar flags
 
   async incrementIngredientUsage(ingredientId: number): Promise<void> {
     const ingredient = await this.getIngredientById(ingredientId);
@@ -1152,29 +1174,34 @@ export class FirebaseStorage {
     );
   }
 
-  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
+  async getPreferredBrandsInMyBar(userId: number): Promise<PreferredBrand[]> {
     try {
-      console.log('🔥 Querying Firestore for brands with inMyBar=true...');
-      const snapshot = await this.preferredBrandsCollection.where('inMyBar', '==', true).get();
-      console.log('🔥 Query returned', snapshot.size, 'documents');
+      console.log('🔥 Querying user-specific My Bar items for user:', userId);
       
-      const brands = snapshot.docs.map((doc: any) => {
-        const data = doc.data();
-        console.log('🔥 Document', doc.id, 'data:', { inMyBar: data.inMyBar, name: data.name });
-        return {
-          id: parseInt(doc.id),
-          name: data.name || 'Untitled Brand',
-          proof: data.proof || null,
-          imageUrl: data.imageUrl || null,
-          inMyBar: data.inMyBar || false,
-          usedInRecipesCount: data.usedInRecipesCount || 0,
-          createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
-          updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-        } as PreferredBrandWithMyBar;
-      });
+      // Get user's My Bar items for brands
+      const myBarSnapshot = await db.collection('my_bar')
+        .where('user_id', '==', userId)
+        .where('type', '==', 'brand')
+        .get();
       
-      console.log('🔥 Returning', brands.length, 'brands for My Bar');
-      return brands;
+      const brandIds = myBarSnapshot.docs.map(doc => doc.data().ref_id);
+      console.log('🔥 User', userId, 'has', brandIds.length, 'brands in My Bar:', brandIds);
+      
+      if (brandIds.length === 0) {
+        return [];
+      }
+      
+      // Get the actual brand details for those IDs
+      const brands = await Promise.all(
+        brandIds.map(async (id) => {
+          const brand = await this.getPreferredBrand(id);
+          return brand;
+        })
+      );
+      
+      const result = brands.filter((brand): brand is PreferredBrand => brand !== null);
+      console.log('🔥 Returning', result.length, 'brands for user', userId, 'My Bar');
+      return result;
     } catch (error) {
       console.error('Error fetching My Bar preferred brands:', error);
       return [];
@@ -1236,22 +1263,8 @@ export class FirebaseStorage {
     }
   }
 
-  async toggleMyBarBrand(brandId: number): Promise<PreferredBrand> {
-    try {
-      const brand = await this.getPreferredBrand(brandId) as PreferredBrandWithMyBar | undefined;
-      if (!brand) throw new Error('Preferred brand not found');
-
-      const newInMyBar = !brand.inMyBar;
-      await this.updatePreferredBrand(brandId, { inMyBar: newInMyBar } as any);
-
-      const updated = await this.getPreferredBrand(brandId);
-      if (!updated) throw new Error('Preferred brand not found after toggle');
-      return updated;
-    } catch (error) {
-      console.error('Error toggling My Bar for preferred brand:', error);
-      throw error;
-    }
-  }
+  // NOTE: toggleMyBarBrand removed - use user-specific My Bar collection instead
+  // This method violated data isolation by using global inMyBar flags
 
   async incrementPreferredBrandUsage(brandId: number): Promise<void> {
     try {

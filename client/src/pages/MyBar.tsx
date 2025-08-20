@@ -31,15 +31,8 @@ const BRAND_CATEGORIES = [
 
 export default function MyBar() {
   const { user } = useAuth();
-  const [term, setTerm] = useState(() => getQueryParam("search") || "");
-  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
-  const queryClient = useQueryClient();
   
   const isLoggedIn = !!user;
-  const debounced = useDebounce(term, 300);
-  
-  // Check if category filters are active (not search)
-  const hasCategoryFilters = Boolean(selectedCategory);
 
   // Show login message for non-logged-in users
   if (!isLoggedIn) {
@@ -67,6 +60,16 @@ export default function MyBar() {
       </div>
     );
   }
+
+  // All hooks must be called after the early return check
+  const [term, setTerm] = useState(() => getQueryParam("search") || "");
+  const [selectedCategory, setSelectedCategory] = useState(() => getQueryParam("category") || "");
+  const queryClient = useQueryClient();
+  
+  const debounced = useDebounce(term, 300);
+  
+  // Check if category filters are active (not search)
+  const hasCategoryFilters = Boolean(selectedCategory);
 
   // Handle URL state synchronization
   useEffect(() => {
