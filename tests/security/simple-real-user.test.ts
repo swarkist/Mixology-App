@@ -17,6 +17,9 @@ describe('Simple Real User Data Isolation Test', () => {
     
     if (cookies) {
       headers['Cookie'] = cookies;
+      // Test request with authentication
+    } else {
+      // Test request without authentication
     }
 
     if (method === 'POST' || method === 'PATCH') {
@@ -43,6 +46,19 @@ describe('Simple Real User Data Isolation Test', () => {
   beforeAll(async () => {
     console.log('🔧 Setting up two users for isolation testing...');
     
+    // Clean up any existing brands for test users first
+    try {
+      await apiCall('/auth/login', 'POST', userOne);
+      const existingBrands = await apiCall('/preferred-brands', 'GET', null, userOneCookies);
+      if (existingBrands.data && Array.isArray(existingBrands.data)) {
+        for (const brand of existingBrands.data) {
+          await apiCall(`/preferred-brands/${brand.id}`, 'DELETE', null, userOneCookies);
+        }
+      }
+    } catch (e) {
+      // User might not exist yet - ignore cleanup errors
+    }
+    
     // Register and login user one
     await apiCall('/auth/register', 'POST', userOne);
     const loginOne = await apiCall('/auth/login', 'POST', userOne);
@@ -51,9 +67,32 @@ describe('Simple Real User Data Isolation Test', () => {
     await apiCall('/auth/register', 'POST', userTwo);
     const loginTwo = await apiCall('/auth/login', 'POST', userTwo);
     
-    // Extract cookies (simplified for testing)
-    userOneCookies = loginOne.response.headers.get('set-cookie')?.split(';')[0] || '';
-    userTwoCookies = loginTwo.response.headers.get('set-cookie')?.split(';')[0] || '';
+    // Debug cookie extraction
+    console.log('Login one headers:', loginOne.response.headers);
+    console.log('Login two headers:', loginTwo.response.headers);
+    
+    // Extract all Set-Cookie headers
+    const extractAllCookies = (response: any) => {
+      const cookieHeaders = response.headers.getSetCookie ? response.headers.getSetCookie() : [];
+      if (cookieHeaders.length === 0) {
+        // Fallback - try getting single set-cookie header
+        const singleHeader = response.headers.get('set-cookie');
+        if (singleHeader) return [singleHeader];
+      }
+      return cookieHeaders;
+    };
+    
+    const userOneCookieHeaders = extractAllCookies(loginOne.response);
+    const userTwoCookieHeaders = extractAllCookies(loginTwo.response);
+    
+    console.log('User one cookies:', userOneCookieHeaders);
+    console.log('User two cookies:', userTwoCookieHeaders);
+    
+    userOneCookies = userOneCookieHeaders.map(cookie => cookie.split(';')[0]).join('; ');
+    userTwoCookies = userTwoCookieHeaders.map(cookie => cookie.split(';')[0]).join('; ');
+    
+    console.log('Final user one cookies:', userOneCookies);
+    console.log('Final user two cookies:', userTwoCookies);
     
     console.log('✅ Both users created and authenticated');
   });

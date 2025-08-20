@@ -799,7 +799,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   });
 
   // =================== PREFERRED BRANDS ===================
-  app.get("/api/preferred-brands", async (req, res) => {
+  app.get("/api/preferred-brands", requireAuth, async (req, res) => {
     const { search, inMyBar } = req.query;
     
     try {

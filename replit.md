@@ -67,12 +67,13 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Security & Data Integrity
 
-### Critical Security Fixes (August 20, 2025)
+### Critical Security Fixes & Authentication Resolution (August 20, 2025)
 - **User Data Isolation Vulnerability RESOLVED**: Fixed critical security issue where users could see each other's My Bar and Preferred Brands data. Root cause was Firebase storage layer using global `inMyBar` boolean flags instead of user-specific `my_bar` collection. Updated `getPreferredBrandsInMyBar()` and `getMyBarIngredients()` methods to query user-specific data via `my_bar` collection with proper `user_id` filtering. Removed global `toggleIngredientInMyBar()` and `toggleMyBarBrand()` methods that violated data isolation.
 - **React Hooks Stability**: Resolved "Rendered more hooks than during the previous render" error caused by hooks being called before early return in MyBar component. Moved all hooks after authentication check.
 - **API Endpoint Hardening**: Enhanced user-specific data filtering to ensure complete isolation between user accounts for all personalized features.
 - **Preferred Brands Schema Update**: Added `user_id` foreign key to `preferredBrands` table schema to make preferred brands user-specific instead of global. Updated all Firebase storage methods and API endpoints to require authentication and filter by user ID.
 - **Authentication Required**: All preferred brands endpoints now require proper user authentication, preventing unauthorized access to any user's personal data.
+- **Cookie Authentication Fix**: Resolved missing `requireAuth` middleware on GET `/api/preferred-brands` endpoint that was causing 401 authentication failures even for valid authenticated requests. JWT token parsing and validation now works correctly for all user-specific API endpoints.
 
 ### Comprehensive Security Testing Suite
 - **User Data Isolation Tests**: Dedicated test suite (`tests/security/user-data-isolation.test.ts`) validating that users can only access their own My Bar items and Preferred Brands status.
