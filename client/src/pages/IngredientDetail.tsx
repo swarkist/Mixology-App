@@ -214,12 +214,26 @@ export const IngredientDetail = (): JSX.Element => {
         </div>
 
         {/* Preferred Brands Section */}
-        {user && preferredBrands && preferredBrands.length > 0 && (
-          <Card className="bg-[#2a2920] border-[#4a4735]">
-            <CardContent className="p-6">
-              <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                Preferred Brands
-              </h2>
+        <Card className="bg-[#2a2920] border-[#4a4735]">
+          <CardContent className="p-6">
+            <h2 className="text-xl font-bold text-white mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
+              Preferred Brands
+            </h2>
+            
+            {!user ? (
+              // Show login prompt for non-authenticated users
+              <div className="text-center py-8">
+                <p className="text-[#bab59c] text-lg mb-4">
+                  Track your preferred brands for {ingredient?.name}. Login to see and manage your collection.
+                </p>
+                <Link href="/login">
+                  <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
+                    Login to Continue
+                  </Button>
+                </Link>
+              </div>
+            ) : preferredBrands && preferredBrands.length > 0 ? (
+              // Show preferred brands for logged-in users with brands
               <div className="grid gap-3">
                 {preferredBrands.map((brand: any) => (
                   <div key={brand.id} className="flex justify-between items-center p-3 bg-[#383528] rounded-lg">
@@ -233,13 +247,22 @@ export const IngredientDetail = (): JSX.Element => {
                       )}
                       <span className="text-white font-medium">{brand.name}</span>
                     </div>
-
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            ) : (
+              // Show empty state for logged-in users without brands
+              <div className="text-[#bab59c] text-center py-6">
+                <p className="mb-3">No preferred brands for {ingredient?.name} yet.</p>
+                <Link href="/preferred-brands">
+                  <Button variant="outline" className="border-[#4a4735] text-[#bab59c] hover:bg-[#383528] hover:text-white">
+                    Browse Preferred Brands
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
 
 
