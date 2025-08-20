@@ -18,8 +18,9 @@ describe('Authentication System Tests', () => {
       // Test scenarios for various protected endpoints
       const protectedEndpoints = [
         '/api/auth/me',
-        '/api/my-bar/toggle',
-        '/api/preferred-brands',
+        '/api/mybar',
+        '/api/preferred-brands?inMyBar=true',
+        '/api/preferred-brands/1/toggle-mybar',
         '/api/admin/users'
       ];
 
@@ -45,7 +46,8 @@ describe('Authentication System Tests', () => {
       const publicEndpoints = [
         '/api/cocktails',
         '/api/ingredients',
-        '/api/cocktails/1'
+        '/api/cocktails/1',
+        '/api/preferred-brands'  // Public access to all brands (without user-specific filtering)
       ];
 
       for (const endpoint of publicEndpoints) {

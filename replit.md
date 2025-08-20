@@ -64,3 +64,16 @@ Development workflow: User now implements independent code changes and requests 
 
 ### Development & Testing Dependencies
 - **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation. Complete test infrastructure for authentication rules and role-based access control.
+
+## Security & Data Integrity
+
+### Critical Security Fixes (August 20, 2025)
+- **User Data Isolation Vulnerability**: Fixed critical security issue where users could see each other's My Bar and Preferred Brands data. The Preferred Brands system was incorrectly using a global `inMyBar` boolean flag instead of proper user-specific isolation through the My Bar table.
+- **React Hooks Stability**: Resolved "Rendered more hooks than during the previous render" error caused by duplicate authentication checks with early returns in components.
+- **API Endpoint Hardening**: Enhanced user-specific data filtering to ensure complete isolation between user accounts for all personalized features.
+
+### Comprehensive Security Testing Suite
+- **User Data Isolation Tests**: Dedicated test suite (`tests/security/user-data-isolation.test.ts`) validating that users can only access their own My Bar items and Preferred Brands status.
+- **Cross-User Access Prevention**: Tests ensuring users cannot access, modify, or view other users' personal data.
+- **Authentication Context Validation**: Verification that user-specific endpoints require proper authentication while global content remains publicly accessible.
+- **Data Integrity Validation**: Tests confirming that user operations maintain data consistency and proper ownership verification.
