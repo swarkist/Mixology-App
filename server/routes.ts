@@ -815,10 +815,18 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         brands = await storage.getPreferredBrandsInMyBar(req.user.id);
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
-        brands = await storage.searchPreferredBrands(search as string);
+        if (req.user) {
+          brands = await storage.searchPreferredBrands(search as string, req.user.id);
+        } else {
+          return res.status(401).json({ error: "Authentication required for search" });
+        }
       } else {
-        console.log('🔥 Calling getAllPreferredBrands...');
-        brands = await storage.getAllPreferredBrands();
+        // Require authentication for all preferred brands data
+        if (!req.user) {
+          return res.status(401).json({ error: "Authentication required" });
+        }
+        console.log('🔥 Calling getAllPreferredBrands for authenticated user...');
+        brands = await storage.getAllPreferredBrands(req.user.id);
       }
       
       // If user is authenticated, add inMyBar status for each brand

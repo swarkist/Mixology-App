@@ -671,16 +671,16 @@ export class FirebaseStorageAdapter implements IStorage {
   }
 
   // =================== PREFERRED BRANDS ===================
-  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
-    return this.firebase.getAllPreferredBrands();
+  async getAllPreferredBrands(userId: number): Promise<PreferredBrand[]> {
+    return this.firebase.getAllPreferredBrands(userId);
   }
 
   async getPreferredBrand(id: number): Promise<PreferredBrand | undefined> {
     return this.firebase.getPreferredBrand(id);
   }
 
-  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
-    return this.firebase.searchPreferredBrands(query);
+  async searchPreferredBrands(query: string, userId: number): Promise<PreferredBrand[]> {
+    return this.firebase.searchPreferredBrands(query, userId);
   }
 
   async getPreferredBrandsInMyBar(userId: number): Promise<PreferredBrand[]> {
@@ -710,8 +710,8 @@ export class FirebaseStorageAdapter implements IStorage {
     }
   }
 
-  async createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand> {
-    return this.firebase.createPreferredBrand(brand);
+  async createPreferredBrand(brand: PreferredBrandForm, userId: number): Promise<PreferredBrand> {
+    return this.firebase.createPreferredBrand({ ...brand, user_id: userId });
   }
 
   async updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand> {

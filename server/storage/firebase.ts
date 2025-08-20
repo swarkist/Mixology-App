@@ -1120,24 +1120,24 @@ export class FirebaseStorage {
   }
 
   // Preferred Brands methods
-  async getAllPreferredBrands(): Promise<PreferredBrand[]> {
+  async getAllPreferredBrands(userId: number): Promise<PreferredBrand[]> {
     try {
-      console.log('🔥 Fetching all preferred brands from Firebase...');
-      const snapshot = await this.preferredBrandsCollection.get();
-      console.log(`🔥 Found ${snapshot.docs.length} preferred brands`);
+      console.log('🔥 Fetching preferred brands for user:', userId);
+      const snapshot = await this.preferredBrandsCollection.where('user_id', '==', userId).get();
+      console.log(`🔥 Found ${snapshot.docs.length} preferred brands for user ${userId}`);
       
       return snapshot.docs.map((doc: any) => {
         const data = doc.data();
         return {
           id: parseInt(doc.id),
+          user_id: data.user_id,
           name: data.name || 'Untitled Brand',
           proof: data.proof || null,
           imageUrl: data.imageUrl || null,
-          inMyBar: data.inMyBar || false,
           usedInRecipesCount: data.usedInRecipesCount || 0,
           createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-        } as PreferredBrandWithMyBar;
+        } as PreferredBrand;
       });
     } catch (error) {
       console.error('🔥 Error fetching preferred brands from Firebase:', error);
@@ -1167,8 +1167,8 @@ export class FirebaseStorage {
     }
   }
 
-  async searchPreferredBrands(query: string): Promise<PreferredBrand[]> {
-    const allBrands = await this.getAllPreferredBrands();
+  async searchPreferredBrands(query: string, userId: number): Promise<PreferredBrand[]> {
+    const allBrands = await this.getAllPreferredBrands(userId);
     return allBrands.filter(brand => 
       brand.name.toLowerCase().includes(query.toLowerCase())
     );
@@ -1208,16 +1208,16 @@ export class FirebaseStorage {
     }
   }
 
-  async createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand> {
+  async createPreferredBrand(brand: PreferredBrandForm & { user_id: number }): Promise<PreferredBrand> {
     try {
       const id = Date.now();
       const docRef = this.preferredBrandsCollection.doc(id.toString());
       
-      const brandData: Omit<PreferredBrandWithMyBar, 'id'> = {
+      const brandData = {
+        user_id: brand.user_id,
         name: brand.name,
         proof: brand.proof || null,
         imageUrl: brand.imageUrl || null,
-        inMyBar: (brand as any).inMyBar || false,
         usedInRecipesCount: 0,
         createdAt: new Date(),
         updatedAt: new Date(),

@@ -84,6 +84,7 @@ export const ingredients = pgTable("ingredients", {
 // Preferred Brands table
 export const preferredBrands = pgTable("preferred_brands", {
   id: serial("id").primaryKey(),
+  user_id: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   proof: integer("proof"), // proof value (can exceed 100)
   imageUrl: text("image_url"),

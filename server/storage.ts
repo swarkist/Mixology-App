@@ -87,12 +87,12 @@ export interface IStorage {
   findIngredientByName(name: string): Promise<Ingredient | null>;
   findTagByName(name: string): Promise<Tag | null>;
 
-  // Preferred Brands
-  getAllPreferredBrands(): Promise<PreferredBrand[]>;
+  // Preferred Brands - now user-specific for data isolation
+  getAllPreferredBrands(userId: number): Promise<PreferredBrand[]>;
   getPreferredBrand(id: number): Promise<PreferredBrand | undefined>;
   getPreferredBrandsInMyBar(userId: number): Promise<PreferredBrand[]>;
-  searchPreferredBrands(query: string): Promise<PreferredBrand[]>;
-  createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand>;
+  searchPreferredBrands(query: string, userId: number): Promise<PreferredBrand[]>;
+  createPreferredBrand(brand: PreferredBrandForm, userId: number): Promise<PreferredBrand>;
   updatePreferredBrand(id: number, brand: Partial<InsertPreferredBrand>): Promise<PreferredBrand>;
   deletePreferredBrand(id: number): Promise<boolean>;
   incrementPreferredBrandUsage(brandId: number): Promise<void>;
