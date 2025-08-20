@@ -683,8 +683,31 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.searchPreferredBrands(query);
   }
 
-  async getPreferredBrandsInMyBar(): Promise<PreferredBrand[]> {
-    return this.firebase.getPreferredBrandsInMyBar();
+  async getPreferredBrandsInMyBar(userId: number): Promise<PreferredBrand[]> {
+    try {
+      // Get user's My Bar items for brands
+      const myBarItems = await this.getMyBarItems(userId);
+      const brandIds = myBarItems
+        .filter(item => item.type === 'brand')
+        .map(item => item.ref_id);
+
+      if (brandIds.length === 0) {
+        return [];
+      }
+
+      // Get the actual brand details for those IDs
+      const brands = await Promise.all(
+        brandIds.map(async (id) => {
+          const brand = await this.firebase.getPreferredBrand(id);
+          return brand;
+        })
+      );
+
+      return brands.filter((brand): brand is PreferredBrand => brand !== null);
+    } catch (error) {
+      console.error('Error getting preferred brands in My Bar:', error);
+      return [];
+    }
   }
 
   async createPreferredBrand(brand: PreferredBrandForm): Promise<PreferredBrand> {

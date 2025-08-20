@@ -807,14 +807,31 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       let brands;
       
       if (inMyBar === 'true') {
-        console.log('🔥 Calling getPreferredBrandsInMyBar...');
-        brands = await storage.getPreferredBrandsInMyBar();
+        // Require authentication for My Bar filtering
+        if (!req.user) {
+          return res.status(401).json({ error: "Authentication required" });
+        }
+        console.log('🔥 Calling getPreferredBrandsInMyBar for user:', req.user.id);
+        brands = await storage.getPreferredBrandsInMyBar(req.user.id);
       } else if (search) {
         console.log('🔥 Calling searchPreferredBrands with query:', search);
         brands = await storage.searchPreferredBrands(search as string);
       } else {
         console.log('🔥 Calling getAllPreferredBrands...');
         brands = await storage.getAllPreferredBrands();
+      }
+      
+      // If user is authenticated, add inMyBar status for each brand
+      if (req.user) {
+        const myBarItems = await storage.getMyBarItems(req.user.id);
+        const myBarBrandIds = myBarItems
+          .filter(item => item.type === 'brand')
+          .map(item => item.ref_id);
+        
+        brands = brands.map(brand => ({
+          ...brand,
+          inMyBar: myBarBrandIds.includes(brand.id)
+        }));
       }
       
       console.log('🔥 Brands result:', brands.length, 'items');
@@ -895,9 +912,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   app.patch("/api/preferred-brands/:id/toggle-mybar", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id);
+    const userId = req.user!.id;
     
     console.log(`\n=== PATCH /api/preferred-brands/${id}/toggle-mybar ===`);
-    console.log(`Toggling My Bar status for brand ID: ${id}`);
+    console.log(`Toggling My Bar status for brand ID: ${id}, user ID: ${userId}`);
     console.log(`User making request:`, req.user);
     
     try {
@@ -908,15 +926,36 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         return res.status(404).json({ message: "Brand not found" });
       }
       
-      const currentInMyBar = (brand as any).inMyBar;
-      console.log(`Current brand inMyBar status: ${currentInMyBar}, toggling to: ${!currentInMyBar}`);
-      console.log(`Calling storage.updatePreferredBrand(${id}, { inMyBar: ${!currentInMyBar} })...`);
-      const updated = await storage.updatePreferredBrand(id, {
-        inMyBar: !currentInMyBar
-      } as any);
+      // Check if brand is currently in user's My Bar
+      const myBarItems = await storage.getMyBarItems(userId);
+      const currentlyInMyBar = myBarItems.some(item => 
+        item.type === 'brand' && item.ref_id === id
+      );
       
-      console.log(`Toggle My Bar result:`, JSON.stringify(updated, null, 2));
-      res.json(updated);
+      console.log(`Current brand inMyBar status: ${currentlyInMyBar}, toggling to: ${!currentlyInMyBar}`);
+      
+      if (currentlyInMyBar) {
+        // Remove from My Bar
+        console.log(`Removing brand ${id} from user ${userId}'s My Bar...`);
+        await storage.removeFromMyBar(userId, 'brand', id);
+      } else {
+        // Add to My Bar
+        console.log(`Adding brand ${id} to user ${userId}'s My Bar...`);
+        await storage.addToMyBar({
+          user_id: userId,
+          type: 'brand',
+          ref_id: id
+        });
+      }
+      
+      // Return the brand with updated inMyBar status
+      const updatedBrand = {
+        ...brand,
+        inMyBar: !currentlyInMyBar
+      };
+      
+      console.log(`Toggle My Bar result:`, JSON.stringify(updatedBrand, null, 2));
+      res.json(updatedBrand);
     } catch (error) {
       console.error(`Error toggling brand ${id} in My Bar:`, error);
       res.status(500).json({ message: "Error updating brand", error });

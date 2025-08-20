@@ -28,33 +28,6 @@ export default function PreferredBrands() {
   const isLoggedIn = !!user;
   const debounced = useDebounce(term, 300);
 
-  // Show login message for non-logged-in users
-  if (!isLoggedIn) {
-    return (
-      <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
-        <TopNavigation />
-        <div className="px-4 md:px-40 py-5">
-          <div className="p-4 mb-3">
-            <h1 className="text-[32px] font-bold text-white mb-3 [font-family:'Plus_Jakarta_Sans',Helvetica]">
-              Preferred Brands
-            </h1>
-            <div className="text-center py-12">
-              <p className="text-[#bab59c] text-lg mb-4">
-                Please login to see or manage your preferred brands.
-              </p>
-              <Link href="/login">
-                <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
-                  Login to Continue
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-        <Navigation />
-      </div>
-    );
-  }
-
   // Handle URL state synchronization
   useEffect(() => {
     if (debounced.trim()) {
@@ -64,7 +37,7 @@ export default function PreferredBrands() {
     }
   }, [debounced]);
 
-  // Fetch all brands first
+  // Fetch all brands first - always call hooks unconditionally
   const { data: allBrands = [], isLoading, error } = useQuery({
     queryKey: ["/api/preferred-brands"],
     queryFn: async () => {
@@ -81,6 +54,7 @@ export default function PreferredBrands() {
     },
     retry: 2,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: isLoggedIn, // Only fetch when logged in
   });
 
   // Filter brands based on search
@@ -112,7 +86,7 @@ export default function PreferredBrands() {
     }
   };
 
-  // Show login message for non-logged-in users
+  // Show login message for non-logged-in users - moved after all hooks
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-[#171712] pb-20 md:pb-0">
@@ -124,7 +98,7 @@ export default function PreferredBrands() {
             </h1>
             <div className="text-center py-12">
               <p className="text-[#bab59c] text-lg mb-4">
-                Please login to see or add your preferred brands.
+                Please login to see or manage your preferred brands.
               </p>
               <Link href="/login">
                 <Button className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a] font-semibold">
