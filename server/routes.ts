@@ -875,7 +875,8 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       }
       
       console.log("🔥 Final brand data for creation:", brandData);
-      const brand = await storage.createPreferredBrand(brandData);
+      console.log("🔥 Creating brand for user:", req.user!.id);
+      const brand = await storage.createPreferredBrand(brandData, req.user!.id);
       console.log("🔥 Brand created successfully:", brand.id);
       
       res.status(201).json(brand);

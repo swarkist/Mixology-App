@@ -219,6 +219,7 @@ export const insertIngredientTagSchema = createInsertSchema(ingredientTags).omit
 
 export const insertPreferredBrandSchema = createInsertSchema(preferredBrands).omit({
   id: true,
+  user_id: true, // user_id is handled server-side
   usedInRecipesCount: true,
   createdAt: true,
   updatedAt: true,
