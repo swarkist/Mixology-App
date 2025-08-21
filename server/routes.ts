@@ -1062,9 +1062,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
         
         // Create the preferred brand using internal API
         try {
-          const createdBrand = await storage.createPreferredBrand(payload);
-          created = createdBrand;
-          console.log("🔥 Brand auto-created:", created.id);
+          // Note: Auto-create needs proper user context when roles are implemented
+          // For now, we skip auto-creation since we need user ID
+          console.log("🔥 Skipping auto-creation - requires user authentication");
+          created = null;
         } catch (createError) {
           console.error("🔥 Failed to auto-create brand:", createError);
           // Don't fail the OCR response if creation fails
