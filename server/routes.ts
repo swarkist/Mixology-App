@@ -899,6 +899,18 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     console.log(`User making request:`, req.user);
     
     try {
+      // SECURITY: Verify ownership before allowing updates
+      const existingBrand = await storage.getPreferredBrand(id);
+      if (!existingBrand) {
+        console.log(`Brand ${id} not found`);
+        return res.status(404).json({ message: "Preferred brand not found" });
+      }
+      
+      if (existingBrand.user_id !== req.user!.id) {
+        console.log(`Access denied: User ${req.user!.id} tried to update brand ${id} owned by user ${existingBrand.user_id}`);
+        return res.status(403).json({ message: "Access denied - you can only edit your own preferred brands" });
+      }
+      
       const updateData = { ...req.body };
       
       // Handle image upload
@@ -979,6 +991,18 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     console.log(`User making request:`, req.user);
     
     try {
+      // SECURITY: Verify ownership before allowing deletion
+      const existingBrand = await storage.getPreferredBrand(id);
+      if (!existingBrand) {
+        console.log(`Brand ${id} not found`);
+        return res.status(404).json({ message: "Preferred brand not found" });
+      }
+      
+      if (existingBrand.user_id !== req.user!.id) {
+        console.log(`Access denied: User ${req.user!.id} tried to delete brand ${id} owned by user ${existingBrand.user_id}`);
+        return res.status(403).json({ message: "Access denied - you can only delete your own preferred brands" });
+      }
+      
       console.log(`Calling storage.deletePreferredBrand(${id})...`);
       const deleted = await storage.deletePreferredBrand(id);
       console.log(`Delete preferred brand result:`, deleted);

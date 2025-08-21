@@ -76,6 +76,7 @@ Development workflow: User now implements independent code changes and requests 
 - **Cookie Authentication Fix**: Resolved missing `requireAuth` middleware on GET `/api/preferred-brands` endpoint that was causing 401 authentication failures even for valid authenticated requests. JWT token parsing and validation now works correctly for all user-specific API endpoints.
 - **Top Navigation Search Fix**: Fixed search parameter mismatch between navigation (`search`) and cocktails page (`q`) - now CocktailList reads both parameters for seamless navigation filtering.
 - **Mixi Chatbot API Fix**: Resolved LSP compilation error in OCR function that was preventing the chat API from responding. Chat endpoint now streams responses correctly using OpenRouter API integration.
+- **Preferred Brands Ownership Vulnerability Fix**: Implemented ownership validation for PATCH and DELETE operations on preferred brands. Users can now only modify/delete their own brands, preventing cross-user access even for admin roles. Added comprehensive security test suite to validate ownership enforcement.
 
 ### Comprehensive Security Testing Suite
 - **User Data Isolation Tests**: Dedicated test suite (`tests/security/user-data-isolation.test.ts`) validating that users can only access their own My Bar items and Preferred Brands status.
