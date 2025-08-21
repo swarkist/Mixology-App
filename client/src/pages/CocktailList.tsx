@@ -41,7 +41,7 @@ export const CocktailList = (): JSX.Element => {
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  const [term, setTerm] = useState(() => getQueryParam("q"));
+  const [term, setTerm] = useState(() => getQueryParam("search") || getQueryParam("q"));
   const debounced = useDebounce(term, 250);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [spiritFilter, setSpiritFilter] = useState<string>("all");
