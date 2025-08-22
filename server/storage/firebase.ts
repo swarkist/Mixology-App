@@ -1153,14 +1153,14 @@ export class FirebaseStorage {
       const data = doc.data() || {};
       return {
         id: parseInt(doc.id),
+        user_id: data.user_id, // CRITICAL: Include user_id for ownership validation
         name: data.name || 'Untitled Brand',
         proof: data.proof || null,
         imageUrl: data.imageUrl || null,
-        inMyBar: data.inMyBar || false,
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as PreferredBrandWithMyBar;
+      } as PreferredBrand;
     } catch (error) {
       console.error('Error fetching preferred brand:', error);
       return undefined;
@@ -1294,14 +1294,14 @@ export class FirebaseStorage {
       const data = doc.data();
       return {
         id: parseInt(doc.id),
+        user_id: data.user_id, // Include user_id for ownership validation
         name: data.name,
         proof: data.proof || null,
         imageUrl: data.imageUrl || null,
-        inMyBar: data.inMyBar || false,
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
-      } as PreferredBrandWithMyBar;
+      } as PreferredBrand;
     } catch (error) {
       console.error('Error finding preferred brand by name:', error);
       return null;

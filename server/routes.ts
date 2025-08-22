@@ -861,6 +861,8 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     res.json(brandWithDetails);
   });
 
+
+
   app.post("/api/preferred-brands", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     try {
       console.log("🔥 Preferred brands POST - Raw body:", JSON.stringify(req.body, null, 2));
