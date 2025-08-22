@@ -83,7 +83,7 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.updateUserRole(id, 'admin');
   }
 
-  async updateUserRole(id: number, role: 'basic' | 'admin'): Promise<User> {
+  async updateUserRole(id: number, role: 'basic' | 'reviewer' | 'admin'): Promise<User> {
     return this.updateUser(id, { role });
   }
 
@@ -93,7 +93,7 @@ export class FirebaseStorageAdapter implements IStorage {
 
   async getAllUsers(options: { 
     search?: string; 
-    role?: 'basic' | 'admin'; 
+    role?: 'basic' | 'reviewer' | 'admin'; 
     status?: boolean; 
     page?: number; 
     limit?: number; 
@@ -504,8 +504,8 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.getIngredientsByCategory(category);
   }
 
-  async getIngredientsInMyBar(): Promise<Ingredient[]> {
-    return this.firebase.getMyBarIngredients();
+  async getIngredientsInMyBar(userId: number): Promise<Ingredient[]> {
+    return this.firebase.getMyBarIngredients(userId);
   }
 
   async createIngredient(ingredient: IngredientForm): Promise<Ingredient> {
@@ -529,13 +529,30 @@ export class FirebaseStorageAdapter implements IStorage {
     return updated;
   }
 
-  async toggleMyBar(ingredientId: number): Promise<Ingredient> {
-    const ingredient = await this.firebase.getIngredientById(ingredientId) as IngredientWithMyBar | null;
-    if (!ingredient) throw new Error('Ingredient not found');
+  async toggleMyBar(ingredientId: number, userId: number): Promise<Ingredient> {
+    // This method has been replaced with user-specific My Bar operations
+    // Check if ingredient exists in user's My Bar
+    const myBarItems = await this.getMyBarItems(userId);
+    const existingItem = myBarItems.find(item => 
+      item.type === 'ingredient' && item.ref_id === ingredientId
+    );
 
-    const updated = await this.firebase.toggleIngredientInMyBar(ingredientId, !ingredient.inMyBar);
-    if (!updated) throw new Error('Failed to update ingredient');
-    return updated as Ingredient;
+    if (existingItem) {
+      // Remove from My Bar
+      await this.removeFromMyBar(userId, 'ingredient', ingredientId);
+    } else {
+      // Add to My Bar
+      await this.addToMyBar({
+        user_id: userId,
+        type: 'ingredient',
+        ref_id: ingredientId
+      });
+    }
+
+    // Return the ingredient (inMyBar status will be calculated by caller)
+    const ingredient = await this.firebase.getIngredientById(ingredientId);
+    if (!ingredient) throw new Error('Ingredient not found');
+    return ingredient;
   }
 
   async incrementIngredientUsage(ingredientId: number): Promise<void> {
@@ -724,8 +741,30 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.deletePreferredBrand(id);
   }
 
-  async toggleMyBarBrand(brandId: number): Promise<PreferredBrand> {
-    return this.firebase.toggleMyBarBrand(brandId);
+  async toggleMyBarBrand(brandId: number, userId: number): Promise<PreferredBrand> {
+    // This method has been replaced with user-specific My Bar operations
+    // Check if brand exists in user's My Bar
+    const myBarItems = await this.getMyBarItems(userId);
+    const existingItem = myBarItems.find(item => 
+      item.type === 'brand' && item.ref_id === brandId
+    );
+
+    if (existingItem) {
+      // Remove from My Bar
+      await this.removeFromMyBar(userId, 'brand', brandId);
+    } else {
+      // Add to My Bar
+      await this.addToMyBar({
+        user_id: userId,
+        type: 'brand',
+        ref_id: brandId
+      });
+    }
+
+    // Return the brand (inMyBar status will be calculated by caller)
+    const brand = await this.firebase.getPreferredBrand(brandId);
+    if (!brand) throw new Error('Preferred brand not found');
+    return brand;
   }
 
   async incrementPreferredBrandUsage(brandId: number): Promise<void> {

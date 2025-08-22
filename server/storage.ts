@@ -21,11 +21,11 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User>;
   promoteUserToAdmin(id: number): Promise<User>;
-  updateUserRole(id: number, role: 'basic' | 'admin'): Promise<User>;
+  updateUserRole(id: number, role: 'basic' | 'reviewer' | 'admin'): Promise<User>;
   updateUserStatus(id: number, isActive: boolean): Promise<User>;
   getAllUsers(options?: { 
     search?: string; 
-    role?: 'basic' | 'admin'; 
+    role?: 'basic' | 'reviewer' | 'admin'; 
     status?: boolean; 
     page?: number; 
     limit?: number; 
@@ -76,9 +76,12 @@ export interface IStorage {
   // Ingredients
   getAllIngredients(): Promise<Ingredient[]>;
   getIngredient(id: number): Promise<Ingredient | undefined>;
-
+  getIngredientsInMyBar(userId: number): Promise<Ingredient[]>;
+  
   searchIngredients(query: string): Promise<Ingredient[]>;
   getIngredientsByCategory(category: string): Promise<Ingredient[]>;
+  toggleMyBar(ingredientId: number, userId: number): Promise<Ingredient>;
+  toggleMyBarBrand(brandId: number, userId: number): Promise<PreferredBrand>;
   createIngredient(ingredient: IngredientForm): Promise<Ingredient>;
   updateIngredient(id: number, ingredient: Partial<InsertIngredient>): Promise<Ingredient>;
   deleteIngredient(id: number): Promise<boolean>;
