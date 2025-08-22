@@ -101,8 +101,8 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
   if (!isWrite) return next();
 
   // Define admin-only endpoints that require API key
+  // NOTE: /admin/ routes are handled by cookie-based authentication middleware
   const adminOnlyEndpoints = [
-    "/admin/",              // All admin routes
     "/backup/",             // Backup operations
     "/recalculate-",        // Bulk operations
     "/reset-popularity",    // Admin cocktail operations
