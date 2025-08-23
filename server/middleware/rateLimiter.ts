@@ -44,3 +44,21 @@ export const apiLimiter = rateLimit({
     return process.env.NODE_ENV === 'development';
   }
 });
+
+// Scraping-specific rate limiter
+export const scrapingLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute 
+  max: 10, // Limit each IP to 10 scraping requests per minute
+  message: {
+    ok: false,
+    code: 'rate_limit_exceeded',
+    message: 'Too many scraping requests, please try again later.',
+    hint: 'Wait a minute before trying again or use the "Paste raw text" fallback.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting in development
+    return process.env.NODE_ENV === 'development';
+  }
+});

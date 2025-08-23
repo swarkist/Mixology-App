@@ -8,6 +8,9 @@ import {
 } from "@shared/schema";
 import firebaseTestRoutes from "./routes/firebase-test";
 import { extractBrandFromImage } from "./ai/openrouter";
+import * as cheerio from 'cheerio';
+import { z } from 'zod';
+import { scrapingLimiter } from './middleware/rateLimiter';
 
 import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
@@ -16,6 +19,146 @@ import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 import { allowRoles, rejectContentSavesForReviewer } from './middleware/roles';
 import { verifyAccessToken } from './lib/auth';
+
+// =================== SCRAPING SCHEMAS & CACHE ===================
+
+// URL validation schema
+const scrapeUrlSchema = z.object({
+  url: z.string().url().refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    { message: 'URL must start with http:// or https://' }
+  )
+});
+
+// In-memory cache for scraping results
+interface CacheEntry {
+  data: any;
+  timestamp: number;
+  ttl: number;
+}
+
+const scrapeCache = new Map<string, CacheEntry>();
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const MAX_CACHE_SIZE = 200;
+
+// Normalize URL for caching (remove fragments, normalize port)
+function normalizeUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Remove fragment, normalize port
+    urlObj.hash = '';
+    if (urlObj.port === '80' && urlObj.protocol === 'http:') urlObj.port = '';
+    if (urlObj.port === '443' && urlObj.protocol === 'https:') urlObj.port = '';
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
+
+// Cache management
+function getCachedResult(key: string): any | null {
+  const entry = scrapeCache.get(key);
+  if (!entry) return null;
+  
+  if (Date.now() - entry.timestamp > entry.ttl) {
+    scrapeCache.delete(key);
+    return null;
+  }
+  
+  return entry.data;
+}
+
+function setCachedResult(key: string, data: any): void {
+  // Implement simple LRU by deleting oldest entries if cache is full
+  if (scrapeCache.size >= MAX_CACHE_SIZE) {
+    const oldestKey = scrapeCache.keys().next().value;
+    if (oldestKey) {
+      scrapeCache.delete(oldestKey);
+    }
+  }
+  
+  scrapeCache.set(key, {
+    data,
+    timestamp: Date.now(),
+    ttl: CACHE_TTL
+  });
+}
+
+// =================== SCRAPING HELPER FUNCTIONS ===================
+
+function isContentTypeSupported(contentType: string): boolean {
+  const supportedTypes = ['text/html', 'application/xhtml+xml', 'text/plain'];
+  return supportedTypes.some(type => contentType.includes(type));
+}
+
+function extractCanonicalUrl(html: string, finalUrl: string): string {
+  const $ = cheerio.load(html);
+  const canonical = $('link[rel="canonical"]').attr('href');
+  return canonical || finalUrl;
+}
+
+function extractTitle(html: string): string {
+  const $ = cheerio.load(html);
+  return $('title').text().trim() || '';
+}
+
+function extractJsonLdBlocks(html: string): string[] {
+  const $ = cheerio.load(html);
+  const jsonLdBlocks: string[] = [];
+  
+  $('script[type="application/ld+json"]').each((_, elem) => {
+    const content = $(elem).html();
+    if (content) {
+      jsonLdBlocks.push(content.trim());
+    }
+  });
+  
+  return jsonLdBlocks;
+}
+
+function extractOpenGraphData(html: string): { title?: string; image?: string } | undefined {
+  const $ = cheerio.load(html);
+  const og: { title?: string; image?: string } = {};
+  
+  const ogTitle = $('meta[property="og:title"]').attr('content');
+  const ogImage = $('meta[property="og:image"]').attr('content');
+  
+  if (ogTitle) og.title = ogTitle.trim();
+  if (ogImage) og.image = ogImage.trim();
+  
+  return Object.keys(og).length > 0 ? og : undefined;
+}
+
+function extractVisibleText(html: string): string {
+  const $ = cheerio.load(html);
+  
+  // Remove script and style elements
+  $('script, style').remove();
+  
+  // Get text content and clean it up
+  return $('body').text()
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 50000); // Limit text length
+}
+
+// Redact sensitive query parameters from URL for logging
+function redactUrlForLogging(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const sensitiveParams = ['token', 'key', 'password', 'secret', 'auth'];
+    
+    sensitiveParams.forEach(param => {
+      if (urlObj.searchParams.has(param)) {
+        urlObj.searchParams.set(param, '[REDACTED]');
+      }
+    });
+    
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
   // Health check endpoint (before middleware)
@@ -1390,6 +1533,161 @@ Return an array of recipes. Only include complete recipes with clear ingredient 
     }
   });
 
+  // =================== SCRAPING ENDPOINT ===================
+  
+  // Web scraping endpoint with authentication and robust error handling
+  app.post("/api/scrape-url", scrapingLimiter, requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
+    const startTime = Date.now();
+    let logUrl = '';
+    
+    try {
+      // Validate request body
+      const { url } = scrapeUrlSchema.parse(req.body);
+      logUrl = redactUrlForLogging(url);
+      
+      console.log(`🔍 Scrape request: ${logUrl} - User: ${req.user?.id}`);
+      
+      // Check cache first
+      const normalizedUrl = normalizeUrl(url);
+      const cached = getCachedResult(normalizedUrl);
+      if (cached) {
+        console.log(`📋 Cache hit: ${logUrl} - ${Date.now() - startTime}ms`);
+        return res.json(cached);
+      }
+      
+      // Configure fetch with realistic browser headers
+      const fetchOptions: RequestInit = {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+          'Accept-Encoding': 'gzip, deflate, br',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        redirect: 'follow' as RequestRedirect,
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      };
+      
+      // Direct server-side fetch (bypasses CORS)
+      const response = await fetch(url, fetchOptions);
+      
+      if (!response.ok) {
+        const statusCode = response.status === 408 || response.status === 504 ? 408 : 424;
+        return res.status(statusCode).json({
+          ok: false,
+          code: response.status === 408 || response.status === 504 ? 'timeout' : 'fetch_failed',
+          message: `Failed to fetch webpage: ${response.statusText}`,
+          hint: 'Try the "Paste raw text" fallback or check if the URL is accessible.'
+        });
+      }
+      
+      // Check content type
+      const contentType = response.headers.get('content-type') || '';
+      if (!isContentTypeSupported(contentType)) {
+        return res.status(415).json({
+          ok: false,
+          code: 'unsupported_content_type',
+          message: 'This URL doesn\'t appear to be a webpage.',
+          hint: 'Try a blog post or recipe site that shows the full recipe content.'
+        });
+      }
+      
+      // Check content length
+      const contentLength = response.headers.get('content-length');
+      if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) { // 2MB limit
+        return res.status(413).json({
+          ok: false,
+          code: 'oversize',
+          message: 'Webpage is too large to process.',
+          hint: 'Try a different URL with a smaller page size.'
+        });
+      }
+      
+      // Get response text and truncate if needed
+      let html = await response.text();
+      if (html.length > 2 * 1024 * 1024) { // 2MB limit
+        html = html.slice(0, 2 * 1024 * 1024);
+      }
+      
+      if (!html.trim()) {
+        return res.status(422).json({
+          ok: false,
+          code: 'empty_body',
+          message: 'No content found on this webpage.',
+          hint: 'Try a different URL or check if the page loads correctly in your browser.'
+        });
+      }
+      
+      // Extract data using helper functions
+      const canonicalUrl = extractCanonicalUrl(html, response.url);
+      const title = extractTitle(html);
+      const jsonLdRaw = extractJsonLdBlocks(html);
+      const text = extractVisibleText(html);
+      const og = extractOpenGraphData(html);
+      
+      const result = {
+        ok: true,
+        canonicalUrl,
+        title,
+        text,
+        jsonLdRaw,
+        ...(og && { og })
+      };
+      
+      // Cache successful result
+      setCachedResult(normalizedUrl, result);
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ Scrape success: ${logUrl} - ${duration}ms`);
+      
+      res.json(result);
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.error(`❌ Scrape error: ${logUrl} - ${duration}ms`, error);
+      
+      // Handle specific error types
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({
+          ok: false,
+          code: 'invalid_url',
+          message: 'Please provide a valid URL starting with http:// or https://',
+          hint: 'Make sure the URL is complete and properly formatted.'
+        });
+      }
+      
+      if (error instanceof Error) {
+        if (error.name === 'AbortError' || error.message.includes('timeout')) {
+          return res.status(408).json({
+            ok: false,
+            code: 'timeout',
+            message: 'The webpage took too long to load.',
+            hint: 'Try again later or use the "Paste raw text" fallback.'
+          });
+        }
+        
+        if (error.message.includes('fetch')) {
+          return res.status(424).json({
+            ok: false,
+            code: 'blocked_by_origin',
+            message: 'This website blocks automated requests.',
+            hint: 'Try the "Paste raw text" fallback.'
+          });
+        }
+      }
+      
+      // Generic server error
+      res.status(500).json({
+        ok: false,
+        code: 'server_error',
+        message: 'An unexpected error occurred while processing the webpage.',
+        hint: 'Please try again later or contact support if the issue persists.'
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
@@ -1397,65 +1695,7 @@ Return an array of recipes. Only include complete recipes with clear ingredient 
 // Register read-only POST endpoints that should bypass admin key requirement
 export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
   // Note: AI endpoints moved to main registerRoutes function with proper auth
-  
-  // Web scraping endpoint
-  app.post("/api/scrape-url", async (req, res) => {
-    try {
-      const { url } = req.body;
-      
-      if (!url) {
-        return res.status(400).json({ error: "URL is required" });
-      }
-      
-      // Use AllOrigins proxy to bypass CORS
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-      
-      const response = await fetch(proxyUrl);
-      
-      if (!response.ok) {
-        return res.status(response.status).json({ 
-          error: `Failed to fetch webpage: ${response.statusText}` 
-        });
-      }
-      
-      const data = await response.json();
-      
-      if (!data?.contents) {
-        return res.status(404).json({ error: 'No content retrieved from URL' });
-      }
-      
-      const htmlContent = data.contents;
-      
-      // Basic HTML tag removal and text extraction
-      const textContent = htmlContent
-        // Remove script and style elements completely
-        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-        // Remove HTML tags
-        .replace(/<[^>]*>/g, ' ')
-        // Decode HTML entities
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        // Clean up whitespace
-        .replace(/\s+/g, ' ')
-        .trim();
-      
-      if (textContent.length < 50) {
-        return res.status(400).json({ error: 'Extracted content is too short to be meaningful' });
-      }
-      
-      res.json({ textContent });
-    } catch (error) {
-      console.error("URL scraping failed:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to scrape URL" 
-      });
-    }
-  });
+  // Web scraping endpoint moved to registerRoutes with authentication
 
   // =================== MIXI CHAT ENDPOINT ===================
   

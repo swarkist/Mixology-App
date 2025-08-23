@@ -13,6 +13,20 @@ Homepage input design: Prefers original Figma search field styling with dark inp
 Development constraints: Do not attempt to fix Enter key dialog temporary showing/hiding behavior - user acknowledges this cannot be resolved through code changes.
 Development workflow: User now implements independent code changes and requests reviews rather than full implementations from agent.
 
+## Recent Changes
+
+### August 23, 2025 - URL Scraping Security Enhancement
+- **CRITICAL SECURITY FIX**: Fixed `/api/scrape-url` endpoint authentication vulnerability
+- **Implementation**: Moved endpoint from `registerReadOnlyRoutes` to `registerRoutes` with proper authentication middleware
+- **Access Control**: Now requires session authentication and admin/reviewer roles
+- **Rate Limiting**: Implemented scraping-specific rate limiter (10 requests/minute per authenticated user)
+- **Reliability**: Removed unreliable AllOrigins proxy dependency; implemented direct server-side fetching
+- **Caching**: Added 10-minute in-memory caching with LRU eviction to prevent duplicate requests
+- **Data Extraction**: Enhanced structured data extraction with JSON-LD, OpenGraph, and canonical URL support
+- **Error Handling**: Comprehensive error codes with deterministic HTTP status mapping and user-friendly hints
+- **Performance**: 10-second timeout handling and content-type validation
+- **Testing**: Created comprehensive test suites for authentication validation and functionality verification
+
 ## System Architecture
 
 ### Frontend Architecture
