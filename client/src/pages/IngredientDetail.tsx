@@ -334,10 +334,10 @@ export const IngredientDetail = (): JSX.Element => {
         {/* Delete Button - Admin and Reviewer only, but disabled for Reviewer */}
         <RoleGate roles={["admin", "reviewer"]}>
           <div className="space-y-3 pb-6">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || user?.role === 'reviewer'}
               className="w-full border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10"
             >
               <Trash2 className="w-4 h-4 mr-2" />
