@@ -787,20 +787,20 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.getPreferredBrandWithDetails(id);
   }
 
-  async getIngredientWithDetails(id: number): Promise<{
+  async getIngredientWithDetails(id: number, userId?: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];
   } | undefined> {
-    return this.firebase.getIngredientWithDetails(id);
+    return this.firebase.getIngredientWithDetails(id, userId);
   }
 
   // Association management methods
-  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
-    await this.firebase.associateIngredientWithPreferredBrand(ingredientId, preferredBrandId);
+  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void> {
+    await this.firebase.associateIngredientWithPreferredBrand(ingredientId, preferredBrandId, userId);
   }
 
-  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
-    await this.firebase.removeIngredientFromPreferredBrand(ingredientId, preferredBrandId);
+  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void> {
+    await this.firebase.removeIngredientFromPreferredBrand(ingredientId, preferredBrandId, userId);
   }
 }
