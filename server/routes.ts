@@ -15,7 +15,6 @@ import { createAdminRoutes } from './routes/admin';
 import type { IStorage } from './storage';
 import { createAuthMiddleware } from './middleware/auth';
 import { allowRoles, rejectContentSavesForReviewer } from './middleware/roles';
-import { verifyAccessToken } from './lib/auth';
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
   // Health check endpoint (before middleware)
@@ -166,19 +165,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   app.get("/api/ingredients/:id", async (req, res) => {
     const id = parseInt(req.params.id);
-
+    
     try {
-      let userId: number | undefined;
-      const token = req.cookies?.accessToken;
-      if (token) {
-        const decoded = verifyAccessToken(token);
-        if (decoded?.id) {
-          userId = decoded.id;
-        }
-      }
-
-      const ingredientDetails = await storage.getIngredientWithDetails(id, userId);
-
+      const ingredientDetails = await storage.getIngredientWithDetails(id);
+      
       if (!ingredientDetails) {
         return res.status(404).json({ message: "Ingredient not found" });
       }

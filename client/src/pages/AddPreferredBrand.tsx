@@ -16,11 +16,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { preferredBrandFormSchema, type PreferredBrandForm } from "@shared/schema";
 import TopNavigation from "@/components/TopNavigation";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
+import { ReviewBanner } from "@/components/ReviewBanner";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AddPreferredBrand() {
   const [, setLocation] = useLocation();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const form = useForm<PreferredBrandForm>({
     resolver: zodResolver(preferredBrandFormSchema),
@@ -111,6 +114,7 @@ export default function AddPreferredBrand() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 md:px-40 py-4 space-y-6">
+        <ReviewBanner />
         <Card className="bg-[#2a2920] border-[#4a4735]">
           <CardHeader>
             <CardTitle className="text-white [font-family:'Plus_Jakarta_Sans',Helvetica]">

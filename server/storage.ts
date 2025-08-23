@@ -110,7 +110,7 @@ export interface IStorage {
   } | undefined>;
 
   // Ingredient Details  
-  getIngredientWithDetails(id: number, userId?: number): Promise<{
+  getIngredientWithDetails(id: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];

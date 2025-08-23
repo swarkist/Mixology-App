@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Camera, Plus } from "lucide-react";
+import { Loader2, Camera, CheckCircle, Plus } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { compressImage } from "@/lib/imageCompression";
+import { useAuth } from "@/hooks/useAuth";
+import { ReviewBanner } from "@/components/ReviewBanner";
 
 type Props = {
   open: boolean;
@@ -25,8 +27,8 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
   const [editedProof, setEditedProof] = useState("");
   const [error, setError] = useState<string | null>(null);
   
-  // Reviewers have full access to manage their own preferred brands, so no special
-  // handling is required here.
+  const { user } = useAuth();
+  const isReviewer = user?.role === 'reviewer';
 
   function toDataUrl(f: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -160,6 +162,8 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
             Upload a bottle photo to extract brand information using AI vision models
           </DialogDescription>
         </DialogHeader>
+
+        {isReviewer && <ReviewBanner />}
 
         <div className="space-y-4">
           <div>
@@ -300,7 +304,7 @@ export default function BrandFromImageDialog({ open, onOpenChange, onPrefill }: 
           ) : (
             <Button 
               onClick={createBrand} 
-              disabled={!editedName.trim() || creating}
+              disabled={!editedName.trim() || creating || isReviewer}
               className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {creating ? (

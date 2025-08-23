@@ -787,12 +787,12 @@ export class FirebaseStorageAdapter implements IStorage {
     return this.firebase.getPreferredBrandWithDetails(id);
   }
 
-  async getIngredientWithDetails(id: number, userId?: number): Promise<{
+  async getIngredientWithDetails(id: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];
   } | undefined> {
-    return this.firebase.getIngredientWithDetails(id, userId);
+    return this.firebase.getIngredientWithDetails(id);
   }
 
   // Association management methods

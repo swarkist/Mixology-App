@@ -1346,7 +1346,7 @@ export class FirebaseStorage {
     }
   }
 
-  async getIngredientWithDetails(id: number, userId?: number): Promise<{
+  async getIngredientWithDetails(id: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];
@@ -1355,25 +1355,21 @@ export class FirebaseStorage {
       const ingredient = await this.getIngredient(id);
       if (!ingredient) return undefined;
 
-      // Get associated preferred brands only for the requesting user
+      // Get associated preferred brands
+      const brandRefs = await this.preferredBrandIngredientsCollection
+        .where('ingredientId', '==', id).get();
+      
       const preferredBrands: PreferredBrand[] = [];
-      if (userId) {
-        const brandRefs = await this.preferredBrandIngredientsCollection
-          .where('ingredientId', '==', id).get();
-
-        for (const ref of brandRefs.docs) {
-          const refData = ref.data();
-          const brand = await this.getPreferredBrand(refData.preferredBrandId);
-          if (brand && brand.user_id === userId) {
-            preferredBrands.push(brand);
-          }
-        }
+      for (const ref of brandRefs.docs) {
+        const refData = ref.data();
+        const brand = await this.getPreferredBrand(refData.preferredBrandId);
+        if (brand) preferredBrands.push(brand);
       }
 
-      // Get tags
+      // Get tags  
       const tagSnapshot = await this.ingredientTagsCollection
         .where('ingredientId', '==', id).get();
-
+      
       const tags: Tag[] = [];
       for (const ref of tagSnapshot.docs) {
         const refData = ref.data();
