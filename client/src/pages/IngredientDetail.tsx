@@ -1,6 +1,5 @@
 import { ArrowLeft, Star, Edit, Trash2, Eye } from "lucide-react";
 import { Link, useLocation, useParams } from "wouter";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -53,7 +52,6 @@ export const IngredientDetail = (): JSX.Element => {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [isAdmin, setIsAdmin] = useState(false);
 
   const { data: ingredientDetails, isLoading, error } = useQuery({
     queryKey: ['/api/ingredients', ingredientId],
@@ -155,7 +153,7 @@ export const IngredientDetail = (): JSX.Element => {
               Ingredients
             </Button>
           </Link>
-          <RoleGate roles={["admin", "reviewer"]} onAuthCheck={setIsAdmin}>
+          <RoleGate roles={["admin", "reviewer"]}>
             <div className="flex gap-2">
               <Link href={`/edit-ingredient/${ingredient.id}`}>
                 <Button size="sm" className="bg-[#f2c40c] text-[#161611] hover:bg-[#e0b40a]">
@@ -334,10 +332,10 @@ export const IngredientDetail = (): JSX.Element => {
         {/* Delete Button - Admin and Reviewer only, but disabled for Reviewer */}
         <RoleGate roles={["admin", "reviewer"]}>
           <div className="space-y-3 pb-6">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleDelete}
-              disabled={deleteMutation.isPending}
+              disabled={deleteMutation.isPending || user?.role === 'reviewer'}
               className="w-full border-red-600 text-red-400 hover:bg-red-600/10 hover:text-red-300 h-10"
             >
               <Trash2 className="w-4 h-4 mr-2" />
