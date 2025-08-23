@@ -185,7 +185,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.post("/api/ingredients", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
+  app.post("/api/ingredients", requireAuth, allowRoles('admin'), async (req, res) => {
     try {
       console.log('🔥 POST /api/ingredients called with body:', JSON.stringify(req.body, null, 2));
       
@@ -227,7 +227,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.patch("/api/ingredients/:id", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
+  app.patch("/api/ingredients/:id", requireAuth, allowRoles('admin'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`🔥 PATCH /api/ingredients/${id} called with body:`, JSON.stringify(req.body, null, 2));
