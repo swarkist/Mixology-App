@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
+import { apiRequest, queryClient, getQueryFn } from "@/lib/queryClient";
 
 interface User {
   id: number;
@@ -23,9 +23,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   // Fetch current user
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery<{ user: User } | null>({
     queryKey: ['/api/auth/me'],
-    queryFn: () => apiRequest('/api/auth/me'),
+    queryFn: getQueryFn({ on401: 'returnNull' }),
     retry: false,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (data?.user) {
       setUser(data.user);
-    } else if (error || data?.user === null) {
+    } else if (data === null || error) {
       setUser(null);
     }
   }, [data, error]);
