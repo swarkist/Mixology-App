@@ -262,7 +262,7 @@ export const ImportCocktail = (): JSX.Element => {
   };
 
   const parseWithAI = async () => {
-    if (!rawContent) return;
+    if (!rawContent?.trim()) return;
     
     setIsParsing(true);
     setParseError("");
@@ -550,7 +550,7 @@ SAMPLE RECIPE
               
               <Button
                 onClick={parseWithAI}
-                disabled={isParsing || !rawContent.trim() || user?.role === 'reviewer'}
+                disabled={isParsing || !rawContent?.trim() || user?.role === 'reviewer'}
                 className="w-full bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611] disabled:opacity-50"
               >
                 {isParsing ? (
@@ -590,7 +590,7 @@ SAMPLE RECIPE
                   </CardTitle>
                   <Button
                     onClick={parseWithAI}
-                    disabled={isParsing || !rawContent}
+                    disabled={isParsing || !rawContent?.trim()}
                     size="sm"
                     className="bg-[#f2c40c] hover:bg-[#e0b40a] text-[#161611]"
                   >
