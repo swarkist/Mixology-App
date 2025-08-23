@@ -1346,7 +1346,7 @@ export class FirebaseStorage {
     }
   }
 
-  async getIngredientWithDetails(id: number): Promise<{
+  async getIngredientWithDetails(id: number, userId?: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];
@@ -1355,21 +1355,27 @@ export class FirebaseStorage {
       const ingredient = await this.getIngredient(id);
       if (!ingredient) return undefined;
 
-      // Get associated preferred brands
-      const brandRefs = await this.preferredBrandIngredientsCollection
-        .where('ingredientId', '==', id).get();
-      
+      // Get associated preferred brands only for the requesting user
       const preferredBrands: PreferredBrand[] = [];
-      for (const ref of brandRefs.docs) {
-        const refData = ref.data();
-        const brand = await this.getPreferredBrand(refData.preferredBrandId);
-        if (brand) preferredBrands.push(brand);
+      if (userId) {
+        const brandRefs = await this.preferredBrandIngredientsCollection
+          .where('ingredientId', '==', id)
+          .where('user_id', '==', userId)
+          .get();
+
+        for (const ref of brandRefs.docs) {
+          const refData = ref.data();
+          const brand = await this.getPreferredBrand(refData.preferredBrandId);
+          if (brand) {
+            preferredBrands.push(brand);
+          }
+        }
       }
 
-      // Get tags  
+      // Get tags
       const tagSnapshot = await this.ingredientTagsCollection
         .where('ingredientId', '==', id).get();
-      
+
       const tags: Tag[] = [];
       for (const ref of tagSnapshot.docs) {
         const refData = ref.data();
@@ -1403,18 +1409,19 @@ export class FirebaseStorage {
   }
 
   // Association management methods
-  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+  async associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void> {
     try {
-      console.log(`🔗 Creating association: ingredient ${ingredientId} <-> preferred brand ${preferredBrandId}`);
-      
-      // Check if association already exists
+      console.log(`🔗 Creating association for user ${userId}: ingredient ${ingredientId} <-> preferred brand ${preferredBrandId}`);
+
+      // Check if association already exists for this user
       const existingSnapshot = await this.preferredBrandIngredientsCollection
         .where('ingredientId', '==', ingredientId)
         .where('preferredBrandId', '==', preferredBrandId)
+        .where('user_id', '==', userId)
         .get();
-      
+
       if (!existingSnapshot.empty) {
-        console.log('🔗 Association already exists');
+        console.log('🔗 Association already exists for this user');
         return;
       }
 
@@ -1423,27 +1430,29 @@ export class FirebaseStorage {
       const associationData = {
         ingredientId,
         preferredBrandId,
+        user_id: userId,
         createdAt: new Date()
       };
-      
+
       console.log(`🔗 Writing to collection 'preferredBrandIngredients' with ID ${id}:`, associationData);
       await this.preferredBrandIngredientsCollection.doc(id.toString()).set(associationData);
-      
-      console.log(`🔗 ✅ Successfully associated ingredient ${ingredientId} with preferred brand ${preferredBrandId}`);
+
+      console.log(`🔗 ✅ Successfully associated ingredient ${ingredientId} with preferred brand ${preferredBrandId} for user ${userId}`);
     } catch (error) {
       console.error('🔗 ❌ Error associating ingredient with preferred brand:', error);
       throw error;
     }
   }
 
-  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void> {
+  async removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void> {
     try {
-      // Find existing association
+      // Find existing association for this user
       const snapshot = await this.preferredBrandIngredientsCollection
         .where('ingredientId', '==', ingredientId)
         .where('preferredBrandId', '==', preferredBrandId)
+        .where('user_id', '==', userId)
         .get();
-      
+
       if (snapshot.empty) {
         console.log('Association does not exist');
         return;
@@ -1452,8 +1461,8 @@ export class FirebaseStorage {
       // Delete association
       const deletePromises = snapshot.docs.map(doc => doc.ref.delete());
       await Promise.all(deletePromises);
-      
-      console.log(`Removed association between ingredient ${ingredientId} and preferred brand ${preferredBrandId}`);
+
+      console.log(`Removed association between ingredient ${ingredientId} and preferred brand ${preferredBrandId} for user ${userId}`);
     } catch (error) {
       console.error('Error removing ingredient from preferred brand:', error);
       throw error;

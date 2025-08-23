@@ -110,15 +110,15 @@ export interface IStorage {
   } | undefined>;
 
   // Ingredient Details  
-  getIngredientWithDetails(id: number): Promise<{
+  getIngredientWithDetails(id: number, userId?: number): Promise<{
     ingredient: Ingredient;
     preferredBrands: PreferredBrand[];
     tags: Tag[];
   } | undefined>;
 
   // Association management methods
-  associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void>;
-  removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number): Promise<void>;
+  associateIngredientWithPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void>;
+  removeIngredientFromPreferredBrand(ingredientId: number, preferredBrandId: number, userId: number): Promise<void>;
 
   // Cocktails  
   getAllCocktails(): Promise<Cocktail[]>;
