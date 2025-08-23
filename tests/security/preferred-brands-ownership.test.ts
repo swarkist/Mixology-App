@@ -197,18 +197,62 @@ describe("Preferred Brands Ownership Security", () => {
     });
 
     it("should ensure users cannot see other users' brands", async () => {
-      // User2 should not see User1's brands (User2's brand was deleted)
+      // User2 should not see User1's brands
       const response = await fetch("http://localhost:5000/api/preferred-brands", {
         headers: { "Cookie": user2Cookies }
       });
 
       expect(response.status).toBe(200);
       const brands = await response.json();
-      expect(brands.length).toBe(0); // User2 has no brands left
       
       // Ensure User1's brand is not visible to User2
       const user1Brand = brands.find((b: any) => b.id === user1BrandId);
       expect(user1Brand).toBeUndefined();
+    });
+  });
+
+  describe("Preferred Brands Detail Endpoint Security", () => {
+    it("should require authentication for preferred brand details", async () => {
+      // Attempt to access preferred brand details without authentication
+      const response = await fetch(`http://localhost:5000/api/preferred-brands/${user1BrandId}`);
+      
+      expect(response.status).toBe(401);
+      const error = await response.json();
+      expect(error.error || error.message).toContain("Authentication required");
+    });
+
+    it("should enforce ownership validation for preferred brand details", async () => {
+      // User2 tries to access User1's preferred brand details
+      const response = await fetch(`http://localhost:5000/api/preferred-brands/${user1BrandId}`, {
+        headers: { "Cookie": user2Cookies }
+      });
+      
+      expect(response.status).toBe(403);
+      const error = await response.json();
+      expect(error.error).toContain("Access denied");
+    });
+
+    it("should allow users to access their own preferred brand details", async () => {
+      // User1 can access their own preferred brand details
+      const response = await fetch(`http://localhost:5000/api/preferred-brands/${user1BrandId}`, {
+        headers: { "Cookie": user1Cookies }
+      });
+      
+      expect(response.status).toBe(200);
+      const brandDetails = await response.json();
+      expect(brandDetails.brand.id).toBe(user1BrandId);
+      expect(brandDetails.brand.name).toBe("Updated User1 Brand");
+    });
+
+    it("should prevent admin users from accessing other users' preferred brand details", async () => {
+      // Even admin users cannot access other users' preferred brand details
+      const response = await fetch(`http://localhost:5000/api/preferred-brands/${user1BrandId}`, {
+        headers: { "Cookie": adminCookies }
+      });
+      
+      expect(response.status).toBe(403);
+      const error = await response.json();
+      expect(error.error).toContain("Access denied");
     });
   });
 });

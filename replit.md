@@ -29,9 +29,9 @@ Development workflow: User now implements independent code changes and requests 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
 - **Database**: Firebase Firestore with server-only access via Admin SDK. Supports separate development and production instances.
-- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Three-tier role-based access control (RBAC) with smart content restrictions for reviewers. Secure token-based password reset. Ownership validation middleware for user-specific resources.
+- **Security**: Helmet, CORS allowlist, rate limiting, session-based authentication, write operation protection requiring `x-admin-key` header. Three-tier role-based access control (RBAC) with smart content restrictions for reviewers. Secure token-based password reset. Ownership validation middleware for user-specific resources. Last admin protection. Comprehensive audit logging for administrative actions.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
-- **Authentication**: Session-based auth with user registration/login, three-tier role-based access control (basic/reviewer/admin), secure session management, and comprehensive audit logging for administrative actions.
+- **Authentication**: Session-based auth with user registration/login, three-tier role-based access control (basic/reviewer/admin), secure session management.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
 - **AI Integration**: OpenRouter API proxy with model routing. YouTube transcript extraction and AI-powered recipe parsing from video content.
 - **Error Handling**: Global error middleware, custom request logging.
@@ -39,12 +39,12 @@ Development workflow: User now implements independent code changes and requests 
 
 ### Key Features & Design Decisions
 - **Data Flow**: Centralized API requests, TanStack Query for caching, React state management, Express middleware for request processing.
-- **Data Persistence**: Firebase Firestore with server-only access.
+- **Data Persistence**: Firebase Firestore with server-only access. User data isolation ensured through `user_id` filtering.
 - **My Bar Functionality**: Dedicated section with category-based filtering for tracking user's personal ingredient collection, with dynamic cocktail count, smart brand categorization, and real-time search filtering.
 - **Image Handling**: Integrated image upload and display for cocktails and ingredients, with base64 to URL conversion and client-side image compression.
 - **Dynamic Content**: Featured and Popular Recipes sections with real-time API data.
-- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing with robust fallback system. Features recipe database integration for context-aware recommendations, performance-optimized cocktail index, and basic markdown rendering. Clickable navigation links validated against site database. Homepage features input field matching original Figma design with "Ask Mixi" button. Silent error handling prevents user-facing abort messages. Enhanced branding with consistent "Mixi" agent identity. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection, and preservation of "part" measurements.
-- **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design.
+- **AI-Powered Features**: Mixi AI Chatbot with modern dialog-based interface, streaming SSE API, and environment-configurable model routing with robust fallback system. Features recipe database integration for context-aware recommendations, performance-optimized cocktail index, and basic markdown rendering. Photo OCR for brand extraction, YouTube transcript parsing, recipe importing from URLs, and intelligent content analysis. AI import allows full editing of ingredients and instructions, new ingredient detection, and preservation of "part" measurements.
+- **Preferred Brands System**: Photo-to-brand extraction workflow with editable fields and mobile-responsive design. Ownership validation enforced for user-specific brand data.
 - **Fraction Display**: Automatic conversion of decimal measurements to fractions (e.g., 0.75 → 3/4) across all recipe displays.
 - **Ingredient Detail Pages**: Enhanced with comprehensive cocktail relationships, complete tags support, and consistent styling.
 - **Tags System**: Complete ingredient tagging functionality with proper Firebase storage and unified "Usage & Tags" display.
@@ -63,35 +63,5 @@ Development workflow: User now implements independent code changes and requests 
 - **Image Processing**: Custom image compression utilities (`imageCompression.ts`).
 
 ### Development & Testing Dependencies
-- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation. Complete test infrastructure for authentication rules and role-based access control.
-
-## Security & Data Integrity
-
-### Critical Security Fixes & Authentication Resolution (August 20, 2025)
-- **User Data Isolation Vulnerability RESOLVED**: Fixed critical security issue where users could see each other's My Bar and Preferred Brands data. Root cause was Firebase storage layer using global `inMyBar` boolean flags instead of user-specific `my_bar` collection. Updated `getPreferredBrandsInMyBar()` and `getMyBarIngredients()` methods to query user-specific data via `my_bar` collection with proper `user_id` filtering. Removed global `toggleIngredientInMyBar()` and `toggleMyBarBrand()` methods that violated data isolation.
-- **React Hooks Stability**: Resolved "Rendered more hooks than during the previous render" error caused by hooks being called before early return in MyBar component. Moved all hooks after authentication check.
-- **API Endpoint Hardening**: Enhanced user-specific data filtering to ensure complete isolation between user accounts for all personalized features.
-- **Preferred Brands Schema Update**: Added `user_id` foreign key to `preferredBrands` table schema to make preferred brands user-specific instead of global. Updated all Firebase storage methods and API endpoints to require authentication and filter by user ID.
-- **Authentication Required**: All preferred brands endpoints now require proper user authentication, preventing unauthorized access to any user's personal data.
-- **Cookie Authentication Fix**: Resolved missing `requireAuth` middleware on GET `/api/preferred-brands` endpoint that was causing 401 authentication failures even for valid authenticated requests. JWT token parsing and validation now works correctly for all user-specific API endpoints.
-- **Top Navigation Search Fix**: Fixed search parameter mismatch between navigation (`search`) and cocktails page (`q`) - now CocktailList reads both parameters for seamless navigation filtering.
-- **Mixi Chatbot API Fix**: Resolved LSP compilation error in OCR function that was preventing the chat API from responding. Chat endpoint now streams responses correctly using OpenRouter API integration.
-- **Preferred Brands Ownership Vulnerability Fix**: Implemented ownership validation for PATCH and DELETE operations on preferred brands. Users can now only modify/delete their own brands, preventing cross-user access even for admin roles. Added comprehensive security test suite to validate ownership enforcement.
-- **Admin Console Role Management Fix**: Resolved 403 Forbidden error preventing admins from changing user roles. Fixed middleware conflict where `requireAdminForWrites` was requiring API key authentication instead of allowing proper cookie-based admin authentication for `/api/admin/` routes.
-- **Storage Layer Role System Fix (August 22, 2025)**: Resolved critical type mismatch where storage interfaces only supported 'basic' | 'admin' roles while the schema and authentication system supported 'basic' | 'reviewer' | 'admin'. Extended `updateUserRole()` and `getAllUsers()` methods in both storage interface and Firebase adapter to include 'reviewer' role. Fixed method signatures for user-specific operations and ensured proper data isolation. This resolves role persistence issues and prevents reviewer accounts from being corrupted or denied proper access.
-
-### Role-Based Access Control Enhancements (August 23, 2025)
-- **Complete Reviewer Role Implementation**: Extended all storage layer interfaces and Firebase adapters to properly support three-tier role system ('basic' | 'reviewer' | 'admin'). Fixed type mismatches across authentication middleware, admin routes, and storage methods that were preventing reviewer role assignments and persistence.
-- **Smart Content Save Restrictions**: Implemented `rejectContentSavesForReviewer` middleware that allows reviewers to access edit forms and AI import tools while preventing actual content modifications. Reviewers can view and interact with content creation interfaces but cannot save changes to cocktails or ingredients, maintaining data integrity while enabling content review workflows.
-- **Enhanced Preferred Brands Security**: Strengthened ownership validation with comprehensive cross-user access prevention. Users can only create, modify, and delete their own preferred brands, with ownership validation enforced even for admin users. Prevents privilege escalation and ensures personal data remains isolated.
-- **Last Admin Protection**: Critical system safeguard preventing the demotion or deactivation of the final active admin account. Automatically checks for remaining active admins before allowing role changes, ensuring continuous system access and preventing administrative lockout scenarios.
-- **Comprehensive Audit Logging**: Enhanced role change tracking with detailed metadata including old/new roles, target user information, IP addresses, and user agent data. Provides complete audit trail for compliance and security monitoring of administrative actions.
-
-### Comprehensive Security Testing Suite
-- **User Data Isolation Tests**: Dedicated test suite (`tests/security/user-data-isolation.test.ts`) validating that users can only access their own My Bar items and Preferred Brands status.
-- **Cross-User Access Prevention**: Tests ensuring users cannot access, modify, or view other users' personal data.
-- **Authentication Context Validation**: Verification that user-specific endpoints require proper authentication while global content remains publicly accessible.
-- **Data Integrity Validation**: Tests confirming that user operations maintain data consistency and proper ownership verification.
-- **Preferred Brands Ownership Security**: Comprehensive test suite (`tests/security/preferred-brands-ownership.test.ts`) validating ownership-based access control for preferred brands, ensuring users cannot modify other users' personal brand preferences even with elevated permissions.
-- **Role-Based Access Control Testing**: Complete validation of three-tier role system functionality, including reviewer content access restrictions, admin privilege boundaries, and proper role persistence across authentication sessions.
-- **Admin Protection Scenarios**: Testing suite ensuring last admin cannot be demoted or deactivated, preventing system lockout while maintaining proper administrative controls.
+- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation. Complete test infrastructure for authentication rules and role-based access control, and ownership enforcement.
+```
