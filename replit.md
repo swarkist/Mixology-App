@@ -29,9 +29,9 @@ Development workflow: User now implements independent code changes and requests 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js framework, TypeScript.
 - **Database**: Firebase Firestore with server-only access via Admin SDK. Supports separate development and production instances.
-- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Role-based access control (RBAC). Secure token-based password reset.
+- **Security**: Helmet, CORS allowlist, rate limiting (300 req/15min), session-based authentication, write operation protection requiring `x-admin-key` header. Three-tier role-based access control (RBAC) with smart content restrictions for reviewers. Secure token-based password reset. Ownership validation middleware for user-specific resources.
 - **API Design**: RESTful API with `/api` prefix, centralized route registration, authentication-required write operations, body size limited to 512KB.
-- **Authentication**: Session-based auth with user registration/login, role-based access control (RBAC), and secure session management.
+- **Authentication**: Session-based auth with user registration/login, three-tier role-based access control (basic/reviewer/admin), secure session management, and comprehensive audit logging for administrative actions.
 - **Backup System**: Automated Firestore collection export to timestamped JSON files.
 - **AI Integration**: OpenRouter API proxy with model routing. YouTube transcript extraction and AI-powered recipe parsing from video content.
 - **Error Handling**: Global error middleware, custom request logging.
@@ -80,8 +80,18 @@ Development workflow: User now implements independent code changes and requests 
 - **Admin Console Role Management Fix**: Resolved 403 Forbidden error preventing admins from changing user roles. Fixed middleware conflict where `requireAdminForWrites` was requiring API key authentication instead of allowing proper cookie-based admin authentication for `/api/admin/` routes.
 - **Storage Layer Role System Fix (August 22, 2025)**: Resolved critical type mismatch where storage interfaces only supported 'basic' | 'admin' roles while the schema and authentication system supported 'basic' | 'reviewer' | 'admin'. Extended `updateUserRole()` and `getAllUsers()` methods in both storage interface and Firebase adapter to include 'reviewer' role. Fixed method signatures for user-specific operations and ensured proper data isolation. This resolves role persistence issues and prevents reviewer accounts from being corrupted or denied proper access.
 
+### Role-Based Access Control Enhancements (August 23, 2025)
+- **Complete Reviewer Role Implementation**: Extended all storage layer interfaces and Firebase adapters to properly support three-tier role system ('basic' | 'reviewer' | 'admin'). Fixed type mismatches across authentication middleware, admin routes, and storage methods that were preventing reviewer role assignments and persistence.
+- **Smart Content Save Restrictions**: Implemented `rejectContentSavesForReviewer` middleware that allows reviewers to access edit forms and AI import tools while preventing actual content modifications. Reviewers can view and interact with content creation interfaces but cannot save changes to cocktails or ingredients, maintaining data integrity while enabling content review workflows.
+- **Enhanced Preferred Brands Security**: Strengthened ownership validation with comprehensive cross-user access prevention. Users can only create, modify, and delete their own preferred brands, with ownership validation enforced even for admin users. Prevents privilege escalation and ensures personal data remains isolated.
+- **Last Admin Protection**: Critical system safeguard preventing the demotion or deactivation of the final active admin account. Automatically checks for remaining active admins before allowing role changes, ensuring continuous system access and preventing administrative lockout scenarios.
+- **Comprehensive Audit Logging**: Enhanced role change tracking with detailed metadata including old/new roles, target user information, IP addresses, and user agent data. Provides complete audit trail for compliance and security monitoring of administrative actions.
+
 ### Comprehensive Security Testing Suite
 - **User Data Isolation Tests**: Dedicated test suite (`tests/security/user-data-isolation.test.ts`) validating that users can only access their own My Bar items and Preferred Brands status.
 - **Cross-User Access Prevention**: Tests ensuring users cannot access, modify, or view other users' personal data.
 - **Authentication Context Validation**: Verification that user-specific endpoints require proper authentication while global content remains publicly accessible.
 - **Data Integrity Validation**: Tests confirming that user operations maintain data consistency and proper ownership verification.
+- **Preferred Brands Ownership Security**: Comprehensive test suite (`tests/security/preferred-brands-ownership.test.ts`) validating ownership-based access control for preferred brands, ensuring users cannot modify other users' personal brand preferences even with elevated permissions.
+- **Role-Based Access Control Testing**: Complete validation of three-tier role system functionality, including reviewer content access restrictions, admin privilege boundaries, and proper role persistence across authentication sessions.
+- **Admin Protection Scenarios**: Testing suite ensuring last admin cannot be demoted or deactivated, preventing system lockout while maintaining proper administrative controls.
