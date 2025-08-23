@@ -16,7 +16,7 @@ export async function scrapeWebContent(url: string): Promise<string> {
     }
     
     const data = await response.json();
-    return data.textContent;
+    return data.text;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
