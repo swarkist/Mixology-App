@@ -1,0 +1,83 @@
+Title: Fix /api/scrape-url 500s, remove proxy dep, and harden scraping
+
+0) Pre‑Implementation Analysis (do this BEFORE coding)
+- Locate the /api/scrape-url route (server/routes.ts or equivalent).
+- Document current behavior and external deps (confirm if api.allorigins.win or similar is used).
+- Capture current middleware chain and auth flow for this route.
+- Reproduce the 500 once and paste the exact server stack trace. Note common error patterns.
+
+1) Route & Middleware
+- This route is READ ONLY. It must be available to authenticated ["admin","reviewer"].
+- Do NOT require x-admin-key (writes only).
+- Middleware order: (rate limit for scraping) -> requireAuth -> requireRole(["admin","reviewer"]) -> handler.
+- Add a route-specific rate limit: 10 requests/minute per user (IP or session-based).
+- Ensure body size limit doesn’t block this route (512KB global app limit is fine since we fetch server-side, not from client).
+
+2) Server Handler (TypeScript Express) — Robust Fetch + Safe Parse
+- Validate body with Zod: { url: string } and it must start with http(s).
+- NOTE: Server-to-server fetch bypasses browser CORS.
+- Use axios or got with:
+  - User-Agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119 Safari/537.36"
+  - Accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.8"
+  - Accept-Language: "en-US,en;q=0.9"
+  - Follow redirects up to 5
+  - Timeout: 10s
+  - Max content length: 2 MB (reject with code "oversize")
+- Accept Content-Type if it includes one of:
+  - "text/html" | "application/xhtml+xml" | "text/plain"
+  Else return 415:
+  { ok:false, code:"unsupported_content_type", message, hint }
+- If fetch fails due to anti-bot or network, return 4xx with:
+  { ok:false, code:"fetch_failed" or "blocked_by_origin", message, hint:"Try the 'Paste raw text' fallback." }
+- Truncate to ≤ 2 MB before Cheerio. If empty after truncation, 422 with code "empty_body".
+- Parse HTML with Cheerio:
+  - Extract canonicalUrl (<link rel="canonical"> or final URL)
+  - Extract <title>
+  - Extract JSON-LD script[type="application/ld+json"] blocks as raw strings
+  - (Optional v1) Extract OpenGraph tags (og:title, og:image) into a metadata field; DO NOT treat as recipe schema.
+  - Extract visible text (strip scripts/styles) as best-effort
+- Response shape (200):
+  {
+    ok: true,
+    canonicalUrl,
+    title,
+    text,              // may be truncated
+    jsonLdRaw: [...],  // strings
+    og?: { title?: string; image?: string }
+  }
+- Controlled failure shape (4xx):
+  { ok:false, code:"invalid_url"|"timeout"|"oversize"|"unsupported_content_type"|"blocked_by_origin"|"fetch_failed"|"empty_body", message, hint }
+- Log URL, code, and duration. Do NOT log response bodies.
+
+3) Tiny Cache (improves UX)
+- Add an in-memory LRU or Map cache (size ~200, TTL 10 minutes) keyed by canonical URL.
+- On cache hit, return cached object. Do not cache failures.
+
+4) Frontend (scrapeURL.ts, ImportCocktail.tsx)
+- Ensure POST body is exactly { url } and includes credentials.
+- When ok:false, display message + hint in a toast and show a “Paste raw page text” fallback area.
+- Guard UI for missing fields (title/text/jsonLdRaw).
+- Keep the happy-path UX identical.
+
+5) Tests & Verification
+- role-based-endpoints.test.ts:
+  - Admin + Reviewer: POST /api/scrape-url → 200
+  - Basic: 403/401 (depending on our requireRole behavior)
+- api-endpoint-validation.test.ts:
+  - Input schema enforced, structured error shape returned
+- Integration test:
+  - Use a small local HTML fixture with <title> and one JSON-LD script; assert ok:true and title present.
+  - Add a test for unsupported content-type → 415 with code "unsupported_content_type"
+  - Add a test for oversize (simulate large body) → 413/422 with code "oversize" (choose consistent status; document it)
+- Manual verify with 3 real recipe URLs (one with JSON-LD, one without, one that blocks generic fetch to test fallback).
+- Paste failing tests or blockers, with code snippets, if you hit the same error twice.
+
+6) Developer Experience
+- Add concise logs: start/end with URL, status, ms.
+- Don’t weaken global security. All changes should be localized to this route.
+
+Checkpoints:
+- pre-scrape-url-fix-<YYYYMMDD>
+- post-scrape-url-fix-<YYYYMMDD>
+
+Please read this fully. If something is unclear, ask before coding and share the current stack trace + route code snippet.
