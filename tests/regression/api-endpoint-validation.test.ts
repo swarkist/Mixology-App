@@ -136,6 +136,7 @@ describe('API Endpoint Validation Tests', () => {
       const brandEndpoints = [
         { endpoint: '/api/preferred-brands', method: 'GET' },
         { endpoint: '/api/preferred-brands', method: 'POST' },
+        { endpoint: '/api/preferred-brands/1', method: 'GET' }, // Individual brand details endpoint
         { endpoint: '/api/preferred-brands/1', method: 'PATCH' },
         { endpoint: '/api/preferred-brands/1', method: 'DELETE' },
       ];
