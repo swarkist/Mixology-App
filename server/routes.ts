@@ -855,15 +855,26 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.get("/api/preferred-brands/:id", async (req, res) => {
+  app.get("/api/preferred-brands/:id", requireAuth, async (req, res) => {
     const id = parseInt(req.params.id);
-    const brandWithDetails = await storage.getPreferredBrandWithDetails(id);
+    
+    try {
+      const brandWithDetails = await storage.getPreferredBrandWithDetails(id);
 
-    if (!brandWithDetails) {
-      return res.status(404).json({ message: "Preferred brand not found" });
+      if (!brandWithDetails) {
+        return res.status(404).json({ message: "Preferred brand not found" });
+      }
+
+      // Check ownership - users can only access their own preferred brands
+      if (brandWithDetails.brand.user_id !== req.user!.id) {
+        return res.status(403).json({ error: "Access denied: You can only view your own preferred brands" });
+      }
+
+      res.json(brandWithDetails);
+    } catch (error) {
+      console.error('Error fetching preferred brand details:', error);
+      res.status(500).json({ message: "Error fetching preferred brand details", error });
     }
-
-    res.json(brandWithDetails);
   });
 
 
