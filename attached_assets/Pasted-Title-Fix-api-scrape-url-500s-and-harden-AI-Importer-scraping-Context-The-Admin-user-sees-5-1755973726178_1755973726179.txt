@@ -1,0 +1,91 @@
+Title: Fix /api/scrape-url 500s and harden AI Importer scraping
+
+Context:
+- The Admin user sees 500 (Internal Server Error) on POST /api/scrape-url when using the AI Importer.
+- We need this route to be reliable for Admin and Reviewer roles, and return structured errors for the UI.
+
+Your Tasks (read all before coding; ask questions if anything is unclear):
+1) Route & Middleware Audit
+   - Find where /api/scrape-url is registered in server/routes.ts (or equivalent).
+   - Ensure it is accessible for authenticated Admin and Reviewer users.
+   - It must NOT require x-admin-key (“writes only”) because scraping is read-only.
+   - Middleware order must be:
+     - rate limit (ok),
+     - requireAuth,
+     - requireRole(["admin","reviewer"]),
+     - handler.
+   - If requireAuth is not intended, confirm current RBAC and adjust FE accordingly; default is: Admin/Reviewer only.
+
+2) Server Handler Hardening (TypeScript Express)
+   - Validate req.body with Zod: { url: string; } where url must start with http or https.
+   - Implement robust fetch using axios or got:
+     - Set a realistic User-Agent (e.g., "Mozilla/5.0 ... Chrome/119 Safari/537.36").
+     - follow redirects (up to 5).
+     - timeout: 10s.
+     - max content length: 2 MB (fail gracefully if bigger).
+     - Only proceed if Content-Type includes "text/html"; else return JSON: { ok: false, reason: "unsupported_content_type" }.
+   - On success, extract:
+     - canonicalUrl (from <link rel="canonical"> or final URL),
+     - title (<title>),
+     - JSON-LD recipe blocks if present (application/ld+json),
+     - visible text (basic textContent extracted from Cheerio, stripping scripts/styles).
+   - Return JSON:
+     {
+       ok: true,
+       canonicalUrl,
+       title,
+       text,              // trimmed, best-effort
+       jsonLdRaw: [ ... ] // any found structured data as strings
+     }
+   - On any controlled failure, return 4xx with:
+     {
+       ok: false,
+       message: "human friendly summary",
+       hint: "actionable next step",
+       code: "enum_like_value"  // e.g., "invalid_url" | "timeout" | "oversize" | "unsupported_content_type" | "fetch_failed"
+     }
+   - Make sure errors don’t bubble to the global handler as 500 unless it’s truly unexpected. Log full error to server console with the failing URL.
+
+3) Frontend Client (scrapeURL.ts and ImportCocktail.tsx)
+   - Ensure the client POSTs JSON { url } and includes credentials (cookies).
+   - If the response is !ok, surface the server’s message + hint to the user via the existing toast/snackbar.
+   - Handle non-HTML gracefully with a friendly UI message like:
+     - “This URL doesn’t look like a recipe page. Try a blog post or a site that shows the full recipe.”
+   - Guard UI states to avoid crashes if any field (title/text/jsonLdRaw) is missing.
+
+4) Tests & Verification
+   - Add/Update tests:
+     - role-based-endpoints.test.ts:
+       - Admin: can POST /api/scrape-url → 200
+       - Reviewer: can POST /api/scrape-url → 200
+       - Basic: blocked (401/403 depending on our rule)
+     - api-endpoint-validation.test.ts:
+       - Ensure /api/scrape-url exists and returns structured JSON.
+   - Add at least one integration test that:
+     - Posts a known HTML page (use a small local fixture instead of live internet to avoid flakiness),
+     - Verifies the parser returns { ok: true, title }.
+   - After implementation, run the app and manually verify the AI Importer:
+     - Paste 3 real recipe URLs; ensure at least one has JSON-LD and one without it.
+     - Confirm errors show helpful messages when you paste a PDF or an image URL.
+
+5) Developer Experience
+   - Improve server logging for this route:
+     - Log start/end with URL, status, duration.
+     - If error, log code + message + stack.
+   - If we previously parsed enormous pages, add a safety: truncate to ~2MB before Cheerio to avoid memory spikes.
+
+Non-Functional Requirements:
+- Keep handler under ~150 lines by factoring helpers (contentTypeIsHtml, extractJsonLdBlocks, extractVisibleText).
+- Use TypeScript types throughout.
+- Don’t weaken global security—only fix the scope/middleware for this single route appropriately.
+
+Checkpoint Policy:
+- Before change: checkpoint pre-scrape-url-fix-<YYYYMMDD>
+- After change: checkpoint post-scrape-url-fix-<YYYYMMDD>
+
+Ask me questions if:
+- You can’t find the route,
+- Middleware order conflicts with a global pattern,
+- E2E test needs a local HTML fixture and we need to decide path.
+
+Please run tests and paste any failing output. If you hit the same error twice, stop, ask clarifying questions, and include the error text and the exact code block you’re stuck on.
