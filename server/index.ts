@@ -114,6 +114,7 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
     "/scrape-url",          // Web scraping
     "/openrouter",          // AI processing
     "/youtube-transcript",  // Video transcript extraction
+    "/ai/brands/from-image", // Image OCR for brand extraction
     "/auth/login",          // User authentication
     "/auth/register",       // User registration
     "/auth/logout",         // User logout
