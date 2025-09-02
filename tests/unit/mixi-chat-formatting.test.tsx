@@ -16,4 +16,14 @@ describe('MixiChat formatting', () => {
       expect(ol.start).toBe(1);
     });
   });
+
+  it('does not treat numbered instruction steps as multiple recipes', () => {
+    const response = `Strawberry Daiquiri\nIngredients:\n- 2 oz white rum\n- 1 oz lime juice\nInstructions:\n1. Muddle the strawberries.\n2. Add rum and lime juice.\n3. Shake with ice.`;
+
+    const { container } = render(<>{renderAssistantMessage(response, stubRenderSafeInline)}</>);
+    const cards = container.querySelectorAll('div.rounded-2xl');
+    expect(cards.length).toBe(0);
+    const lists = container.querySelectorAll('ol');
+    expect(lists.length).toBe(1);
+  });
 });

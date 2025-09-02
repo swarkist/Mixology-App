@@ -190,7 +190,11 @@ function parseMultipleRecipesFromText(text: string): Array<{
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   
   // Look for numbered recipe pattern (1. Title, 2. Title, etc.)
-  const numberedRecipes = lines.filter(line => /^\d+\.\s+[A-Z]/.test(line));
+  // but avoid mistaking numbered instruction steps for recipe titles
+  const numberedRecipes = lines.filter(line =>
+    /^\d+\.\s+[A-Z]/.test(line) &&
+    !/^\d+\.\s+(Muddle|Stir|Shake|Add|Fill|Garnish|Pour|Combine|Rim|Top|Strain|Serve|In|Using|Place|Drop|Build|Layer|Light|Rinse|Swirl|Heat|Preheat)\b/i.test(line)
+  );
   
   if (numberedRecipes.length > 1) {
     const recipes: Array<{title: string; description: string | null; ingredients: string[]; instructions: string[]}> = [];
@@ -245,7 +249,12 @@ function parseMultipleRecipesFromText(text: string): Array<{
         }
       }
     }
-    
+
+    // If we failed to gather ingredients or instructions, treat as single recipe
+    if (allIngredients.length === 0 && allInstructions.length === 0) {
+      return [];
+    }
+
     // Create recipes and distribute content
     const numRecipes = numberedRecipes.length;
     const ingredientsPerRecipe = Math.floor(allIngredients.length / numRecipes);
