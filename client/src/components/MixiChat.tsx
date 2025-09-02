@@ -13,6 +13,249 @@ interface Message {
   content: string;
 }
 
+type Block =
+  | { kind: "ol"; items: string[] }
+  | { kind: "ul"; items: string[] }
+  | { kind: "p"; text: string }
+  | { kind: "h"; text: string };
+
+function normalizeForLists(text: string) {
+  // Ensure a newline before any numbered item not at line-start
+  text = text.replace(/(?<!^|\n)(\s*)(\d+)\.\s+/g, "\n$2. ");
+  // Ensure a newline before bullets like " • "
+  text = text.replace(/\s+•\s+/g, "\n• ");
+  // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
+  text = text.replace(/\s*(\*{0,2}\s*Ingredients:?\s*\*{0,2})/gi, "\n\n$1\n");
+  text = text.replace(/\s*(\*{0,2}\s*Instructions:?\s*\*{0,2})/gi, "\n\n$1\n");
+  // Ensure bold headings (e.g., **Margarita**) are isolated on their own lines
+  text = text.replace(/(^|\n)\s*(\*\*[^*\n]+\*\*)/g, (m, p1, p2) => `${p1}\n${p2}\n`);
+  return text;
+}
+
+export function splitIntoBlocks(text: string): Block[] {
+  const out: Block[] = [];
+  const lines = normalizeForLists(text).split(/\r?\n/).map(l => l.trim());
+  let i = 0;
+
+  function flushParagraph(buf: string[]) {
+    const joined = buf.join(" ").trim();
+    if (joined) out.push({ kind: "p", text: joined });
+  }
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // recipe headings with trailing description (e.g., "Margarita - A drink")
+    const hd = line.match(/^(.+?)\s-\s+(.+)/);
+    if (hd) {
+      out.push({ kind: "h", text: hd[1].trim() });
+      out.push({ kind: "p", text: hd[2].trim() });
+      i++;
+      continue;
+    }
+
+    // recipe headings written in bold (e.g., **Margarita**)
+    if (/^\*\*[^*]+\*\*$/.test(line)) {
+      out.push({ kind: "h", text: line });
+      i++;
+      continue;
+    }
+
+    // section headers like Ingredients or Instructions
+    if (/^\*{0,2}\s*ingredients:?/i.test(line) || /^\*{0,2}\s*instructions:?/i.test(line)) {
+      out.push({ kind: "h", text: line.replace(/\*/g, "").trim() });
+      i++;
+      continue;
+    }
+
+    // ordered list block (consecutive lines starting with "1. ", "2. ", etc.)
+    if (/^\d+\.\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^\d+\.\s+/, "").trim());
+        i++;
+      }
+      out.push({ kind: "ol", items });
+      continue;
+    }
+
+    // unordered list block (• or -)
+    if (/^(•|-)\s+/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^(•|-)\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^(•|-)\s+/, "").trim());
+        i++;
+      }
+      out.push({ kind: "ul", items });
+      continue;
+    }
+
+    // paragraph accumulation
+    if (line) {
+      const buf: string[] = [line];
+      // absorb subsequent non-list, non-header lines into same paragraph
+      let j = i + 1;
+      while (
+        j < lines.length &&
+        lines[j] &&
+        !/^\d+\.\s+/.test(lines[j]) &&
+        !/^(•|-)\s+/.test(lines[j]) &&
+        !/^\*{0,2}\s*(ingredients|instructions):?/i.test(lines[j])
+      ) {
+        buf.push(lines[j]);
+        j++;
+      }
+      flushParagraph(buf);
+      i = j;
+      continue;
+    }
+
+    i++; // empty line
+  }
+
+  return out;
+}
+
+export function renderAssistantMessage(
+  text: string,
+  renderSafeInline: (s: string) => JSX.Element
+): JSX.Element {
+  const blocks = splitIntoBlocks(text);
+  const elements: JSX.Element[] = [];
+
+  type Recipe = {
+    title: string;
+    description: string | null;
+    ingredients: string[];
+    instructions: string[];
+  };
+  let currentRecipe: Recipe | null = null;
+  let currentSection: "ingredients" | "instructions" | null = null;
+
+  const flushRecipe = () => {
+    if (!currentRecipe) return;
+    elements.push(
+      <div key={elements.length} className="mt-2">
+        <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{currentRecipe.title}</div>
+        {currentRecipe.description && (
+          <p className="text-white">{renderSafeInline(currentRecipe.description)}</p>
+        )}
+        {currentRecipe.ingredients.length > 0 && (
+          <>
+            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Ingredients:</div>
+            <ul className="list-disc ml-5 space-y-1">
+              {currentRecipe.ingredients.map((it, idx) => (
+                <li key={idx} className="text-white">
+                  {renderSafeInline(it)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {currentRecipe.instructions.length > 0 && (
+          <>
+            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Instructions:</div>
+            <ol className="list-decimal ml-5 space-y-1">
+              {currentRecipe.instructions.map((it, idx) => (
+                <li key={idx} className="text-white">
+                  {renderSafeInline(it)}
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+      </div>
+    );
+    currentRecipe = null;
+    currentSection = null;
+  };
+
+  function pushGenericBlock(b: Block) {
+    const key = elements.length;
+    if (b.kind === "h") {
+      const label = b.text.replace(/\*+/g, "");
+      elements.push(
+        <div key={key} className="mt-2 mb-1 font-semibold text-[#f3d035]">
+          {label}
+        </div>
+      );
+      return;
+    }
+    if (b.kind === "ol") {
+      elements.push(
+        <ol key={key} className="list-decimal ml-5 space-y-1">
+          {b.items.map((it, i2) => (
+            <li key={i2} className="text-white">
+              {renderSafeInline(it)}
+            </li>
+          ))}
+        </ol>
+      );
+      return;
+    }
+    if (b.kind === "ul") {
+      elements.push(
+        <ul key={key} className="list-disc ml-5 space-y-1">
+          {b.items.map((it, i2) => (
+            <li key={i2} className="text-white">
+              {renderSafeInline(it)}
+            </li>
+          ))}
+        </ul>
+      );
+      return;
+    }
+    elements.push(
+      <p key={key} className="text-white">
+        {renderSafeInline(b.text)}
+      </p>
+    );
+  }
+
+  for (const b of blocks) {
+    if (b.kind === "h") {
+      const label = b.text.replace(/\*+/g, "").trim();
+      if (/^ingredients:?/i.test(label)) {
+        currentSection = "ingredients";
+        continue;
+      }
+      if (/^instructions:?/i.test(label)) {
+        currentSection = "instructions";
+        continue;
+      }
+      // New recipe heading
+      flushRecipe();
+      currentRecipe = { title: label, description: null, ingredients: [], instructions: [] };
+      continue;
+    }
+
+    if (currentRecipe && !currentSection) {
+      if (b.kind === "p" && !currentRecipe.description) {
+        currentRecipe.description = b.text;
+        continue;
+      }
+    }
+
+    if (currentSection && currentRecipe) {
+      const target =
+        currentSection === "ingredients"
+          ? currentRecipe.ingredients
+          : currentRecipe.instructions;
+      if (b.kind === "p") target.push(b.text);
+      else if (b.kind === "ul" || b.kind === "ol") target.push(...b.items);
+      continue;
+    }
+
+    // block outside any recipe section
+    flushRecipe();
+    pushGenericBlock(b);
+  }
+
+  flushRecipe();
+
+  return <>{elements}</>;
+}
+
 export default function MixiChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -243,217 +486,6 @@ export default function MixiChat() {
   }
   // ---------------------------------------------------------------------------
 
-  // --- Formatting helpers (lists/sections) ------------------------------------
-  // Normalize paragraphs that cram "1. X 2. Y 3. Z" into a single line → line-per-item
-  function normalizeForLists(text: string) {
-    // Ensure a newline before any numbered item not at line-start
-    text = text.replace(/(?<!^|\n)(\s*)(\d+)\.\s+/g, "\n$2. ");
-    // Ensure a newline before bullets like " • "
-    text = text.replace(/\s+•\s+/g, "\n• ");
-    // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
-    text = text.replace(/\s*(\*{0,2}\s*Ingredients:?\s*\*{0,2})/gi, "\n\n$1\n");
-    text = text.replace(/\s*(\*{0,2}\s*Instructions:?\s*\*{0,2})/gi, "\n\n$1\n");
-    // Ensure bold headings (e.g., **Margarita**) are isolated on their own lines
-    text = text.replace(/(^|\n)\s*(\*\*[^*\n]+\*\*)/g, (m, p1, p2) => `${p1}\n${p2}\n`);
-    return text;
-  }
-
-  type Block =
-    | { kind: "ol"; items: string[] }
-    | { kind: "ul"; items: string[] }
-    | { kind: "p"; text: string }
-    | { kind: "h"; text: string };
-
-  function splitIntoBlocks(text: string): Block[] {
-    const out: Block[] = [];
-    const lines = normalizeForLists(text).split(/\r?\n/).map(l => l.trim());
-    let i = 0;
-
-    function flushParagraph(buf: string[]) {
-      const joined = buf.join(" ").trim();
-      if (joined) out.push({ kind: "p", text: joined });
-    }
-
-    while (i < lines.length) {
-      const line = lines[i];
-
-      // recipe headings written in bold (e.g., **Margarita**)
-      if (/^\*\*[^*]+\*\*$/.test(line)) {
-        out.push({ kind: "h", text: line });
-        i++;
-        continue;
-      }
-
-      // section headers like Ingredients or Instructions
-      if (/^\*{0,2}\s*ingredients:?/i.test(line) || /^\*{0,2}\s*instructions:?/i.test(line)) {
-        out.push({ kind: "h", text: line.replace(/\*/g, "").trim() });
-        i++;
-        continue;
-      }
-
-      // ordered list block (consecutive lines starting with "1. ", "2. ", etc.)
-      if (/^\d+\.\s+/.test(line)) {
-        const items: string[] = [];
-        while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
-          items.push(lines[i].replace(/^\d+\.\s+/, "").trim());
-          i++;
-        }
-        out.push({ kind: "ol", items });
-        continue;
-      }
-
-      // unordered list block (• or -)
-      if (/^(•|-)\s+/.test(line)) {
-        const items: string[] = [];
-        while (i < lines.length && /^(•|-)\s+/.test(lines[i])) {
-          items.push(lines[i].replace(/^(•|-)\s+/, "").trim());
-          i++;
-        }
-        out.push({ kind: "ul", items });
-        continue;
-      }
-
-      // paragraph accumulation
-      if (line) {
-        const buf: string[] = [line];
-        // absorb subsequent non-list, non-header lines into same paragraph
-        let j = i + 1;
-        while (j < lines.length && lines[j] && !/^\d+\.\s+/.test(lines[j]) && !/^(•|-)\s+/.test(lines[j]) && !/^\*{0,2}\s*(ingredients|instructions):?/i.test(lines[j])) {
-          buf.push(lines[j]);
-          j++;
-        }
-        flushParagraph(buf);
-        i = j;
-        continue;
-      }
-
-      i++; // empty line
-    }
-
-    return out;
-  }
-
-  function renderAssistantMessage(text: string) {
-    const blocks = splitIntoBlocks(text);
-    const elements: JSX.Element[] = [];
-
-    type Recipe = { title: string; ingredients: string[]; instructions: string[] };
-    let currentRecipe: Recipe | null = null;
-    let currentSection: "ingredients" | "instructions" | null = null;
-
-    const flushRecipe = () => {
-      if (!currentRecipe) return;
-      elements.push(
-        <div key={elements.length} className="mt-2">
-          <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{currentRecipe.title}</div>
-          {currentRecipe.ingredients.length > 0 && (
-            <>
-              <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Ingredients:</div>
-              <ul className="list-disc ml-5 space-y-1">
-                {currentRecipe.ingredients.map((it, idx) => (
-                  <li key={idx} className="text-white">
-                    {renderSafeInline(it)}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-          {currentRecipe.instructions.length > 0 && (
-            <>
-              <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Instructions:</div>
-              <ol className="list-decimal ml-5 space-y-1">
-                {currentRecipe.instructions.map((it, idx) => (
-                  <li key={idx} className="text-white">
-                    {renderSafeInline(it)}
-                  </li>
-                ))}
-              </ol>
-            </>
-          )}
-        </div>
-      );
-      currentRecipe = null;
-      currentSection = null;
-    };
-
-    function pushGenericBlock(b: Block) {
-      const key = elements.length;
-      if (b.kind === "h") {
-        const label = b.text.replace(/\*+/g, "");
-        elements.push(
-          <div key={key} className="mt-2 mb-1 font-semibold text-[#f3d035]">
-            {label}
-          </div>
-        );
-        return;
-      }
-      if (b.kind === "ol") {
-        elements.push(
-          <ol key={key} className="list-decimal ml-5 space-y-1">
-            {b.items.map((it, i2) => (
-              <li key={i2} className="text-white">
-                {renderSafeInline(it)}
-              </li>
-            ))}
-          </ol>
-        );
-        return;
-      }
-      if (b.kind === "ul") {
-        elements.push(
-          <ul key={key} className="list-disc ml-5 space-y-1">
-            {b.items.map((it, i2) => (
-              <li key={i2} className="text-white">
-                {renderSafeInline(it)}
-              </li>
-            ))}
-          </ul>
-        );
-        return;
-      }
-      elements.push(
-        <p key={key} className="text-white">
-          {renderSafeInline(b.text)}
-        </p>
-      );
-    }
-
-    for (const b of blocks) {
-      if (b.kind === "h") {
-        const label = b.text.replace(/\*+/g, "").trim();
-        if (/^ingredients:?/i.test(label)) {
-          currentSection = "ingredients";
-          continue;
-        }
-        if (/^instructions:?/i.test(label)) {
-          currentSection = "instructions";
-          continue;
-        }
-        // New recipe heading
-        flushRecipe();
-        currentRecipe = { title: label, ingredients: [], instructions: [] };
-        continue;
-      }
-
-      if (currentSection && currentRecipe) {
-        const target =
-          currentSection === "ingredients"
-            ? currentRecipe.ingredients
-            : currentRecipe.instructions;
-        if (b.kind === "p") target.push(b.text);
-        else if (b.kind === "ul" || b.kind === "ol") target.push(...b.items);
-        continue;
-      }
-
-      // block outside any recipe section
-      flushRecipe();
-      pushGenericBlock(b);
-    }
-
-    flushRecipe();
-
-    return <>{elements}</>;
-  }
   // ---------------------------------------------------------------------------
 
   const sendMessageWithContent = async (messageContent: string) => {
@@ -655,7 +687,7 @@ export default function MixiChat() {
                       message.role === "user" ? "bg-[#f3d035] text-[#181711]" : "bg-[#393628] text-white"
                     }`}
                   >
-                    {message.role === "assistant" ? renderAssistantMessage(message.content) : message.content}
+                    {message.role === "assistant" ? renderAssistantMessage(message.content, renderSafeInline) : message.content}
                   </div>
                 </div>
 
