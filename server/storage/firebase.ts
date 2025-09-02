@@ -1191,23 +1191,15 @@ export class FirebaseStorage {
         return [];
       }
       
-      // Get the actual brand details for those IDs, filtering out any that fail to load
-      const brandPromises = brandIds.map(async (id) => {
-        try {
+      // Get the actual brand details for those IDs
+      const brands = await Promise.all(
+        brandIds.map(async (id) => {
           const brand = await this.getPreferredBrand(id);
           return brand;
-        } catch (error) {
-          console.warn(`🔥 Failed to load brand ${id} for user ${userId}:`, error);
-          return null;
-        }
-      });
+        })
+      );
       
-      const brands = await Promise.all(brandPromises);
-      
-      // Filter out any null/undefined brands
-      const result = brands.filter((brand): brand is PreferredBrand => {
-        return brand !== null && brand !== undefined && typeof brand === 'object' && 'id' in brand;
-      });
+      const result = brands.filter((brand): brand is PreferredBrand => brand !== null && brand !== undefined);
       console.log('🔥 Returning', result.length, 'brands for user', userId, 'My Bar');
       return result;
     } catch (error) {
