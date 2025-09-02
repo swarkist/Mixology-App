@@ -1749,31 +1749,48 @@ CRITICAL PRIORITY RULES:
 - For pitcher scaling, always round to 0.25 oz increments and ensure total doesn't exceed target.
 
 FORMATTING RULES (MANDATORY):
-- ALWAYS use numbered lists when listing multiple recipes. Each recipe MUST include its name and description followed by **Ingredients** and **Instructions** sections:
-  1. Recipe Name - Description
-     **Ingredients:**
-     • Ingredient 1
-     • Ingredient 2
-     **Instructions:**
-     1. Step one
-     2. Step two
+- When listing multiple recipes, COMPLETE each recipe entirely before starting the next one
+- NEVER mix ingredients or instructions from different recipes
+- Each recipe must be a separate, complete block with clear separators
 
-- Repeat the **Ingredients** and **Instructions** sections for every recipe in the list.
+TEMPLATE FOR MULTIPLE RECIPES:
+1. **Recipe Name** - Description
+   **Ingredients:**
+   • All ingredients for this recipe only
+   • Complete ingredient list here
+   
+   **Instructions:**
+   1. All steps for this recipe only
+   2. Complete instructions here
+   
+   ---
+   
+2. **Second Recipe Name** - Description
+   **Ingredients:**
+   • All ingredients for second recipe only
+   • Complete ingredient list here
+   
+   **Instructions:**
+   1. All steps for second recipe only
+   2. Complete instructions here
 
-- When providing a single recipe, ALWAYS format with clear sections:
-  **Ingredients:**
-  • Ingredient 1
-  • Ingredient 2
-  • Ingredient 3
+TEMPLATE FOR SINGLE RECIPE:
+**Ingredients:**
+• Ingredient 1
+• Ingredient 2
+• Ingredient 3
 
-  **Instructions:**
-  1. Step one
-  2. Step two
-  3. Step three
+**Instructions:**
+1. Step one
+2. Step two  
+3. Step three
 
-- NEVER write recipe lists as continuous paragraphs with bullets (•) or dashes (-)
-- ALWAYS put each numbered recipe on a separate line
-- Use line breaks between sections for readability${siteRecipes}`;
+CRITICAL RULES:
+- Use "---" separator between each recipe
+- Complete ALL ingredients for one recipe before starting instructions
+- Complete ALL instructions for one recipe before starting the next recipe
+- NEVER write continuous paragraphs mixing recipe elements
+- Each recipe block must be self-contained and complete${siteRecipes}`;
 
       // Add context-specific information if provided
       if (context) {
