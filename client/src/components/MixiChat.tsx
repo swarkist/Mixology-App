@@ -624,7 +624,7 @@ export default function MixiChat() {
               className="text-[#bab49c] hover:text-white h-auto p-1"
               aria-label="Close chat"
             >
-              <X className="h-5 w-5" />
+              <X className="h-5 w-5 text-inherit" />
             </Button>
           </div>
         </DialogHeader>
