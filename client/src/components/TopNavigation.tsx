@@ -102,21 +102,23 @@ const TopNavigation = (): JSX.Element => {
 
         {/* Right side: Search and buttons */}
         <div className="flex items-center justify-end gap-8">
-          {/* Search bar */}
-          <form onSubmit={handleSearch} className="min-w-40 max-w-64 relative">
-            <div className="flex items-center h-10 rounded-lg bg-[#383528] overflow-hidden">
-              <div className="pl-4 flex items-center">
-                <SearchIcon className="h-5 w-5 text-[#bab59b]" />
+          {/* Search bar - hidden on cocktails page */}
+          {location !== '/cocktails' && (
+            <form onSubmit={handleSearch} className="min-w-40 max-w-64 relative">
+              <div className="flex items-center h-10 rounded-lg bg-[#383528] overflow-hidden">
+                <div className="pl-4 flex items-center">
+                  <SearchIcon className="h-5 w-5 text-[#bab59b]" />
+                </div>
+                <Input
+                  type="text"
+                  placeholder="Search cocktails..."
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  className="border-0 bg-transparent h-full text-[#bab59b] placeholder:text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                />
               </div>
-              <Input
-                type="text"
-                placeholder="Search cocktails..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="border-0 bg-transparent h-full text-[#bab59b] placeholder:text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica]"
-              />
-            </div>
-          </form>
+            </form>
+          )}
 
           {/* Auth buttons */}
           <div className="flex items-center gap-2">
@@ -194,23 +196,25 @@ const TopNavigation = (): JSX.Element => {
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#161611] border-b border-[#e5e8ea] py-4">
-          {/* Search bar */}
-          <div className="px-4 py-2">
-            <form onSubmit={handleSearch}>
-              <div className="flex items-center h-10 rounded-lg bg-[#383528] overflow-hidden">
-                <div className="pl-4 flex items-center">
-                  <SearchIcon className="h-5 w-5 text-[#bab59b]" />
+          {/* Search bar - hidden on cocktails page */}
+          {location !== '/cocktails' && (
+            <div className="px-4 py-2">
+              <form onSubmit={handleSearch}>
+                <div className="flex items-center h-10 rounded-lg bg-[#383528] overflow-hidden">
+                  <div className="pl-4 flex items-center">
+                    <SearchIcon className="h-5 w-5 text-[#bab59b]" />
+                  </div>
+                  <Input
+                    type="text"
+                    placeholder="Search cocktails..."
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    className="border-0 bg-transparent h-full text-[#bab59b] placeholder:text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica]"
+                  />
                 </div>
-                <Input
-                  type="text"
-                  placeholder="Search cocktails..."
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  className="border-0 bg-transparent h-full text-[#bab59b] placeholder:text-[#bab59b] focus-visible:ring-0 focus-visible:ring-offset-0 [font-family:'Plus_Jakarta_Sans',Helvetica]"
-                />
-              </div>
-            </form>
-          </div>
+              </form>
+            </div>
+          )}
 
           {/* Navigation links */}
           <div className="px-4 py-2 space-y-3">
