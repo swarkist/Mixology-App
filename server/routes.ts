@@ -984,12 +984,10 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
           .filter(item => item.type === 'brand')
           .map(item => item.ref_id);
         
-        brands = brands
-          .filter(brand => brand && brand.id) // Remove any undefined/null brands
-          .map(brand => ({
-            ...brand,
-            inMyBar: myBarBrandIds.includes(brand.id)
-          }));
+        brands = brands.map(brand => ({
+          ...brand,
+          inMyBar: myBarBrandIds.includes(brand.id)
+        }));
       }
       
       console.log('🔥 Brands result:', brands.length, 'items');
