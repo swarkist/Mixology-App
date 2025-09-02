@@ -116,10 +116,131 @@ export function splitIntoBlocks(text: string): Block[] {
   return out;
 }
 
+function parseMultipleRecipesFromText(text: string): Array<{
+  title: string;
+  description: string | null;
+  ingredients: string[];
+  instructions: string[];
+}> {
+  // First, try to detect if this is a multi-recipe response that's badly formatted
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  
+  // Look for numbered recipe pattern (1. Title, 2. Title, etc.)
+  const numberedRecipes = lines.filter(line => /^\d+\.\s+[A-Z]/.test(line));
+  
+  if (numberedRecipes.length > 1) {
+    // This is likely a multi-recipe response, let's reconstruct it properly
+    const recipes: Array<{title: string; description: string | null; ingredients: string[]; instructions: string[]}> = [];
+    
+    // Extract all ingredients (everything between "Ingredients:" and "Instructions:")
+    const ingredientsStartIdx = lines.findIndex(line => /^ingredients:?$/i.test(line));
+    const instructionsStartIdx = lines.findIndex(line => /^instructions:?$/i.test(line));
+    
+    let allIngredients: string[] = [];
+    let allInstructions: string[] = [];
+    
+    if (ingredientsStartIdx !== -1 && instructionsStartIdx !== -1) {
+      // Extract ingredients
+      for (let i = ingredientsStartIdx + 1; i < instructionsStartIdx; i++) {
+        const line = lines[i];
+        if (line && !line.startsWith('Instructions') && !line.startsWith('**')) {
+          allIngredients.push(line);
+        }
+      }
+      
+      // Extract instructions
+      for (let i = instructionsStartIdx + 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line && !line.includes('Enjoy') && !line.includes('Feel free')) {
+          allInstructions.push(line);
+        }
+      }
+    }
+    
+    // Now distribute ingredients and instructions among recipes
+    const numRecipes = numberedRecipes.length;
+    const ingredientsPerRecipe = Math.ceil(allIngredients.length / numRecipes);
+    const instructionsPerRecipe = Math.ceil(allInstructions.length / numRecipes);
+    
+    numberedRecipes.forEach((recipeLine, idx) => {
+      const titleMatch = recipeLine.match(/^\d+\.\s+(.+?)(?:\s*-\s*(.+))?$/);
+      if (titleMatch) {
+        const [, title, description] = titleMatch;
+        
+        // Get ingredients for this recipe
+        const startIng = idx * ingredientsPerRecipe;
+        const endIng = Math.min(startIng + ingredientsPerRecipe, allIngredients.length);
+        const recipeIngredients = allIngredients.slice(startIng, endIng);
+        
+        // Get instructions for this recipe  
+        const startInst = idx * instructionsPerRecipe;
+        const endInst = Math.min(startInst + instructionsPerRecipe, allInstructions.length);
+        const recipeInstructions = allInstructions.slice(startInst, endInst);
+        
+        recipes.push({
+          title: title.trim(),
+          description: description?.trim() || null,
+          ingredients: recipeIngredients,
+          instructions: recipeInstructions
+        });
+      }
+    });
+    
+    return recipes;
+  }
+  
+  return []; // Not a multi-recipe format
+}
+
 export function renderAssistantMessage(
   text: string,
   renderSafeInline: (s: string) => JSX.Element
 ): JSX.Element {
+  // First try to parse as multi-recipe format
+  const parsedRecipes = parseMultipleRecipesFromText(text);
+  
+  if (parsedRecipes.length > 0) {
+    // Render the parsed recipes
+    const elements = parsedRecipes.map((recipe, idx) => (
+      <div key={idx} className="mt-4">
+        <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{recipe.title}</div>
+        {recipe.description && (
+          <p className="text-white mb-2">{renderSafeInline(recipe.description)}</p>
+        )}
+        {recipe.ingredients.length > 0 && (
+          <>
+            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Ingredients:</div>
+            <ul className="list-disc ml-5 space-y-1 mb-2">
+              {recipe.ingredients.map((ingredient, ingIdx) => (
+                <li key={ingIdx} className="text-white">
+                  {renderSafeInline(ingredient)}
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
+        {recipe.instructions.length > 0 && (
+          <>
+            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Instructions:</div>
+            <ol className="list-decimal ml-5 space-y-1">
+              {recipe.instructions.map((instruction, instIdx) => (
+                <li key={instIdx} className="text-white">
+                  {renderSafeInline(instruction)}
+                </li>
+              ))}
+            </ol>
+          </>
+        )}
+        {idx < parsedRecipes.length - 1 && (
+          <div className="border-t border-[#383528] my-4"></div>
+        )}
+      </div>
+    ));
+    
+    return <>{elements}</>;
+  }
+
+  // Fall back to original parsing logic for single recipes or well-formatted content
   const blocks = splitIntoBlocks(text);
   const elements: JSX.Element[] = [];
 
