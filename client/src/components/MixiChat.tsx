@@ -122,59 +122,83 @@ function parseMultipleRecipesFromText(text: string): Array<{
   ingredients: string[];
   instructions: string[];
 }> {
-  // First, try to detect if this is a multi-recipe response that's badly formatted
   const lines = text.split('\n').map(l => l.trim()).filter(l => l);
   
   // Look for numbered recipe pattern (1. Title, 2. Title, etc.)
   const numberedRecipes = lines.filter(line => /^\d+\.\s+[A-Z]/.test(line));
   
   if (numberedRecipes.length > 1) {
-    // This is likely a multi-recipe response, let's reconstruct it properly
     const recipes: Array<{title: string; description: string | null; ingredients: string[]; instructions: string[]}> = [];
     
-    // Extract all ingredients (everything between "Ingredients:" and "Instructions:")
+    // Find content sections
     const ingredientsStartIdx = lines.findIndex(line => /^ingredients:?$/i.test(line));
     const instructionsStartIdx = lines.findIndex(line => /^instructions:?$/i.test(line));
     
     let allIngredients: string[] = [];
     let allInstructions: string[] = [];
     
-    if (ingredientsStartIdx !== -1 && instructionsStartIdx !== -1) {
-      // Extract ingredients
-      for (let i = ingredientsStartIdx + 1; i < instructionsStartIdx; i++) {
+    // Extract ingredients - be more permissive to catch actual ingredients
+    if (ingredientsStartIdx !== -1) {
+      const endIdx = instructionsStartIdx !== -1 ? instructionsStartIdx : lines.length;
+      for (let i = ingredientsStartIdx + 1; i < endIdx; i++) {
         const line = lines[i];
-        if (line && !line.startsWith('Instructions') && !line.startsWith('**')) {
+        // Include lines that look like ingredients (contain measurements, common ingredients)
+        if (line && 
+            !line.startsWith('Instructions') && 
+            !line.startsWith('**') &&
+            !/^\d+\.\s+[A-Z]/.test(line) && // Skip numbered recipe titles
+            (line.includes('oz') || line.includes('dash') || line.includes('cup') || 
+             line.includes('tsp') || line.includes('tbsp') || line.includes('ml') ||
+             /^[\d\.]/.test(line) || // Starts with a number
+             line.toLowerCase().includes('whiskey') || line.toLowerCase().includes('bourbon') ||
+             line.toLowerCase().includes('rum') || line.toLowerCase().includes('tequila') ||
+             line.toLowerCase().includes('juice') || line.toLowerCase().includes('syrup') ||
+             line.toLowerCase().includes('bitters') || line.toLowerCase().includes('twist') ||
+             line.toLowerCase().includes('ice') || line.toLowerCase().includes('mint') ||
+             line.toLowerCase().includes('lime') || line.toLowerCase().includes('lemon'))) {
           allIngredients.push(line);
         }
       }
-      
-      // Extract instructions
+    }
+    
+    // Extract instructions - look for action words
+    if (instructionsStartIdx !== -1) {
       for (let i = instructionsStartIdx + 1; i < lines.length; i++) {
         const line = lines[i];
-        if (line && !line.includes('Enjoy') && !line.includes('Feel free')) {
+        // Include lines that look like instructions (action verbs, no measurements)
+        if (line && 
+            !line.includes('Enjoy') && 
+            !line.includes('Feel free') &&
+            !/^[A-Z][a-zA-Z\s]+(Julep|Fashioned|Sour|Manhattan|Martini|Fizz|Punch|Toddy)\s*-/.test(line) && // Skip cocktail names
+            (line.toLowerCase().includes('muddle') || line.toLowerCase().includes('stir') ||
+             line.toLowerCase().includes('shake') || line.toLowerCase().includes('pour') ||
+             line.toLowerCase().includes('add') || line.toLowerCase().includes('garnish') ||
+             line.toLowerCase().includes('strain') || line.toLowerCase().includes('combine') ||
+             line.toLowerCase().includes('fill') || line.toLowerCase().includes('serve') ||
+             line.toLowerCase().includes('rim') || line.toLowerCase().includes('top'))) {
           allInstructions.push(line);
         }
       }
     }
     
-    // Now distribute ingredients and instructions among recipes
+    // Create recipes and distribute content
     const numRecipes = numberedRecipes.length;
-    const ingredientsPerRecipe = Math.ceil(allIngredients.length / numRecipes);
-    const instructionsPerRecipe = Math.ceil(allInstructions.length / numRecipes);
+    const ingredientsPerRecipe = Math.floor(allIngredients.length / numRecipes);
+    const instructionsPerRecipe = Math.floor(allInstructions.length / numRecipes);
     
     numberedRecipes.forEach((recipeLine, idx) => {
       const titleMatch = recipeLine.match(/^\d+\.\s+(.+?)(?:\s*-\s*(.+))?$/);
       if (titleMatch) {
         const [, title, description] = titleMatch;
         
-        // Get ingredients for this recipe
+        // Get ingredients for this recipe (distribute evenly)
         const startIng = idx * ingredientsPerRecipe;
-        const endIng = Math.min(startIng + ingredientsPerRecipe, allIngredients.length);
+        const endIng = idx === numRecipes - 1 ? allIngredients.length : startIng + ingredientsPerRecipe;
         const recipeIngredients = allIngredients.slice(startIng, endIng);
         
-        // Get instructions for this recipe  
+        // Get instructions for this recipe (distribute evenly)
         const startInst = idx * instructionsPerRecipe;
-        const endInst = Math.min(startInst + instructionsPerRecipe, allInstructions.length);
+        const endInst = idx === numRecipes - 1 ? allInstructions.length : startInst + instructionsPerRecipe;
         const recipeInstructions = allInstructions.slice(startInst, endInst);
         
         recipes.push({
