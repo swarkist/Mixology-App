@@ -978,14 +978,14 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
       }
       
       // If user is authenticated, add inMyBar status for each brand
-      if (req.user) {
+      if (req.user && brands && Array.isArray(brands)) {
         const myBarItems = await storage.getMyBarItems(req.user.id);
         const myBarBrandIds = myBarItems
           .filter(item => item.type === 'brand')
           .map(item => item.ref_id);
         
         brands = brands
-          .filter(brand => brand && brand.id) // Remove any undefined/null brands
+          .filter(brand => brand && brand.id && typeof brand === 'object') // Remove any undefined/null brands
           .map(brand => ({
             ...brand,
             inMyBar: myBarBrandIds.includes(brand.id)
