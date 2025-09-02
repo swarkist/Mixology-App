@@ -1,172 +1,110 @@
+// server/utils/aiJsonRepair.ts
 export function extractJsonObjects(raw: string): string[] {
-  const jsonObjects: string[] = [];
-  let depth = 0;
-  let start = -1;
-  let inString = false;
-  let escapeNext = false;
+  // Finds one or more top-level JSON objects in a noisy string.
+  const results: string[] = [];
+  let depth = 0, start = -1;
+  let inString = false, escaped = false;
   
   for (let i = 0; i < raw.length; i++) {
-    const char = raw[i];
+    const ch = raw[i];
     
-    if (escapeNext) {
-      escapeNext = false;
-      continue;
-    }
-    
-    if (char === '\\' && inString) {
-      escapeNext = true;
-      continue;
-    }
-    
-    if (char === '"' && !escapeNext) {
-      inString = !inString;
-      continue;
-    }
-    
-    if (inString) continue;
-    
-    if (char === '{') {
-      if (depth === 0) {
-        start = i;
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
       }
+      continue;
+    }
+    
+    if (ch === '"') {
+      inString = true;
+    } else if (ch === "{") {
+      if (depth === 0) start = i;
       depth++;
-    } else if (char === '}') {
+    } else if (ch === "}") {
       depth--;
-      if (depth === 0 && start >= 0) {
-        const jsonStr = raw.slice(start, i + 1);
-        jsonObjects.push(jsonStr);
+      if (depth === 0 && start !== -1) {
+        results.push(raw.slice(start, i + 1));
         start = -1;
       }
     }
   }
   
-  return jsonObjects;
+  // If no complete objects found, try to extract partial JSON and repair
+  if (results.length === 0) {
+    const jsonStart = raw.indexOf('{');
+    if (jsonStart !== -1) {
+      let jsonEnd = raw.lastIndexOf('}');
+      if (jsonEnd > jsonStart) {
+        results.push(raw.slice(jsonStart, jsonEnd + 1));
+      }
+    }
+  }
+  
+  return results;
 }
 
-export function renameWeirdKeys(obj: any): any {
-  if (typeof obj !== 'object' || obj === null) {
-    return obj;
-  }
-  
-  if (Array.isArray(obj)) {
-    return obj.map(renameWeirdKeys);
-  }
-  
-  const normalized: any = {};
-  const keyMappings: Record<string, string> = {
-    // Ingredients variations
-    'ingredients': 'ingredients',
-    'ingredient': 'ingredients', 
-    'ingredients:': 'ingredients',
-    'ingrédients': 'ingredients',
-    'ingredient_list': 'ingredients',
-    'recipe_ingredients': 'ingredients',
-    
-    // Instructions variations
-    'instructions': 'instructions',
-    'instruction': 'instructions',
-    'instructions:': 'instructions',
-    'steps': 'instructions',
-    'method': 'instructions',
-    'directions': 'instructions',
-    'preparation': 'instructions',
-    'recipe_steps': 'instructions',
-    
-    // Glass variations
-    'glass': 'glassware',
-    'glassware': 'glassware',
-    'glass_type': 'glassware',
-    'serving_glass': 'glassware',
-    
-    // Garnish variations
-    'garnish': 'garnish',
-    'garnishes': 'garnish',
-    'garnish:': 'garnish',
-    'decoration': 'garnish',
-    
-    // Name variations
-    'name': 'name',
-    'title': 'name',
-    'recipe_name': 'name',
-    'cocktail_name': 'name',
-    
-    // Description variations
-    'description': 'description',
-    'desc': 'description',
-    'about': 'description',
-    'summary': 'description',
-    
-    // Tags variations
-    'tags': 'tags',
-    'categories': 'tags',
-    'category': 'tags',
-    'labels': 'tags'
-  };
-  
-  // Handle orphaned values (empty/whitespace keys)
-  const orphanedValues: any[] = [];
-  
-  for (const [key, value] of Object.entries(obj)) {
-    const cleanKey = key.toLowerCase().trim().replace(/[^\w]/g, '');
-    
-    // Handle empty or whitespace-only keys
-    if (!cleanKey || cleanKey.length === 0) {
-      orphanedValues.push(value);
-      continue;
-    }
-    
-    const mappedKey = keyMappings[cleanKey] || cleanKey;
-    normalized[mappedKey] = renameWeirdKeys(value);
-  }
-  
-  // Apply heuristics for orphaned values
-  for (const value of orphanedValues) {
-    if (Array.isArray(value)) {
-      // If array of objects with quantity/item → ingredients
-      if (value.every(item => typeof item === 'object' && item !== null && 
-          ('quantity' in item || 'item' in item || 'ingredient' in item))) {
-        if (!normalized.ingredients) {
-          normalized.ingredients = value;
+function canonKey(k: string): string {
+  const s = k.toLowerCase().trim().replace(/[:*_\-\s]+$/g, "").replace(/[^a-z]/g, "");
+  if (["ingredient","ingredients","ingrdnts","ingrédients","ingredientlist"].includes(s)) return "ingredients";
+  if (["instruction","instructions","steps","method"].includes(s)) return "instructions";
+  if (["glass","glassware","glasstype"].includes(s)) return "glassware";
+  if (["garnish","garnishes"].includes(s)) return "garnish";
+  if (["tag","tags"].includes(s)) return "tags";
+  if (["name","recipename"].includes(s)) return "name";
+  if (["description","desc"].includes(s)) return "description";
+  return s; // could be already correct or irrelevant label
+}
+
+export function renameWeirdKeys(input: any): any {
+  if (Array.isArray(input)) return input.map(renameWeirdKeys);
+  if (input && typeof input === "object") {
+    const out: any = {};
+    for (const [k, v] of Object.entries(input)) {
+      const key = canonKey(k);
+      
+      // Handle blank/whitespace-only keys with heuristics
+      if (!key || key.length === 0) {
+        if (Array.isArray(v)) {
+          if (v.every(it => typeof it === "string")) {
+            out.instructions = v;
+          } else if (v.every(it => it && typeof it === "object" && ("item" in it || "quantity" in it))) {
+            out.ingredients = v;
+          }
         }
+        continue;
       }
-      // If array of strings → instructions
-      else if (value.every(item => typeof item === 'string')) {
-        if (!normalized.instructions) {
-          normalized.instructions = value;
-        }
-      }
+
+      out[key] = renameWeirdKeys(v);
     }
+    return out;
   }
-  
-  return normalized;
+  if (typeof input === "string") return input.trim();
+  return input;
 }
 
 export function mergeRecipeObjects(jsons: any[]): any {
-  const allRecipes: any[] = [];
-  const seenNames = new Set<string>();
-  
-  for (const json of jsons) {
-    if (json && typeof json === 'object') {
-      let recipes = json.recipes || json.recipe || [];
-      
-      // Handle single recipe objects that aren't wrapped in recipes array
-      if (!Array.isArray(recipes) && json.name && typeof json.name === 'string') {
-        recipes = [json];
-      }
-      
-      if (Array.isArray(recipes)) {
-        for (const recipe of recipes) {
-          if (recipe && recipe.name && typeof recipe.name === 'string') {
-            const normalizedName = recipe.name.toLowerCase().trim();
-            if (!seenNames.has(normalizedName)) {
-              seenNames.add(normalizedName);
-              allRecipes.push(recipe);
-            }
-          }
-        }
-      }
+  // Expect one or more { recipes: [...] } after normalization, or single recipe objects
+  const all: any[] = [];
+  for (const j of jsons) {
+    if (j?.recipes && Array.isArray(j.recipes)) {
+      all.push(...j.recipes);
+    } else if (j?.name && j?.ingredients && j?.instructions) {
+      // Single recipe object not wrapped in recipes array
+      all.push(j);
     }
   }
-  
-  return { recipes: allRecipes };
+  // De-dupe by name (case-insensitive)
+  const seen = new Set<string>();
+  const deduped = all.filter(r => {
+    const name = (typeof r?.name === 'string' ? r.name : "").trim().toLowerCase();
+    if (!name) return true;
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  });
+  return { recipes: deduped };
 }

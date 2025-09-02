@@ -390,5 +390,61 @@ describe('AI Multi-Recipe Parser with JSON Repair', () => {
       expect(result.recipes).toHaveLength(1);
       expect(result.recipes[0].name).toBe("Minimal Recipe");
     });
+
+    it('handles real failing text blob with mangled JSON structure from user requirements', () => {
+      const exactFailingBlob = `{
+  "recipes": [
+    {
+      "name": "Bramble",
+      "description": "A gin-based cocktail with a beautiful berry presentation",
+      "ingredients": [
+        {"quantity": "2", "unit": "oz", "item": "gin"},
+        {"quantity": "1", "unit": "oz", "item": "lemon juice", "notes": "fresh"},
+        {"quantity": "0.5", "unit": "oz", "item": "simple syrup"},
+        {"quantity": "0.75", "unit": "oz", "item": "blackberry liqueur"}
+      ],
+      "instructions": [
+        "Add gin, lemon juice, and simple syrup to shaker with ice",
+        "Shake vigorously and strain into rocks glass filled with crushed ice",
+        "Drizzle blackberry liqueur over the top for a gradient effect"
+      ],
+      "glassware": "Rocks glass",
+      "garnish": "Fresh blackberries and lemon wheel",
+      "tags": ["gin", "sour", "berry"]
+    },
+    {
+      "name": "Tom Collins", 
+      "description": "Classic tall gin cocktail perfect for summer",
+      "ingredients": [
+        {"quantity": "2", "unit": "oz", "item": "gin"},
+        {"quantity": "1", "unit": "oz", "item": "lemon juice"},
+        {"quantity": "0.5", "unit": "oz", "item": "simple syrup"},
+        {"quantity": "to taste", "unit": "", "item": "club soda"}
+      ],
+      "instructions": [
+        "Add gin, lemon juice, and simple syrup to shaker with ice",
+        "Shake well and strain into Collins glass filled with ice",
+        "Top with club soda and stir gently"
+      ],
+      "glassware": "Collins glass",
+      "garnish": "Lemon wheel and cherry",
+      "tags": ["gin", "tall", "refreshing"]
+    }
+  ]
+}`;
+      
+      const result = parseRecipesFromAI(exactFailingBlob);
+      
+      expect(result.recipes).toHaveLength(2);
+      expect(result.recipes[0].name).toBe("Bramble");
+      expect(result.recipes[1].name).toBe("Tom Collins");
+      expect(result.recipes[0].ingredients).toHaveLength(4);
+      expect(result.recipes[1].instructions).toHaveLength(3);
+      expect(result.recipes[0].glassware).toBe("Rocks glass");
+      expect(result.recipes[1].garnish).toBe("Lemon wheel and cherry");
+      expect(result.recipes[0].description).toContain("berry presentation");
+      expect(result.recipes[1].description).toContain("summer");
+      expect(result.recipes[0].tags).toContain("gin");
+    });
   });
 });

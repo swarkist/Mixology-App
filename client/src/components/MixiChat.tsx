@@ -290,44 +290,41 @@ export function renderAssistantMessage(
   const recipesToRender = parsedRecipes?.recipes || parseMultipleRecipesFromText(text);
   
   if (recipesToRender.length > 0) {
-    // Render the parsed recipes
-    const elements = recipesToRender.map((recipe, idx) => (
-      <div key={idx} className="mt-4">
-        <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{'name' in recipe ? recipe.name : recipe.title}</div>
-        {recipe.description && (
-          <p className="text-white mb-2">{renderSafeInline(recipe.description)}</p>
-        )}
-        {recipe.ingredients.length > 0 && (
-          <>
-            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Ingredients:</div>
-            <ul className="list-disc ml-5 space-y-1 mb-2">
-              {recipe.ingredients.map((ingredient, ingIdx) => (
-                <li key={ingIdx} className="text-white">
-                  {renderSafeInline(typeof ingredient === 'string' ? ingredient : `${ingredient.quantity} ${ingredient.unit || ''} ${ingredient.item}`.trim())}
+    // Render the parsed recipes as cards
+    return (
+      <div className="space-y-4">
+        {recipesToRender.map((recipe: any, idx: number) => (
+          <div key={idx} className="rounded-2xl p-4 bg-[#2a2a2a] shadow border border-[#393628]">
+            <h3 className="text-lg font-semibold text-[#f3d035]">{'name' in recipe ? recipe.name : recipe.title}</h3>
+            {recipe.description && <p className="opacity-80 text-white mt-1">{recipe.description}</p>}
+            <h4 className="mt-3 font-medium text-[#f3d035]">Ingredients</h4>
+            <ul className="list-disc ml-5 text-white">
+              {recipe.ingredients.map((ing: any, i: number) => (
+                <li key={i}>
+                  {typeof ing === 'string' 
+                    ? ing 
+                    : [ing.quantity, ing.unit, ing.item].filter(Boolean).join(" ") + (ing.notes ? ` (${ing.notes})` : "")
+                  }
                 </li>
               ))}
             </ul>
-          </>
-        )}
-        {recipe.instructions.length > 0 && (
-          <>
-            <div className="mt-2 mb-1 font-semibold text-[#f3d035]">Instructions:</div>
-            <ol className="list-decimal ml-5 space-y-1">
-              {recipe.instructions.map((instruction, instIdx) => (
-                <li key={instIdx} className="text-white">
-                  {renderSafeInline(instruction)}
-                </li>
-              ))}
+            <h4 className="mt-3 font-medium text-[#f3d035]">Instructions</h4>
+            <ol className="list-decimal ml-5 text-white">
+              {recipe.instructions.map((s: string, i: number) => <li key={i}>{s}</li>)}
             </ol>
-          </>
-        )}
-        {idx < recipesToRender.length - 1 && (
-          <div className="border-t border-[#383528] my-4"></div>
-        )}
+            {recipe.glassware && (
+              <p className="mt-2 text-white"><span className="font-medium text-[#f3d035]">Glassware:</span> {recipe.glassware}</p>
+            )}
+            {recipe.garnish && (
+              <p className="mt-1 text-white"><span className="font-medium text-[#f3d035]">Garnish:</span> {recipe.garnish}</p>
+            )}
+            {recipe.tags && recipe.tags.length > 0 && (
+              <p className="mt-1 text-white"><span className="font-medium text-[#f3d035]">Tags:</span> {recipe.tags.join(", ")}</p>
+            )}
+          </div>
+        ))}
       </div>
-    ));
-    
-    return <>{elements}</>;
+    );
   }
 
   // Fall back to original parsing logic for single recipes or well-formatted content

@@ -1,0 +1,256 @@
+Title: Finalize AI JSON repair & parsing; render parsed cards in chat; add tests
+
+Please do the following exactly:
+
+1) Add/finish the JSON extraction & key normalizer
+
+File: server/utils/aiJsonRepair.ts
+
+// server/utils/aiJsonRepair.ts
+export function extractJsonObjects(raw: string): string[] {
+  // Finds one or more top-level JSON objects in a noisy string.
+  const results: string[] = [];
+  let depth = 0, start = -1;
+  for (let i = 0; i < raw.length; i++) {
+    const ch = raw[i];
+    if (ch === "{") {
+      if (depth === 0) start = i;
+      depth++;
+    } else if (ch === "}") {
+      depth--;
+      if (depth === 0 && start !== -1) {
+        results.push(raw.slice(start, i + 1));
+        start = -1;
+      }
+    }
+  }
+  return results;
+}
+
+function canonKey(k: string): string {
+  const s = k.toLowerCase().trim().replace(/[:*_\-\s]+$/g, "").replace(/[^a-z]/g, "");
+  if (["ingredient","ingredients","ingrdnts","ingrédients"].includes(s)) return "ingredients";
+  if (["instruction","instructions","steps","method"].includes(s)) return "instructions";
+  if (["glass","glassware"].includes(s)) return "glassware";
+  if (["garnish","garnishes"].includes(s)) return "garnish";
+  if (["tag","tags"].includes(s)) return "tags";
+  if (["name"].includes(s)) return "name";
+  if (["description","desc"].includes(s)) return "description";
+  return s; // could be already correct or irrelevant label
+}
+
+export function renameWeirdKeys(input: any): any {
+  if (Array.isArray(input)) return input.map(renameWeirdKeys);
+  if (input && typeof input === "object") {
+    const out: any = {};
+    for (const [k, v] of Object.entries(input)) {
+      const key = canonKey(k);
+      if (!key) continue;
+      // Drop blank/whitespace-only keys
+      if (key.length === 0) continue;
+
+      // Heuristics: arrays of strings → instructions; arrays of qty objects → ingredients
+      if ((key === "" || key === "n") && Array.isArray(v)) {
+        if (v.every(it => typeof it === "string")) out.instructions = v;
+        else if (v.every(it => it && typeof it === "object" && ("item" in it || "quantity" in it))) out.ingredients = v;
+        continue;
+      }
+
+      // Map label blocks like "Ingredients:" / "Instructions:" → canonical
+      if (key === "ingredients" || key === "instructions") {
+        out[key] = renameWeirdKeys(v);
+        continue;
+      }
+
+      out[key] = renameWeirdKeys(v);
+    }
+    return out;
+  }
+  if (typeof input === "string") return input.trim();
+  return input;
+}
+
+export function mergeRecipeObjects(jsons: any[]): any {
+  // Expect one or more { recipes: [...] } after normalization
+  const all: any[] = [];
+  for (const j of jsons) {
+    const r = j?.recipes;
+    if (Array.isArray(r)) all.push(...r);
+  }
+  // De-dupe by name (case-insensitive)
+  const seen = new Set<string>();
+  const deduped = all.filter(r => {
+    const name = (r?.name || "").trim().toLowerCase();
+    if (!name) return true;
+    if (seen.has(name)) return false;
+    seen.add(name);
+    return true;
+  });
+  return { recipes: deduped };
+}
+
+2) Use the repair in the parser
+
+File: server/utils/recipeParser.ts
+
+import { z } from "zod";
+import { extractJsonObjects, renameWeirdKeys, mergeRecipeObjects } from "./aiJsonRepair";
+
+const Ingredient = z.object({
+  quantity: z.string().min(1),
+  unit: z.string().optional().default(""),
+  item: z.string().min(1),
+  notes: z.string().optional()
+});
+
+const Recipe = z.object({
+  name: z.string().min(1),
+  description: z.string().optional().default(""),
+  ingredients: z.array(Ingredient).min(1),
+  instructions: z.array(z.string().min(1)).min(1),
+  glassware: z.string().optional(),
+  garnish: z.string().optional(),
+  tags: z.array(z.string()).optional().default([])
+});
+
+const Parsed = z.object({ recipes: z.array(Recipe) });
+export type ParsedRecipes = z.infer<typeof Parsed>;
+
+function softFix(s: string): string {
+  return s
+    .replace(/,\s*([}\]])/g, "$1")       // trailing commas
+    .replace(/[“”]/g, '"')               // smart quotes
+    .replace(/[‘’]/g, "'");              // smart apostrophes
+}
+
+export function parseRecipesFromAI(raw: string): ParsedRecipes {
+  const chunks = extractJsonObjects(raw);
+  if (chunks.length === 0) throw new Error("No JSON object detected.");
+
+  const parsed = chunks.map(ch => {
+    try { return JSON.parse(ch); }
+    catch { return JSON.parse(softFix(ch)); }
+  });
+
+  const normalized = parsed.map(renameWeirdKeys);
+  const merged = mergeRecipeObjects(normalized);
+
+  // Guard: fix cases like `"name": " Fashioned"` (leading/trailing junk)
+  if (Array.isArray(merged.recipes)) {
+    merged.recipes = merged.recipes.map(r => ({
+      ...r,
+      name: (r.name ?? "").replace(/\s+/g, " ").trim()
+    }));
+  }
+
+  return Parsed.parse(merged);
+}
+
+3) Enforce the contract in your AI call
+
+File: server/ai/promptContracts.ts
+
+export const MULTI_RECIPE_JSON_CONTRACT = `
+You MUST return exactly ONE valid JSON object, no prose before or after.
+Shape:
+{
+  "recipes": [
+    {
+      "name": "string",
+      "description": "string",
+      "ingredients": [
+        {"quantity":"string","unit":"string","item":"string","notes":"string?"}
+      ],
+      "instructions": ["string"],
+      "glassware": "string?",
+      "garnish": "string?",
+      "tags": ["string"]
+    }
+  ]
+}
+Do NOT use label keys like "Ingredients:" or "Instructions:". Use "ingredients" and "instructions" only.
+`;
+
+
+Use that contract in the system prompt for multi-recipe requests.
+
+4) Route integration: never send raw text to the UI
+
+Where the chat/import handler returns the model output:
+
+import { parseRecipesFromAI } from "../utils/recipeParser";
+
+// ...
+const aiText = modelResponseText;            // <- whatever you have
+try {
+  const parsed = parseRecipesFromAI(aiText);
+  return res.json(parsed);                   // always { recipes: [...] }
+} catch (err) {
+  // Optional: try a "please fix to valid JSON" round-trip before failing
+  return res.status(422).json({ recipes: [], error: "AI output unparseable" });
+}
+
+5) Chat UI: render parsed cards, never the raw blob
+
+File (example): client/src/components/ChatMessage.tsx
+
+type AIMessage = { recipes?: Array<any>; error?: string } | string;
+
+export function ChatMessage({ message }: { message: AIMessage }) {
+  // If server already parsed it, message will be an object with recipes
+  if (typeof message !== "string" && message?.recipes?.length) {
+    return (
+      <div className="space-y-4">
+        {message.recipes.map((r: any, idx: number) => (
+          <div key={idx} className="rounded-2xl p-4 bg-[--card] shadow">
+            <h3 className="text-lg font-semibold">{r.name}</h3>
+            {r.description && <p className="opacity-80">{r.description}</p>}
+            <h4 className="mt-3 font-medium">Ingredients</h4>
+            <ul className="list-disc ml-5">
+              {r.ingredients.map((ing: any, i: number) => (
+                <li key={i}>{[ing.quantity, ing.unit, ing.item].filter(Boolean).join(" ")}{ing.notes ? ` (${ing.notes})` : ""}</li>
+              ))}
+            </ul>
+            <h4 className="mt-3 font-medium">Instructions</h4>
+            <ol className="list-decimal ml-5">
+              {r.instructions.map((s: string, i: number) => <li key={i}>{s}</li>)}
+            </ol>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // Fallback: plain text/markdown (never raw JSON blob)
+  return <div className="prose prose-invert">{typeof message === "string" ? message : (message?.error || "Unable to parse.")}</div>;
+}
+
+6) Tests using your exact failing text
+
+File: tests/regression/ai-multi-recipe-parse.test.ts
+
+import { describe, it, expect } from "vitest";
+import { parseRecipesFromAI } from "../../server/utils/recipeParser";
+
+const failingBlob = `
+{ "recipes": [ { "name": " Fashioned", ... } ] }{ "recipes": [ { "name": "Margarita", ... } ] }
+`;
+// Use your full pasted blob here.
+
+describe("AI multi-recipe parsing", () => {
+  it("repairs concatenated JSON and weird keys", () => {
+    const parsed = parseRecipesFromAI(failingBlob);
+    expect(parsed.recipes.length).toBeGreaterThan(1);
+    expect(parsed.recipes.some(r => /fashioned/i.test(r.name))).toBe(true);
+    expect(parsed.recipes.some(r => /margarita/i.test(r.name))).toBe(true);
+    parsed.recipes.forEach(r => {
+      expect(r.ingredients?.length).toBeGreaterThan(0);
+      expect(r.instructions?.length).toBeGreaterThan(0);
+    });
+  });
+});
+
+
+Run:
+
+npx vitest tests/regression/ai-multi-recipe-parse.test.ts

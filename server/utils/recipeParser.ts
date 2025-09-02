@@ -1,72 +1,61 @@
 import { z } from "zod";
 import { extractJsonObjects, renameWeirdKeys, mergeRecipeObjects } from "./aiJsonRepair.js";
 
-const IngredientSchema = z.object({
+const Ingredient = z.object({
   quantity: z.string().min(1),
   unit: z.string().optional().default(""),
   item: z.string().min(1),
   notes: z.string().optional()
 });
 
-const RecipeSchema = z.object({
+const Recipe = z.object({
   name: z.string().min(1),
   description: z.string().optional().default(""),
-  ingredients: z.array(IngredientSchema).min(1),
+  ingredients: z.array(Ingredient).min(1),
   instructions: z.array(z.string().min(1)).min(1),
   glassware: z.string().optional(),
   garnish: z.string().optional(),
   tags: z.array(z.string()).optional().default([])
 });
 
-const ParsedRecipesSchema = z.object({
-  recipes: z.array(RecipeSchema)
-});
+const Parsed = z.object({ recipes: z.array(Recipe) });
+export type ParsedRecipes = z.infer<typeof Parsed>;
 
-export type ParsedRecipes = z.infer<typeof ParsedRecipesSchema>;
-
-export function parseRecipesFromAI(raw: string): ParsedRecipes {
-  try {
-    // 1) Extract one or more JSON objects from raw text
-    const found = extractJsonObjects(raw);
-    if (found.length === 0) {
-      throw new Error("No JSON object detected in AI response.");
-    }
-
-    // 2) Parse each JSON string safely
-    const parsed = found.map((s) => {
-      try { 
-        return JSON.parse(s); 
-      } catch {
-        // Quick "soft repair" pass: remove trailing commas & invalid quotes
-        const fixed = s
-          .replace(/,\s*([}\]])/g, "$1")
-          .replace(/(?<!\\)"|"(?!\\)/g, '"')
-          .replace(/(?<!\\)'|'(?!\\)/g, "'");
-        return JSON.parse(fixed);
-      }
-    });
-
-    // 3) Normalize weird/label keys on each object
-    const normalized = parsed.map(renameWeirdKeys);
-
-    // 4) Merge multiple {recipes:[...]} objects
-    const merged = mergeRecipeObjects(normalized);
-
-    // 5) Final validation
-    return ParsedRecipesSchema.parse(merged);
-  } catch (error) {
-    // Safety fallback: return empty recipes with debug logging
-    console.error('Recipe parsing failed:', error);
-    console.error('Original raw input:', raw);
-    return { recipes: [] };
-  }
+function softFix(s: string): string {
+  return s
+    .replace(/,\s*([}\]])/g, "$1")       // trailing commas
+    .replace(/[""]/g, '"')               // smart quotes
+    .replace(/['']/g, "'");              // smart apostrophes
 }
 
-// Performance check helper for testing
-export function parseRecipesFromAITimed(raw: string): { result: ParsedRecipes; timeMs: number } {
-  const start = performance.now();
-  const result = parseRecipesFromAI(raw);
-  const timeMs = performance.now() - start;
-  
-  return { result, timeMs };
+export function parseRecipesFromAI(raw: string): ParsedRecipes {
+  const chunks = extractJsonObjects(raw);
+  if (chunks.length === 0) return { recipes: [] };
+
+  const parsed = chunks.map(ch => {
+    try { return JSON.parse(ch); }
+    catch { 
+      try { return JSON.parse(softFix(ch)); }
+      catch { return null; }
+    }
+  }).filter(Boolean);
+
+  const normalized = parsed.map(renameWeirdKeys);
+  const merged = mergeRecipeObjects(normalized);
+
+  // Guard: fix cases like `"name": " Fashioned"` (leading/trailing junk)
+  if (Array.isArray(merged.recipes)) {
+    merged.recipes = merged.recipes.map((r: any) => ({
+      ...r,
+      name: (typeof r.name === 'string' ? r.name : "").replace(/\s+/g, " ").trim()
+    }));
+  }
+
+  try {
+    return Parsed.parse(merged);
+  } catch (validationError) {
+    // If validation fails, return empty recipes instead of throwing
+    console.error('Recipe validation failed:', validationError);
+    return { recipes: [] };
+  }
 }

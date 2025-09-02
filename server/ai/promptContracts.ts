@@ -6,23 +6,24 @@
  */
 
 export const MULTI_RECIPE_JSON_CONTRACT = `
-You MUST return a single valid JSON object only, with this exact shape:
+You MUST return exactly ONE valid JSON object, no prose before or after.
+Shape:
 {
   "recipes": [
     {
       "name": "string",
       "description": "string",
-      "ingredients": [{"quantity":"string","unit":"string","item":"string","notes":"string?"}],
-      "instructions": ["string", "string"],
+      "ingredients": [
+        {"quantity":"string","unit":"string","item":"string","notes":"string?"}
+      ],
+      "instructions": ["string"],
       "glassware": "string?",
       "garnish": "string?",
       "tags": ["string"]
     }
   ]
 }
-Do NOT include labels like "Ingredients:" or "Instructions:" as keys.
-Do NOT include multiple JSON objects. Return exactly one object.
-No prose before or after the JSON.
+Do NOT use label keys like "Ingredients:" or "Instructions:". Use "ingredients" and "instructions" only.
 
 EXAMPLE - Two classic cocktails:
 {
