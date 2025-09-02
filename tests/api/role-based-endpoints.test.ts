@@ -86,6 +86,26 @@ describe('Role-Based API Endpoint Tests', () => {
       }
     });
 
+    it('should allow basic users to use the brand OCR endpoint', async () => {
+      const mockFetch = vi.fn();
+      global.fetch = mockFetch;
+
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ name: 'Mock Brand', confidence: 0.9 })
+      });
+
+      const response = await fetch('/api/ai/brands/from-image', {
+        ...mockBasicUserSession,
+        method: 'POST',
+        body: JSON.stringify({ base64: 'data:image/png;base64,AAA' })
+      });
+
+      expect(response.ok).toBe(true);
+      expect(response.status).toBe(200);
+    });
+
     it('should deny basic users write access to content', async () => {
       const mockFetch = vi.fn();
       global.fetch = mockFetch;

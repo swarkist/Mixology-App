@@ -1207,8 +1207,8 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
   // =================== AI IMPORT ROUTES ===================
 
-  // Photo → Preferred Brand OCR endpoint - allow admin and reviewer for parsing
-  app.post("/api/ai/brands/from-image", requireAuth, allowRoles('admin', 'reviewer'), async (req, res) => {
+  // Photo → Preferred Brand OCR endpoint - allow admin, reviewer, and basic for parsing
+  app.post("/api/ai/brands/from-image", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     try {
       console.log("🔥 OCR request received");
       
