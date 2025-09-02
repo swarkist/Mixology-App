@@ -126,13 +126,16 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
   
   // Allow read-only endpoints
   if (readOnlyEndpoints.includes(req.path)) {
+    console.log(`Allowing read-only endpoint: ${req.path}`);
     return next();
   }
   
   // Check if this is an admin-only operation
   const isAdminOperation = adminOnlyEndpoints.some(endpoint => req.path.includes(endpoint));
+  console.log(`Is admin operation: ${isAdminOperation} for path: ${req.path}`);
   if (!isAdminOperation) {
     // Regular user operation - allow through for role-based middleware to handle
+    console.log(`Allowing regular user operation: ${req.path}`);
     return next();
   }
 
