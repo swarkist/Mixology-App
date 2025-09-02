@@ -37,7 +37,8 @@ type Block =
   | { kind: "ol"; items: string[] }
   | { kind: "ul"; items: string[] }
   | { kind: "p"; text: string }
-  | { kind: "h"; text: string };
+  | { kind: "h"; text: string }
+  | { kind: "hr" };
 
 function normalizeForLists(text: string) {
   // Ensure a newline before any numbered item not at line-start
@@ -64,6 +65,13 @@ export function splitIntoBlocks(text: string): Block[] {
 
   while (i < lines.length) {
     const line = lines[i];
+
+    // horizontal rule / recipe separator
+    if (/^---+$/.test(line)) {
+      out.push({ kind: "hr" });
+      i++;
+      continue;
+    }
 
     // standalone recipe headings (e.g., "Old Fashioned")
     if (
@@ -187,7 +195,10 @@ function parseMultipleRecipesFromText(text: string): Array<{
   ingredients: string[];
   instructions: string[];
 }> {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const lines = text
+    .split('\n')
+    .map(l => l.trim())
+    .filter(l => l && !/^---+$/.test(l));
   
   // Look for numbered recipe pattern (1. Title, 2. Title, etc.)
   // but avoid mistaking numbered instruction steps for recipe titles
@@ -389,6 +400,10 @@ export function renderAssistantMessage(
 
   function pushGenericBlock(b: Block) {
     const key = elements.length;
+    if (b.kind === "hr") {
+      elements.push(<hr key={key} className="my-2 border-zinc-700" />);
+      return;
+    }
     if (b.kind === "h") {
       const label = b.text.replace(/\*+/g, "");
       elements.push(
@@ -430,6 +445,11 @@ export function renderAssistantMessage(
   }
 
   for (const b of blocks) {
+    if (b.kind === "hr") {
+      flushRecipe();
+      elements.push(<hr key={elements.length} className="my-2 border-zinc-700" />);
+      continue;
+    }
     if (b.kind === "h") {
       const label = b.text.replace(/\*+/g, "").trim();
       if (/^ingredients:?/i.test(label)) {
