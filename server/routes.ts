@@ -1144,7 +1144,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     }
   });
 
-  app.delete("/api/preferred-brands/:id", requireAuth, allowRoles('admin'), async (req, res) => {
+  app.delete("/api/preferred-brands/:id", requireAuth, allowRoles('admin', 'reviewer', 'basic'), async (req, res) => {
     const id = parseInt(req.params.id);
     
     console.log(`\n=== DELETE /api/preferred-brands/${id} ===`);
