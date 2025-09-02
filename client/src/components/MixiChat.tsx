@@ -229,6 +229,22 @@ export function renderAssistantMessage(
       continue;
     }
 
+    // Handle numbered recipes in paragraphs (e.g., "1. Old Fashioned - Description")
+    if (b.kind === "p") {
+      const numberedRecipeMatch = b.text.match(/^(\d+\.)\s*(.+?)(?:\s*-\s*(.+))?$/);
+      if (numberedRecipeMatch) {
+        flushRecipe();
+        const [, number, title, description] = numberedRecipeMatch;
+        currentRecipe = { 
+          title: title.trim(), 
+          description: description?.trim() || null, 
+          ingredients: [], 
+          instructions: [] 
+        };
+        continue;
+      }
+    }
+
     if (currentRecipe && !currentSection) {
       if (b.kind === "p" && !currentRecipe.description) {
         currentRecipe.description = b.text;
@@ -244,6 +260,35 @@ export function renderAssistantMessage(
       if (b.kind === "p") target.push(b.text);
       else if (b.kind === "ul" || b.kind === "ol") target.push(...b.items);
       continue;
+    }
+
+    // Check if this is ingredients/instructions content without proper headers
+    if (currentRecipe && b.kind === "ul") {
+      // If we have a recipe but no section, and it's a bulleted list, assume ingredients
+      currentRecipe.ingredients.push(...b.items);
+      continue;
+    }
+    
+    if (currentRecipe && b.kind === "ol") {
+      // If we have a recipe but no section, and it's a numbered list, assume instructions
+      currentRecipe.instructions.push(...b.items);
+      continue;
+    }
+
+    // Check for recipe names that appear as plain paragraphs (fallback detection)
+    if (b.kind === "p") {
+      const recipeNameMatch = b.text.match(/^(.+?)\s*-\s*(.+?)$/);
+      if (recipeNameMatch && !currentRecipe) {
+        const [, title, description] = recipeNameMatch;
+        flushRecipe();
+        currentRecipe = { 
+          title: title.trim(), 
+          description: description.trim(), 
+          ingredients: [], 
+          instructions: [] 
+        };
+        continue;
+      }
     }
 
     // block outside any recipe section
