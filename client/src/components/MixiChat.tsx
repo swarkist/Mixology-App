@@ -8,9 +8,29 @@ import { Link } from "wouter";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { onMixiOpen } from "@/lib/mixiBus";
 
+interface ParsedRecipe {
+  name: string;
+  description?: string;
+  ingredients: Array<{
+    quantity: string;
+    unit?: string;
+    item: string;
+    notes?: string;
+  }>;
+  instructions: string[];
+  glassware?: string;
+  garnish?: string;
+  tags?: string[];
+}
+
+interface ParsedRecipes {
+  recipes: ParsedRecipe[];
+}
+
 interface Message {
   role: "user" | "assistant";
   content: string;
+  parsedRecipes?: ParsedRecipes;
 }
 
 type Block =
@@ -263,16 +283,17 @@ function parseMultipleRecipesFromText(text: string): Array<{
 
 export function renderAssistantMessage(
   text: string,
-  renderSafeInline: (s: string) => JSX.Element
+  renderSafeInline: (s: string) => JSX.Element,
+  parsedRecipes?: ParsedRecipes
 ): JSX.Element {
-  // First try to parse as multi-recipe format
-  const parsedRecipes = parseMultipleRecipesFromText(text);
+  // Use provided parsed recipes or try to parse from text as fallback
+  const recipesToRender = parsedRecipes?.recipes || parseMultipleRecipesFromText(text);
   
-  if (parsedRecipes.length > 0) {
+  if (recipesToRender.length > 0) {
     // Render the parsed recipes
-    const elements = parsedRecipes.map((recipe, idx) => (
+    const elements = recipesToRender.map((recipe, idx) => (
       <div key={idx} className="mt-4">
-        <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{recipe.title}</div>
+        <div className="mt-2 mb-1 font-semibold text-[#f3d035]">{'name' in recipe ? recipe.name : recipe.title}</div>
         {recipe.description && (
           <p className="text-white mb-2">{renderSafeInline(recipe.description)}</p>
         )}
@@ -282,7 +303,7 @@ export function renderAssistantMessage(
             <ul className="list-disc ml-5 space-y-1 mb-2">
               {recipe.ingredients.map((ingredient, ingIdx) => (
                 <li key={ingIdx} className="text-white">
-                  {renderSafeInline(ingredient)}
+                  {renderSafeInline(typeof ingredient === 'string' ? ingredient : `${ingredient.quantity} ${ingredient.unit || ''} ${ingredient.item}`.trim())}
                 </li>
               ))}
             </ul>
@@ -300,7 +321,7 @@ export function renderAssistantMessage(
             </ol>
           </>
         )}
-        {idx < parsedRecipes.length - 1 && (
+        {idx < recipesToRender.length - 1 && (
           <div className="border-t border-[#383528] my-4"></div>
         )}
       </div>
@@ -787,10 +808,23 @@ export default function MixiChat() {
           if (!jsonStr || jsonStr === "[DONE]") continue;
           try {
             const data = JSON.parse(jsonStr);
-            const delta = data.content || data.choices?.[0]?.delta?.content || "";
-            if (delta) {
-              assistantMessage += delta;
-              setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: assistantMessage }]);
+            
+            // Check for parsed recipe data (new structured format)
+            if (data.parsedRecipes) {
+              // Store both parsed and raw content for rendering
+              setMessages(prev => [...prev.slice(0, -1), { 
+                role: "assistant", 
+                content: data.content || assistantMessage,
+                parsedRecipes: data.parsedRecipes 
+              }]);
+              assistantMessage = data.content || assistantMessage;
+            } else {
+              // Regular streaming content
+              const delta = data.content || data.choices?.[0]?.delta?.content || "";
+              if (delta) {
+                assistantMessage += delta;
+                setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: assistantMessage }]);
+              }
             }
           } catch {
             // ignore malformed frames
@@ -862,10 +896,23 @@ export default function MixiChat() {
           if (!jsonStr || jsonStr === "[DONE]") continue;
           try {
             const data = JSON.parse(jsonStr);
-            const delta = data.content || data.choices?.[0]?.delta?.content || "";
-            if (delta) {
-              assistantMessage += delta;
-              setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: assistantMessage }]);
+            
+            // Check for parsed recipe data (new structured format)
+            if (data.parsedRecipes) {
+              // Store both parsed and raw content for rendering
+              setMessages(prev => [...prev.slice(0, -1), { 
+                role: "assistant", 
+                content: data.content || assistantMessage,
+                parsedRecipes: data.parsedRecipes 
+              }]);
+              assistantMessage = data.content || assistantMessage;
+            } else {
+              // Regular streaming content
+              const delta = data.content || data.choices?.[0]?.delta?.content || "";
+              if (delta) {
+                assistantMessage += delta;
+                setMessages(prev => [...prev.slice(0, -1), { role: "assistant", content: assistantMessage }]);
+              }
             }
           } catch {
             // ignore malformed frames
@@ -943,7 +990,7 @@ export default function MixiChat() {
                       message.role === "user" ? "bg-[#f3d035] text-[#181711]" : "bg-[#393628] text-white"
                     }`}
                   >
-                    {message.role === "assistant" ? renderAssistantMessage(message.content, renderSafeInline) : message.content}
+                    {message.role === "assistant" ? renderAssistantMessage(message.content, renderSafeInline, message.parsedRecipes) : message.content}
                   </div>
                 </div>
 

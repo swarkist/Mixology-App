@@ -11,6 +11,8 @@ import { extractBrandFromImage } from "./ai/openrouter";
 import * as cheerio from 'cheerio';
 import { z } from 'zod';
 import { scrapingLimiter } from './middleware/rateLimiter';
+import { MULTI_RECIPE_JSON_CONTRACT, MULTI_RECIPE_MARKDOWN_FALLBACK } from './ai/promptContracts';
+import { parseRecipesFromAI } from './utils/recipeParser';
 
 import { createAuthRoutes } from './routes/auth';
 import { createMyBarRoutes } from './routes/mybar';
@@ -1713,6 +1715,17 @@ export function registerReadOnlyRoutes(app: Express, storage?: IStorage) {
         return res.status(500).json({ error: "OpenRouter API key not configured" });
       }
 
+      // Detect if multiple recipes are being requested
+      const lastMessage = messages[messages.length - 1];
+      const isMultipleRecipeRequest = lastMessage?.content && (
+        /\b\d+\s*(cocktails?|recipes?|drinks?)\b/i.test(lastMessage.content) ||
+        /multiple\s*(cocktails?|recipes?|drinks?)/i.test(lastMessage.content) ||
+        /list\s*of\s*(cocktails?|recipes?|drinks?)/i.test(lastMessage.content) ||
+        /several\s*(cocktails?|recipes?|drinks?)/i.test(lastMessage.content) ||
+        /some\s*(cocktails?|recipes?|drinks?)/i.test(lastMessage.content) ||
+        /(cocktails?|recipes?|drinks?)\s*(for|with)/i.test(lastMessage.content)
+      );
+
       // Load our site's cocktail database for recommendations
       let siteRecipes = "";
       try {
@@ -1753,27 +1766,6 @@ FORMATTING RULES (MANDATORY):
 - NEVER mix ingredients or instructions from different recipes
 - Each recipe must be a separate, complete block with clear separators
 
-TEMPLATE FOR MULTIPLE RECIPES:
-1. **Recipe Name** - Description
-   **Ingredients:**
-   • All ingredients for this recipe only
-   • Complete ingredient list here
-   
-   **Instructions:**
-   1. All steps for this recipe only
-   2. Complete instructions here
-   
-   ---
-   
-2. **Second Recipe Name** - Description
-   **Ingredients:**
-   • All ingredients for second recipe only
-   • Complete ingredient list here
-   
-   **Instructions:**
-   1. All steps for second recipe only
-   2. Complete instructions here
-
 TEMPLATE FOR SINGLE RECIPE:
 **Ingredients:**
 • Ingredient 1
@@ -1791,6 +1783,11 @@ CRITICAL RULES:
 - Complete ALL instructions for one recipe before starting the next recipe
 - NEVER write continuous paragraphs mixing recipe elements
 - Each recipe block must be self-contained and complete${siteRecipes}`;
+
+      // If multiple recipes detected, add JSON contract
+      if (isMultipleRecipeRequest) {
+        systemPrompt += `\n\n${MULTI_RECIPE_JSON_CONTRACT}`;
+      }
 
       // Add context-specific information if provided
       if (context) {
@@ -1908,36 +1905,95 @@ CRITICAL RULES:
             throw new Error('No response body reader available');
           }
 
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
+          // For multiple recipe requests, collect full response for parsing
+          if (isMultipleRecipeRequest) {
+            let fullContent = '';
+            
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
 
-              const chunk = new TextDecoder().decode(value);
-              const lines = chunk.split('\n');
+                const chunk = new TextDecoder().decode(value);
+                const lines = chunk.split('\n');
 
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  const data = line.slice(6);
-                  if (data === '[DONE]') {
-                    res.write('data: [DONE]\n\n');
-                    res.end();
-                    return;
-                  }
-
-                  try {
-                    const parsed = JSON.parse(data);
-                    if (parsed.choices?.[0]?.delta?.content) {
-                      res.write(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`);
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                      // Parse the complete response
+                      try {
+                        const parsedRecipes = parseRecipesFromAI(fullContent);
+                        if (parsedRecipes.recipes.length > 0) {
+                          // Send parsed recipes as structured data
+                          res.write(`data: ${JSON.stringify({ 
+                            parsedRecipes: parsedRecipes,
+                            content: fullContent 
+                          })}\n\n`);
+                        } else {
+                          // Fallback to original content if parsing fails
+                          res.write(`data: ${JSON.stringify({ content: fullContent })}\n\n`);
+                        }
+                      } catch (parseError) {
+                        console.error('Recipe parsing error:', parseError);
+                        // Fallback to original content
+                        res.write(`data: ${JSON.stringify({ content: fullContent })}\n\n`);
+                      }
+                      
+                      res.write('data: [DONE]\n\n');
+                      res.end();
+                      return;
                     }
-                  } catch (parseError) {
-                    // Skip invalid JSON chunks
+
+                    try {
+                      const parsed = JSON.parse(data);
+                      if (parsed.choices?.[0]?.delta?.content) {
+                        fullContent += parsed.choices[0].delta.content;
+                        // Still stream individual chunks for real-time display
+                        res.write(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`);
+                      }
+                    } catch (parseError) {
+                      // Skip invalid JSON chunks
+                    }
                   }
                 }
               }
+            } finally {
+              reader.releaseLock();
             }
-          } finally {
-            reader.releaseLock();
+          } else {
+            // Regular streaming for single recipe requests
+            try {
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = new TextDecoder().decode(value);
+                const lines = chunk.split('\n');
+
+                for (const line of lines) {
+                  if (line.startsWith('data: ')) {
+                    const data = line.slice(6);
+                    if (data === '[DONE]') {
+                      res.write('data: [DONE]\n\n');
+                      res.end();
+                      return;
+                    }
+
+                    try {
+                      const parsed = JSON.parse(data);
+                      if (parsed.choices?.[0]?.delta?.content) {
+                        res.write(`data: ${JSON.stringify({ content: parsed.choices[0].delta.content })}\n\n`);
+                      }
+                    } catch (parseError) {
+                      // Skip invalid JSON chunks
+                    }
+                  }
+                }
+              }
+            } finally {
+              reader.releaseLock();
+            }
           }
 
           res.end();

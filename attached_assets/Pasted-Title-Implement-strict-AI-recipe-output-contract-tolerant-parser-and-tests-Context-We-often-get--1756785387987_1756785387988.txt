@@ -1,0 +1,176 @@
+Title: Implement strict AI recipe output contract, tolerant parser, and tests
+Context: We often get multiple recipes back as one blob. We need guaranteed structure. We already have AI features & parsing in tests; extend them with multi-recipe parsing and enforce structure. See our regression tests & AI features references.
+Tech constraints: TypeScript, Node/Express server, React client, Firebase. Keep code idiomatic, production-ready.
+
+Please do the following:
+
+Create a strict output contract
+
+Add server/ai/promptContracts.ts with two exports:
+
+MULTI_RECIPE_JSON_CONTRACT (system text the model must follow)
+
+MULTI_RECIPE_MARKDOWN_FALLBACK (alt format)
+
+JSON contract (use this verbatim in our system prompt when asking the model for multiple recipes):
+
+You MUST return valid UTF-8 JSON only, no prose. Shape:
+{
+  "recipes": [
+    {
+      "name": "string",
+      "description": "string",
+      "ingredients": [
+        {"quantity": "string", "unit": "string", "item": "string", "notes": "string?"}
+      ],
+      "instructions": ["step 1", "step 2", "..."],
+      "glassware": "string?",
+      "garnish": "string?",
+      "tags": ["string"]
+    }
+  ]
+}
+
+
+Markdown fallback (use only if we explicitly set format=markdown):
+
+### <Recipe Name>
+_Description_
+
+**Ingredients**
+- <quantity> <unit> <item> (notes?)
+
+**Instructions**
+1) ...
+2) ...
+
+**Glassware**: ...
+**Garnish**: ...
+**Tags**: tag1, tag2
+---
+
+
+Add examples for 2–3 recipes in both formats to the prompt file so the model has few-shot guidance.
+
+Build a tolerant parser
+
+Create server/utils/recipeParser.ts with:
+
+parseRecipesFromAI(raw: string): ParsedRecipes
+
+Strategy:
+
+Fast path JSON
+
+Trim non-JSON pre/post text.
+
+Try JSON.parse.
+
+If it fails, try a “repair JSON” pass (e.g., remove trailing commas, fix quotes) using a tiny fixer function (no new heavy deps).
+
+Validate with Zod schema (see next step).
+
+Fallback Markdown
+
+Split on \n---\n or on ^###\s+ headings.
+
+Extract blocks under Ingredients and Instructions.
+
+Parse ingredients with a tolerant regex that handles “1 1/2 oz”, “0.75 oz”, “dash”, “rinse”, “top with”, and captures (notes).
+
+Normalization
+
+Standardize units: oz|ounce(s), ml, dash(es), barspoon, tsp, tbsp, part(s) → canonical short forms.
+
+Convert decimals to common fractions for display (0.75 → 3/4), keep original string in data too.
+
+Output
+
+Always return { recipes: Recipe[] } with at least name, ingredients[], instructions[]. If empty, return { recipes: [] } and a typed error.
+
+Add Zod validation
+
+Create server/types/recipes.ts:
+
+import { z } from "zod";
+
+export const IngredientSchema = z.object({
+  quantity: z.string().min(1),
+  unit: z.string().optional().default(""),
+  item: z.string().min(1),
+  notes: z.string().optional()
+});
+
+export const RecipeSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional().default(""),
+  ingredients: z.array(IngredientSchema).min(1),
+  instructions: z.array(z.string().min(1)).min(1),
+  glassware: z.string().optional(),
+  garnish: z.string().optional(),
+  tags: z.array(z.string()).optional().default([])
+});
+
+export const ParsedRecipesSchema = z.object({
+  recipes: z.array(RecipeSchema)
+});
+
+export type ParsedRecipes = z.infer<typeof ParsedRecipesSchema>;
+
+
+In recipeParser.ts, validate and throw helpful errors if invalid; include which field failed.
+
+Wire into AI flows
+
+Wherever we call the AI for multiple recipes (chatbot suggest list or import flow), pass the JSON contract in the system prompt and request application/json style responses.
+
+After getting the model text, call parseRecipesFromAI(text) and return the normalized recipes array to the client.
+
+Keep existing AI features—this just guarantees we always hand the UI a consistent array (aligns with our AI features & import workflow) .
+
+UI behavior
+
+When the chat/import result has recipes.length > 1, render each recipe as its own card (you already use list/cards; just map over the array).
+
+Preserve ordered lists for instructions and bullet lists for ingredients.
+
+If the response isn’t parseable, show a friendly toast and a “Regenerate as JSON” button that re-queries the model with the JSON contract.
+
+Tests
+
+Add tests/regression/ai-multi-recipe-parse.test.ts with cases:
+
+Valid JSON (single & multi-recipe).
+
+Broken JSON (trailing comma, unquoted keys) → repair path.
+
+Markdown with --- separators.
+
+Mixed/edge ingredients: “1 1/2 oz”, “0.75 oz”, “dash of bitters”, “top with soda”, parenthetical notes.
+
+Ensure output always matches ParsedRecipesSchema.
+
+Integrate with your existing regression suite (AI features mentioned in your tests README) and run via:
+
+npx tsx tests/regression/run-regression.ts
+
+
+or individual Vitest runs as in your docs .
+
+Quality gates
+
+Lint & typecheck must pass.
+
+Add a tiny perf check: parsing 5 recipes < 50ms locally.
+
+If the Agent hits the same error twice, stop and ask questions before proceeding.
+
+Deliverables
+
+New files + tests listed above.
+
+A short note in replit.md under “AI Integration” about the new contract & parser (do not change unrelated sections).
+
+Demo: paste a messy multi-recipe response into a small script and print normalized JSON.
+
+Please confirm you understand before coding, then implement and run tests. If any test fails, fix and re-run.
