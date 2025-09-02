@@ -38,7 +38,7 @@ import { getQueryParam, setQueryParamReplace } from "@/lib/url";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailList = (): JSX.Element => {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [term, setTerm] = useState(() => getQueryParam("search") || getQueryParam("q"));
@@ -55,6 +55,14 @@ export const CocktailList = (): JSX.Element => {
   useEffect(() => { 
     setQueryParamReplace("q", debounced); 
   }, [debounced]);
+
+  // Listen for URL parameter changes (e.g., when navigating from TopNavigation search)
+  useEffect(() => {
+    const currentSearch = getQueryParam("search") || getQueryParam("q");
+    if (currentSearch !== term) {
+      setTerm(currentSearch || "");
+    }
+  }, [location, term]);
 
   // Check if Featured or Popular filters are active (not search)
   const hasSpecificFilters = showOnlyFeatured || showOnlyPopular;
