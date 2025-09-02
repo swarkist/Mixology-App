@@ -56,13 +56,13 @@ export const CocktailList = (): JSX.Element => {
     setQueryParamReplace("q", debounced); 
   }, [debounced]);
 
-  // Listen for URL parameter changes (e.g., when navigating from TopNavigation search)
+  // Listen for location changes to sync search from TopNavigation
   useEffect(() => {
     const currentSearch = getQueryParam("search") || getQueryParam("q");
-    if (currentSearch !== term) {
-      setTerm(currentSearch || "");
+    if (currentSearch && currentSearch !== term) {
+      setTerm(currentSearch);
     }
-  }, [location, term]);
+  }, [location]);
 
   // Check if Featured or Popular filters are active (not search)
   const hasSpecificFilters = showOnlyFeatured || showOnlyPopular;
