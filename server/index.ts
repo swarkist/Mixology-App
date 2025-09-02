@@ -106,7 +106,6 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
     "/backup/",             // Backup operations
     "/recalculate-",        // Bulk operations
     "/reset-popularity",    // Admin cocktail operations
-    "/toggle-featured",     // Admin cocktail operations
   ];
   
   // Read-only endpoints that use POST but don't need admin key
