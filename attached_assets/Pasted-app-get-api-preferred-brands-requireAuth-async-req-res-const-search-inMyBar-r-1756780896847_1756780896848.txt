@@ -1,0 +1,50 @@
+app.get("/api/preferred-brands", requireAuth, async (req, res) => {
+  const { search, inMyBar } = req.query;
+  
+  try {
+    console.log('🔥 Preferred brands API called with params:', { search, inMyBar });
+    let brands;
+    
+    if (inMyBar === 'true') {
+      // Require authentication for My Bar filtering
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      console.log('🔥 Calling getPreferredBrandsInMyBar for user:', req.user.id);
+      brands = await storage.getPreferredBrandsInMyBar(req.user.id);
+    } else if (search) {
+      console.log('🔥 Calling searchPreferredBrands with query:', search);
+      if (req.user) {
+        brands = await storage.searchPreferredBrands(search as string, req.user.id);
+      } else {
+        return res.status(401).json({ error: "Authentication required for search" });
+      }
+    } else {
+      // Require authentication for all preferred brands data
+      if (!req.user) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      console.log('🔥 Calling getAllPreferredBrands for authenticated user...');
+      brands = await storage.getAllPreferredBrands(req.user.id);
+    }
+    
+    // If user is authenticated, add inMyBar status for each brand
+    if (req.user) {
+      const myBarItems = await storage.getMyBarItems(req.user.id);
+      const myBarBrandIds = myBarItems
+        .filter(item => item.type === 'brand')
+        .map(item => item.ref_id);
+      
+      brands = brands
+        .filter(brand => brand && brand.id) // Remove any undefined/null brands
+        .map(brand => ({
+          ...brand,
+          inMyBar: myBarBrandIds.includes(brand.id)
+        }));
+    }
+    
+    console.log('🔥 Brands result:', brands.length, 'items');
+    res.json(brands);
+  } catch (error) {
+    console.error('🔥 Preferred brands API error:', error);
+    res.status(500).json({ message: "Error fetching preferred brands", error: error instanceof Error ? error.message : String(error) });
