@@ -1199,7 +1199,7 @@ export class FirebaseStorage {
         })
       );
       
-      const result = brands.filter((brand): brand is PreferredBrand => brand !== null);
+      const result = brands.filter((brand): brand is PreferredBrand => brand !== null && brand !== undefined);
       console.log('🔥 Returning', result.length, 'brands for user', userId, 'My Bar');
       return result;
     } catch (error) {

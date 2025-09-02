@@ -1,0 +1,253 @@
+20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev.png:1   GET https://c.1password.com/richicons/images/login/120/20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev.png 404 (Not Found)
+Image
+J @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+c @ menu.js:101
+c @ menu.js:101
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+c @ menu.js:101
+c @ menu.js:101
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+Ln @ chunk-UVKO6OCU.js:6
+c @ menu.js:101
+p @ menu.js:101
+pe @ chunk-UVKO6OCU.js:6
+Y @ chunk-UVKO6OCU.js:6
+Promise.then
+Pt @ chunk-UVKO6OCU.js:6
+$e @ chunk-UVKO6OCU.js:6
+(anonymous) @ chunk-UVKO6OCU.js:6
+(anonymous) @ menu.js:101
+o @ chunk-UVKO6OCU.js:6
+i @ chunk-UVKO6OCU.js:6
+(anonymous) @ menu.js:3
+Promise.then
+gr @ menu.js:3
+ve @ menu.js:3
+Lt @ chunk-UVKO6OCU.js:6
+Ln @ menu.js:3
+Eo @ menu.js:101
+yt @ chunk-UVKO6OCU.js:6
+we @ menu.js:3
+Lt @ chunk-UVKO6OCU.js:6
+Rn @ menu.js:3
+Lo @ menu.js:101
+yt @ chunk-UVKO6OCU.js:6
+br @ menu.js:3
+p @ menu.js:3
+pe @ chunk-UVKO6OCU.js:6
+Y @ chunk-UVKO6OCU.js:6
+Promise.then
+Pt @ chunk-UVKO6OCU.js:6
+$e @ chunk-UVKO6OCU.js:6
+(anonymous) @ chunk-UVKO6OCU.js:6
+(anonymous) @ menu.js:3
+Promise.then
+Be @ menu.js:3
+Lt @ chunk-UVKO6OCU.js:6
+jn @ menu.js:3
+Ro @ menu.js:101
+yt @ chunk-UVKO6OCU.js:6
+me @ menu.js:3
+Lt @ chunk-UVKO6OCU.js:6
+zn @ menu.js:3
+jo @ menu.js:101
+yt @ chunk-UVKO6OCU.js:6
+le @ menu.js:3
+Lt @ chunk-UVKO6OCU.js:6
+In @ menu.js:3
+qo @ menu.js:101
+Lt @ chunk-UVKO6OCU.js:6
+Un @ menu.js:101
+Xr @ menu.js:101
+(anonymous) @ menu.js:101
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+MyBar.tsx:98   GET https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/preferred-brands?inMyBar=true 500 (Internal Server Error)
+queryFn @ MyBar.tsx:98
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+MyBar.tsx:105  Error fetching my bar items: Error: Failed to fetch my bar items: 500
+    at queryFn (MyBar.tsx:101:17)
+queryFn @ MyBar.tsx:105
+await in queryFn
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+MyBar.tsx:98   GET https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/preferred-brands?inMyBar=true 500 (Internal Server Error)
+queryFn @ MyBar.tsx:98
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+MyBar.tsx:105  Error fetching my bar items: Error: Failed to fetch my bar items: 500
+    at queryFn (MyBar.tsx:101:17)
+queryFn @ MyBar.tsx:105
+await in queryFn
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+MyBar.tsx:98   GET https://20540bda-0240-4bab-8773-b4741e596295-00-2kktq7fdoy4tc.kirk.replit.dev/api/preferred-brands?inMyBar=true 500 (Internal Server Error)
+queryFn @ MyBar.tsx:98
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
+MyBar.tsx:105  Error fetching my bar items: Error: Failed to fetch my bar items: 500
+    at queryFn (MyBar.tsx:101:17)
+queryFn @ MyBar.tsx:105
+await in queryFn
+fetchFn @ query.ts:429
+run @ retryer.ts:153
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+(anonymous) @ retryer.ts:199
+Promise.then
+(anonymous) @ retryer.ts:195
+Promise.catch
+run @ retryer.ts:160
+start @ retryer.ts:218
+fetch @ query.ts:540
+executeFetch_fn @ queryObserver.ts:346
+onSubscribe @ queryObserver.ts:108
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:92
+subscribeToStore @ react-dom.development.js:16139
+commitHookEffectListMount @ react-dom.development.js:23189
+commitPassiveMountOnFiber @ react-dom.development.js:24965
+commitPassiveMountEffects_complete @ react-dom.development.js:24930
+commitPassiveMountEffects_begin @ react-dom.development.js:24917
+commitPassiveMountEffects @ react-dom.development.js:24905
+flushPassiveEffectsImpl @ react-dom.development.js:27078
+flushPassiveEffects @ react-dom.development.js:27023
+commitRootImpl @ react-dom.development.js:26974
+commitRoot @ react-dom.development.js:26721
+performSyncWorkOnRoot @ react-dom.development.js:26156
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25690
