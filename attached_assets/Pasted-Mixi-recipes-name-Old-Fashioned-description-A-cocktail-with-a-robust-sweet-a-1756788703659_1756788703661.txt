@@ -1,0 +1,17 @@
+Mixi
+
+{ "recipes": [ { "name": "Old Fashioned", "description": "A cocktail with a robust, sweet, and spicy flavor.", "
+
+": [ {"quantity": "2", "unit": "oz", "item": "Bourbon whiskey", "notes": ""}, {"quantity": "0.5", "unit": "oz", "item": "Rich simple syrup", "notes": "2 parts sugar : 1 part water"}, {"quantity": "2", "unit": "dashes", "item": "Angostura bitters", "notes": ""}, {"quantity": "1", "unit": "", "item": "Orange twist", "notes": "for garnish"} ], "
+
+": [ "In an old
+fashioned glass, combine the bourbon, simple syrup, and bitters.", "Add ice and stir until well chilled.", "Garnish with an orange twist." ], "glassware": "Old-fashioned glass", "garnish": "Orange twist", "tags": ["classic", "bourbon", "stirred"] }, { "name": "Margarita", "description": "A refreshing and tangy cocktail that's perfect for hot days.", "
+
+Ingredients:
+": [ {"quantity": "2", "unit": "oz", "item": "Tequila", "notes": ""}, {"quantity": "1", "unit": "oz", "item": "Cointreau", "notes": ""}, {"quantity": "1", "unit": "oz", "item": "Fresh lime juice", "notes": ""}, {"quantity": "", "unit": "", "item": "Salt", "notes": "for rimming the glass"} ], "
+": [ {"quantity": "2", "unit": "oz", "item": "Bourbon whiskey", "notes": ""}, {"quantity": "0.5", "unit": "oz", "item": "Rich simple syrup", "notes": "2 parts sugar : 1 part water"}, {"quantity": "2", "unit": "dashes", "item": "Angostura bitters", "notes": ""}, {"quantity": "1", "unit": "", "item": "Orange twist", "notes": "for garnish"} ], "
+": [ {"quantity": "2", "unit": "oz", "item": "Tequila", "notes": ""}, {"quantity": "1", "unit": "oz", "item": "Cointreau", "notes": ""}, {"quantity": "1", "unit": "oz", "item": "Fresh lime juice", "notes": ""}, {"quantity": "", "unit": "", "item": "Salt", "notes": "for rimming the glass"} ], "
+Instructions:
+": [ "Rim a margarita glass with salt.", "Shake the tequila, cointreau, and lime juice with ice.", "Strain into the salt-rimmed glass filled with ice." ], "glassware": "Margarita glass", "garnish": "Lime wheel", "tags": ["classic", "tequila", "shaken", "citrus"] } ] }{ "recipes": [ { "name": "Old Fashioned", "description": "A cocktail with a robust, sweet, and spicy flavor.", "
+": [ "In an old-fashioned glass, combine the bourbon, simple syrup, and bitters.", "Add ice and stir until well chilled.", "Garnish with an orange twist." ], "glassware": "Old-fashioned glass", "garnish": "Orange twist", "tags": ["classic", "bourbon", "stirred"] }, { "name": "Margarita", "description": "A refreshing and tangy cocktail that's perfect for hot days.", "
+": [ "Rim a margarita glass with salt.", "Shake the tequila, cointreau, and lime juice with ice.", "Strain into the salt-rimmed glass filled with ice." ], "glassware": "Margarita glass", "garnish": "Lime wheel", "tags": ["classic", "tequila", "shaken", "citrus"] } ] }
