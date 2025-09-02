@@ -24,9 +24,9 @@ function normalizeForLists(text: string) {
   text = text.replace(/(?<!^|\n)(\s*)(\d+)\.\s+/g, "\n$2. ");
   // Ensure a newline before bullets like " • "
   text = text.replace(/\s+•\s+/g, "\n• ");
-  // Make sure "Ingredients:" and "Instructions:" are on their own lines with spacing
-  text = text.replace(/\s*(\*{0,2}\s*Ingredients:?\s*\*{0,2})/gi, "\n\n$1\n");
-  text = text.replace(/\s*(\*{0,2}\s*Instructions:?\s*\*{0,2})/gi, "\n\n$1\n");
+  // Make sure "Ingredients" and "Instructions" headers are isolated
+  text = text.replace(/\s*(\*{0,2}\s*Ingredients[:\-]?\s*\*{0,2})/gi, "\n\n$1\n");
+  text = text.replace(/\s*(\*{0,2}\s*Instructions[:\-]?\s*\*{0,2})/gi, "\n\n$1\n");
   // Ensure bold headings (e.g., **Margarita**) are isolated on their own lines
   text = text.replace(/(^|\n)\s*(\*\*[^*\n]+\*\*)/g, (m, p1, p2) => `${p1}\n${p2}\n`);
   return text;
@@ -37,26 +37,54 @@ export function splitIntoBlocks(text: string): Block[] {
   const lines = normalizeForLists(text).split(/\r?\n/).map(l => l.trim());
   let i = 0;
 
+  const instructionVerbRegex =
+    /^(Muddle|Stir|Shake|Add|Fill|Garnish|Pour|Combine|Rim|Top|Strain|Serve|In|Using|Place|Drop|Build|Layer|Light|Rinse|Swirl|Heat|Preheat)/i;
+
   function flushParagraph(buf: string[]) {
     const joined = buf.join(" ").trim();
     if (joined) out.push({ kind: "p", text: joined });
   }
 
   while (i < lines.length) {
-    const line = lines[i];
+    let line = lines[i];
+
+    const boldMatch = line.match(/^\*\*([^*]+)\*\*$/);
+    if (boldMatch) {
+      const inner = boldMatch[1].trim();
+      if (/^(ingredients|instructions)$/i.test(inner)) {
+        out.push({ kind: "h", text: inner });
+        i++;
+        continue;
+      }
+      if (/^\d/.test(inner) || instructionVerbRegex.test(inner)) {
+        lines[i] = inner;
+        line = inner;
+      } else {
+        out.push({ kind: "h", text: line });
+        i++;
+        continue;
+      }
+    }
+
+    // standalone recipe headings (e.g., "Old Fashioned")
+    if (
+      /^[A-Z][A-Za-z\s]{0,40}$/.test(line) &&
+      line.split(/\s+/).length <= 5 &&
+      lines[i + 1] &&
+      !/^(•|-|\*)\s+/.test(lines[i + 1]) &&
+      !/^\d+\.\s+/.test(lines[i + 1]) &&
+      !/^\*{0,2}\s*(ingredients|instructions)[:\-]?/i.test(line)
+    ) {
+      out.push({ kind: "h", text: line });
+      i++;
+      continue;
+    }
 
     // recipe headings with trailing description (e.g., "Margarita - A drink")
     const hd = line.match(/^(.+?)\s-\s+(.+)/);
     if (hd) {
       out.push({ kind: "h", text: hd[1].trim() });
       out.push({ kind: "p", text: hd[2].trim() });
-      i++;
-      continue;
-    }
-
-    // recipe headings written in bold (e.g., **Margarita**)
-    if (/^\*\*[^*]+\*\*$/.test(line)) {
-      out.push({ kind: "h", text: line });
       i++;
       continue;
     }
@@ -79,14 +107,36 @@ export function splitIntoBlocks(text: string): Block[] {
       continue;
     }
 
-    // unordered list block (• or -)
-    if (/^(•|-)\s+/.test(line)) {
+    // unordered list block (•, -, or *)
+    if (/^(•|-|\*)\s+/.test(line)) {
       const items: string[] = [];
-      while (i < lines.length && /^(•|-)\s+/.test(lines[i])) {
-        items.push(lines[i].replace(/^(•|-)\s+/, "").trim());
+      while (i < lines.length && /^(•|-|\*)\s+/.test(lines[i])) {
+        items.push(lines[i].replace(/^(•|-|\*)\s+/, "").trim());
         i++;
       }
       out.push({ kind: "ul", items });
+      continue;
+    }
+
+    // ingredient-style lines without bullets (start with number)
+    if (/^\d/.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && /^\d/.test(lines[i])) {
+        items.push(lines[i].trim());
+        i++;
+      }
+      out.push({ kind: "ul", items });
+      continue;
+    }
+
+    // instruction-style lines beginning with common verbs
+    if (instructionVerbRegex.test(line)) {
+      const items: string[] = [];
+      while (i < lines.length && instructionVerbRegex.test(lines[i])) {
+        items.push(lines[i].trim());
+        i++;
+      }
+      out.push({ kind: "ol", items });
       continue;
     }
 
@@ -99,8 +149,8 @@ export function splitIntoBlocks(text: string): Block[] {
         j < lines.length &&
         lines[j] &&
         !/^\d+\.\s+/.test(lines[j]) &&
-        !/^(•|-)\s+/.test(lines[j]) &&
-        !/^\*{0,2}\s*(ingredients|instructions):?/i.test(lines[j])
+        !/^(•|-|\*)\s+/.test(lines[j]) &&
+        !/^\*{0,2}\s*(ingredients|instructions)[:\-]?/i.test(lines[j])
       ) {
         buf.push(lines[j]);
         j++;
