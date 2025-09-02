@@ -1,0 +1,160 @@
+Title: Add AI JSON repair + strict parsing for multi-recipe responses (with tests)
+
+Please do the following:
+
+1) Create a small JSON “repair” utility
+
+File: server/utils/aiJsonRepair.ts
+
+Implement the following exported functions:
+
+export function extractJsonObjects(raw: string): string[] {
+  // Scan characters, track `{}` depth; when depth returns to 0, close an object.
+  // Return an array of JSON strings found in order.
+}
+
+export function renameWeirdKeys(obj: any): any {
+  // Recursively walk object and:
+  // - Normalize keys: lower-case, trim, strip punctuation/colons/spaces.
+  // - Map variants to canonical keys:
+  //   "ingredients", "ingredient", "ingredients:", "ingrédients" -> "ingredients"
+  //   "instructions", "steps", "method", "instructions:" -> "instructions"
+  //   "glass", "glassware" -> "glassware"
+  //   "garnish", "garnishes" -> "garnish"
+  //   Remove keys that are empty/whitespace-only like "" or "\n" and
+  //   attach their values to the most likely field if the value’s shape
+  //   makes it obvious (see heuristics below).
+  // Heuristics:
+  // - If value is array of objects with {quantity,item} → ingredients.
+  // - If value is array of strings → instructions.
+  // Return a deep-cloned, normalized object.
+}
+
+export function mergeRecipeObjects(jsons: any[]): any {
+  // Expect each to have shape { recipes: Recipe[] } (after renameWeirdKeys).
+  // If multiple found, merge all recipes arrays; de-dupe by recipe name (case-insensitive).
+  // Return a single { recipes: [...] } object.
+}
+
+2) Update the parser to use the repair step
+
+File: server/utils/recipeParser.ts (or create it if missing)
+
+import { z } from "zod";
+import { extractJsonObjects, renameWeirdKeys, mergeRecipeObjects } from "./aiJsonRepair";
+
+const IngredientSchema = z.object({
+  quantity: z.string().min(1),
+  unit: z.string().optional().default(""),
+  item: z.string().min(1),
+  notes: z.string().optional()
+});
+
+const RecipeSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional().default(""),
+  ingredients: z.array(IngredientSchema).min(1),
+  instructions: z.array(z.string().min(1)).min(1),
+  glassware: z.string().optional(),
+  garnish: z.string().optional(),
+  tags: z.array(z.string()).optional().default([])
+});
+
+const ParsedRecipesSchema = z.object({
+  recipes: z.array(RecipeSchema)
+});
+
+export type ParsedRecipes = z.infer<typeof ParsedRecipesSchema>;
+
+export function parseRecipesFromAI(raw: string): ParsedRecipes {
+  // 1) Extract one or more JSON objects from raw text
+  const found = extractJsonObjects(raw);
+  if (found.length === 0) {
+    throw new Error("No JSON object detected in AI response.");
+  }
+
+  // 2) Parse each JSON string safely
+  const parsed = found.map((s) => {
+    try { return JSON.parse(s); }
+    catch {
+      // quick “soft repair” pass: remove trailing commas & invalid quotes
+      const fixed = s
+        .replace(/,\s*([}\]])/g, "$1")
+        .replace(/(?<!\\)“|”(?!\\)/g, '"')
+        .replace(/(?<!\\)‘|’(?!\\)/g, "'");
+      return JSON.parse(fixed);
+    }
+  });
+
+  // 3) Normalize weird/label keys on each object
+  const normalized = parsed.map(renameWeirdKeys);
+
+  // 4) Merge multiple {recipes:[...]} objects
+  const merged = mergeRecipeObjects(normalized);
+
+  // 5) Final validation
+  return ParsedRecipesSchema.parse(merged);
+}
+
+3) Wire the parser into AI routes
+
+Wherever the chat/import code currently sends model output straight to the UI, replace that with:
+
+import { parseRecipesFromAI } from "../utils/recipeParser";
+// ...
+const parsed = parseRecipesFromAI(modelText);
+return res.json(parsed); // always { recipes: [...] }
+
+
+In the chat UI, render only parsed.recipes. If parsing throws, show a toast and a “Regenerate as JSON” button that re-asks the model with the strict JSON contract.
+
+4) Harden the system prompt
+
+File: server/ai/promptContracts.ts
+
+Add/ensure a contract like:
+
+You MUST return a single valid JSON object only, with this exact shape:
+{
+  "recipes": [
+    {
+      "name": "string",
+      "description": "string",
+      "ingredients": [{"quantity":"string","unit":"string","item":"string","notes":"string?"}],
+      "instructions": ["string", "string"],
+      "glassware": "string?",
+      "garnish": "string?",
+      "tags": ["string"]
+    }
+  ]
+}
+Do NOT include labels like "Ingredients:" or "Instructions:" as keys.
+Do NOT include multiple JSON objects. Return exactly one object.
+No prose before or after the JSON.
+
+
+(Keep a markdown fallback contract only if we explicitly request it.)
+
+5) Add regression tests with your exact failing text
+
+File: tests/regression/ai-multi-recipe-parse.test.ts
+
+Create tests that feed the exact payload you pasted and assert we get two recipes (“Old Fashioned”, “Margarita”) with non-empty ingredients[] and instructions[]. Also add cases for:
+
+Two JSON objects concatenated → merged.
+
+Keys "Ingredients:" / "Instructions:" → normalized.
+
+Blank/whitespace keys → ignored or mapped via heuristics.
+
+Duplicate ingredient arrays → de-duplicated.
+
+Run tests with your standard commands.
+
+6) Safety & DX
+
+If the repair still fails, return { recipes: [] } and a friendly error message; log the original raw for debugging.
+
+If the Agent hits the same error twice in build/test, it must stop and ask clarifying questions.
+
+Please confirm understanding, then implement the code, run tests, and show me the diff + test output.
