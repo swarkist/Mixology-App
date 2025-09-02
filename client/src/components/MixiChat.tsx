@@ -277,13 +277,34 @@ export function renderAssistantMessage(
 
     // Check for recipe names that appear as plain paragraphs (fallback detection)
     if (b.kind === "p") {
+      // Look for recipe names with descriptions (Title - Description format)
       const recipeNameMatch = b.text.match(/^(.+?)\s*-\s*(.+?)$/);
-      if (recipeNameMatch && !currentRecipe) {
+      if (recipeNameMatch) {
         const [, title, description] = recipeNameMatch;
+        // Check if this looks like a cocktail name (common patterns)
+        const cocktailKeywords = /\b(cocktail|drink|recipe|julep|fashioned|sour|manhattan|martini|fizz|punch|toddy|gimlet|daiquiri|mojito|margarita|negroni)\b/i;
+        if (cocktailKeywords.test(title) || cocktailKeywords.test(description)) {
+          flushRecipe();
+          currentRecipe = { 
+            title: title.trim(), 
+            description: description.trim(), 
+            ingredients: [], 
+            instructions: [] 
+          };
+          continue;
+        }
+      }
+      
+      // Look for standalone recipe names (just the name without description)
+      const standaloneRecipeMatch = b.text.match(/^([A-Z][a-zA-Z\s]+(?:Julep|Fashioned|Sour|Manhattan|Martini|Fizz|Punch|Toddy|Gimlet|Daiquiri|Mojito|Margarita|Negroni|Bourbon|Whiskey))(?:\s*-.*)?$/);
+      if (standaloneRecipeMatch && currentRecipe) {
+        // This is likely a new recipe title that got mixed into instructions
         flushRecipe();
+        const [, title] = standaloneRecipeMatch;
+        const descMatch = b.text.match(/^.+?\s*-\s*(.+)$/);
         currentRecipe = { 
           title: title.trim(), 
-          description: description.trim(), 
+          description: descMatch ? descMatch[1].trim() : null, 
           ingredients: [], 
           instructions: [] 
         };
