@@ -7,8 +7,8 @@ import { RoleGate } from "@/components/RoleGate";
 export const FooterSection = (): JSX.Element => {
   // Footer navigation links data
   const footerLinks = [
-    { title: "About", href: "#" },
-    { title: "Contact", href: "#" },
+    {/* title: "About", href: "#" },
+    { title: "Contact", href: "#" */},
     { title: "Privacy Policy", href: "#" },
     { title: "Terms of Service", href: "/terms" },
   ];

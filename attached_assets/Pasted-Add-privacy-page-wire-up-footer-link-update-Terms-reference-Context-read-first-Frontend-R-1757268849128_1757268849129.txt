@@ -1,0 +1,154 @@
+Add /privacy page + wire up footer link + update Terms reference
+
+Context (read first):
+
+Frontend: React + TypeScript + Vite, routing via Wouter (based on project docs).
+
+Styling: Tailwind + shadcn/ui.
+
+There is already a Footer with a “Privacy Policy” link that currently points to #.
+
+Keep code idiomatic to the repo (imports, file structure, typography).
+
+Accessibility, mobile responsiveness, and no console errors are required.
+
+If file names/paths differ, confirm before coding.
+
+🎯 Goals
+
+Create a dedicated Privacy Policy page at /privacy.
+
+Update the Footer’s “Privacy Policy” link to navigate to /privacy.
+
+Ensure the Terms page text “See our Privacy Policy” links to /privacy.
+
+🛠️ Tasks
+1) Create PrivacyPolicy.tsx page
+
+Location (adjust if your repo uses a different pattern):
+client/src/pages/PrivacyPolicy.tsx
+
+Use semantic HTML: <main>, <h1>, <section>, <h2>, <p>, lists.
+
+Typography: same as Terms page (consistent spacing, readable line length).
+
+If a document-title helper exists, set title: “Privacy Policy — Miximixology”.
+
+Content (convert to JSX with proper tags):
+
+# Miximixology Privacy Policy
+
+Effective Date: [Insert Date]
+
+At Miximixology, your privacy matters. This is a hobby site built for cocktail enthusiasts, and we keep things simple.
+
+## 1. Information We Collect
+When you use Miximixology, we may collect:
+- Account Information: Your email, password (stored securely in hashed form), and role (basic, reviewer, admin).
+- Preferences: Items saved in “My Bar” and “Preferred Brands.”
+- Usage Data: Basic logs to ensure the site works properly (e.g., error logs, security checks).
+
+We do not collect sensitive personal information beyond what is needed to provide the service.
+
+## 2. How We Use Your Information
+- To create and manage your account.
+- To power site features like My Bar, Preferred Brands, and saved cocktail filters.
+- To keep the site secure and prevent abuse.
+- To contact you about account-related issues (e.g., password resets).
+
+We do not sell, rent, or trade your information.
+
+## 3. Third-Party Services
+Miximixology relies on third-party providers to operate:
+- Firebase (Firestore database) for storing recipes, ingredients, and account data.
+- Replit hosting to serve the site and backend.
+- SMTP email service (Zoho Mail) to send password reset emails.
+- OpenRouter AI integrations for recipe imports and chatbot functionality.
+
+Your data may pass through or be stored by these providers as part of normal operation. Their own terms and privacy policies also apply.
+
+## 4. Data Security
+- All passwords are hashed and never stored in plain text.
+- Role-based access control ensures only you can access your data.
+- User data isolation fixes have been implemented to prevent cross-account access.
+- Automated regression and security tests verify protections.
+
+Still, no system is 100% secure, and we cannot guarantee absolute protection.
+
+## 5. Data Retention & Deletion
+- Your data remains in Miximixology until you delete your account.
+- A self-delete feature is being added. Until then, you can request deletion by contacting us.
+
+## 6. Children’s Privacy
+Miximixology is intended for hobby use by adults. We do not knowingly collect personal information from children under 13.
+
+## 7. Changes to This Policy
+We may update this Privacy Policy occasionally. Updates will be posted here, and continued use of the site means you accept the updated policy.
+
+## 8. Contact
+For questions or data requests, contact us at:
+Email: support@miximixology.com
+
+2) Register the /privacy route
+
+In the central router (likely client/src/App.tsx or client/src/main.tsx), add:
+/<Route ... path="/privacy" component={PrivacyPolicy} />/ or the project’s established Wouter pattern.
+
+3) Wire up the Footer link
+
+Find the Footer (e.g., client/src/components/Footer.tsx).
+
+Replace the existing “Privacy Policy” link href="#" with a Wouter <Link to="/privacy">Privacy Policy</Link> (or the project’s link pattern).
+
+Keep styling consistent (likely text-sm text-muted-foreground).
+
+4) Update Terms page reference
+
+Open client/src/pages/TermsPage.tsx (or wherever Terms lives).
+
+Ensure the “See our Privacy Policy” text uses a <Link to="/privacy">Privacy Policy</Link>.
+
+🧪 Verification Checklist (run & confirm)
+
+Routing: /privacy loads with correct headings and sections; document title set if supported.
+
+Footer: “Privacy Policy” link navigates to /privacy from multiple pages (Home, Cocktails, Ingredients, My Bar, Admin).
+
+Terms Page: “Privacy Policy” link correctly routes to /privacy.
+
+Accessibility:
+
+One <h1> on the page; headings follow a logical order.
+
+Link text is descriptive; focus ring visible on keyboard nav.
+
+Contrast meets WCAG AA for small text in dark mode.
+
+Mobile: No overflow; comfortable spacing & line height; footer not overlapping content.
+
+Console: No new errors/warnings.
+
+If anything differs from the expected file structure, stop and ask before coding. Summarize the discovered layout (router file, footer location, pages dir).
+
+📁 Likely files to touch
+
+client/src/pages/PrivacyPolicy.tsx (new)
+
+client/src/App.tsx or client/src/main.tsx (route)
+
+client/src/components/Footer.tsx (update link)
+
+client/src/pages/TermsPage.tsx (ensure link)
+
+✅ Deliverables
+
+/privacy page implemented with the provided content.
+
+Footer “Privacy Policy” link updated to route to /privacy.
+
+Terms page cross-linking to /privacy.
+
+Short test report confirming the checklist above, with screenshots of /privacy, a page showing the footer link, and the Terms reference.
+
+Before coding: please confirm the router & footer file paths you found.
+After coding: run the app and verify all links & pages work as described.

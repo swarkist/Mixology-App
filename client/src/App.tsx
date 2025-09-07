@@ -28,6 +28,7 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import TermsPage from "@/pages/TermsPage";
+import PrivacyPolicy from "@/pages/PrivacyPolicy";
 
 function Router() {
   return (
@@ -113,6 +114,7 @@ function Router() {
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset" component={ResetPassword} />
       <Route path="/terms" component={TermsPage} />
+      <Route path="/privacy" component={PrivacyPolicy} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

@@ -106,18 +106,18 @@ export const TermsPage = (): JSX.Element => {
                   <li>Outages or issues caused by third-party providers.</li>
                 </ul>
               </section>
-
+              {/* This is a comment inside a JSX element
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">10. Governing Law</h2>
                 <p>
                   These Terms are governed by the laws of [Insert State/Country].
                 </p>
               </section>
-
+              */}
               <section>
-                <h2 className="text-xl font-semibold text-white mb-3">11. Contact</h2>
+                <h2 className="text-xl font-semibold text-white mb-3">10. Contact</h2>
                 <p>
-                  Questions? Contact support@miximixology.com.
+                  Questions? Contact noreply@miximixology.com.
                 </p>
               </section>
             </div>
