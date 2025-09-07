@@ -1,0 +1,102 @@
+Tighten it up (important small fixes)
+
+Order & proxy trust
+
+Keep:
+
+app.set('trust proxy', 1);
+
+
+Then place the redirect middleware immediately after that (before CORS and before any auth routes) — as your plan shows. Good.
+
+Cookie domain & logout symmetry
+
+When setting cookies you add domain: '.miximixology.com'.
+Do the same options when clearing them at logout, or the cookies won’t clear on all hosts:
+
+res.clearCookie('accessToken', {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax',
+  path: '/',
+  domain: '.miximixology.com',
+});
+res.clearCookie('refreshToken', {
+  httpOnly: true,
+  secure: true,
+  sameSite: 'lax',
+  path: '/',
+  domain: '.miximixology.com',
+});
+
+
+SameSite choice
+
+sameSite: 'lax' is correct for normal top-level navigation and redirect flows.
+
+Only switch to 'none' (and keep secure: true) if you ever embed your app in an iframe on another site or do true cross-site POSTs.
+
+CORS with credentials
+
+Make sure your server enables credentials and your client uses them:
+
+app.use(cors({
+  origin: ['https://www.miximixology.com', 'https://miximixology.com', 'http://localhost:5173'],
+  credentials: true,
+}));
+
+
+And on the client, your fetch/axios includes credentials: 'include' / withCredentials: true.
+
+Avoid redirect loops / special paths
+
+Your rule is fine, but add a tiny guard for health checks (rarely needed on Replit) or well-known paths if you ever add them:
+
+const host = req.get('host')?.toLowerCase();
+if (process.env.NODE_ENV === 'production') {
+  if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
+    return res.redirect(308, `https://${host}${req.originalUrl}`);
+  }
+  if (host === 'miximixology.com') {
+    return res.redirect(308, `https://www.miximixology.com${req.originalUrl}`);
+  }
+}
+
+
+(Your version is good; the lowercasing just removes any edge cases.)
+
+HSTS “preload” note
+
+Using preload means browsers will eventually force HTTPS before any request.
+
+Before submitting to hstspreload.org, confirm both apex + www are 100% HTTPS and you won’t need HTTP for anything.
+
+Your updated cookie helper (drop-in)
+// server/lib/auth.ts
+export function setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  const baseCookie = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax' as const,
+    path: '/',
+    ...(isProduction && { domain: '.miximixology.com' }),
+  };
+
+  res.cookie('accessToken', accessToken, {
+    ...baseCookie,
+    maxAge: 30 * 60 * 1000, // 30 minutes
+  });
+
+  res.cookie('refreshToken', refreshToken, {
+    ...baseCookie,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+}
+
+// server/routes/auth/logout.ts (example)
+res.clearCookie('accessToken', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', domain: '.miximixology.com' });
+res.clearCookie('refreshToken', { httpOnly: true, secure: true, sameSite: 'lax', path: '/', domain: '.miximixology.com' });
+
+Quick test plan (copy/paste)

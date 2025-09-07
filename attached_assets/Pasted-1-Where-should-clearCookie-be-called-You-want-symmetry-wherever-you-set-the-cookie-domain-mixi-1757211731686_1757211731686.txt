@@ -1,0 +1,90 @@
+1) Where should clearCookie be called?
+
+You want symmetry: wherever you set the cookie (domain .miximixology.com, path /, sameSite, secure), use the same options when clearing it.
+
+a) Logout route (required)
+
+Put this in your auth logout handler (wherever you invalidate tokens), e.g. server/routes/auth/logout.ts or your auth router:
+
+// Ensure these options MATCH your setAuthCookies options in production
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax' as const,
+  path: '/',
+  ...(process.env.NODE_ENV === 'production' && { domain: '.miximixology.com' }),
+};
+
+res.clearCookie('accessToken', cookieOptions);
+res.clearCookie('refreshToken', cookieOptions);
+
+// If you also cache the user on the client, send a minimal OK
+res.status(200).json({ ok: true });
+
+b) Refresh-token failure path (recommended)
+
+If you have a refresh endpoint (e.g. /api/auth/refresh) that can fail (expired/invalid refresh token), also clear both cookies there to prevent stuck sessions:
+
+try {
+  // verify refresh token, issue new access, etc...
+} catch (err) {
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax' as const,
+    path: '/',
+    ...(process.env.NODE_ENV === 'production' && { domain: '.miximixology.com' }),
+  };
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
+  return res.status(401).json({ error: 'invalid_refresh_token' });
+}
+
+2) Do your frontend requests include credentials: 'include'?
+
+They must, since you’re sending JWTs in cookies.
+
+Pick your client style:
+
+If you use fetch
+await fetch('/api/whatever', {
+  method: 'GET',
+  credentials: 'include',  // <-- required
+});
+
+If you use Axios (recommended: a single shared instance)
+import axios from 'axios';
+
+export const api = axios.create({
+  baseURL: '/api',
+  withCredentials: true, // <-- required
+});
+
+
+Then always call api.get('/whatever'), etc.
+
+TanStack Query (if you use it globally)
+
+If you’ve abstracted requests through a helper, double-check that helper calls fetch/Axios with credentials enabled.
+
+3) Incremental vs all at once?
+
+My recommendation: do it in one PR, deployed once. These pieces depend on each other:
+
+Canonical redirect to www (308)
+
+Cookie domain set to .miximixology.com
+
+CORS credentials: true and origins set to both https://www.miximixology.com and https://miximixology.com
+
+app.set('trust proxy', 1)
+
+Rolling only half the changes can create edge cases (e.g., users landing on apex without the shared cookie yet).
+
+If you really want incremental, safest order:
+
+Add cookie domain + CORS + trust proxy (no redirect yet) → verify you remain logged in when switching hosts.
+
+Add canonical 308 redirect apex → www.
+
+(Optional) add HSTS once everything is stable.

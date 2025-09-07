@@ -15,6 +15,22 @@ const app = express();
 // --- Security & hardening ---
 app.set("trust proxy", 1);
 
+// Canonical domain redirect - enforce www subdomain in production
+app.use((req, res, next) => {
+  const host = req.get('host')?.toLowerCase();
+  if (process.env.NODE_ENV === 'production') {
+    // Redirect HTTP to HTTPS
+    if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
+      return res.redirect(308, `https://${host}${req.originalUrl}`);
+    }
+    // Redirect apex domain to www
+    if (host === 'miximixology.com') {
+      return res.redirect(308, `https://www.miximixology.com${req.originalUrl}`);
+    }
+  }
+  next();
+});
+
 // Configure Helmet with environment-aware CSP
 const isProduction = process.env.NODE_ENV === 'production' || process.env.ENVIRONMENT === 'production';
 
