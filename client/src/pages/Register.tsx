@@ -228,6 +228,17 @@ export default function Register() {
             </form>
           </Form>
 
+          <div className="mt-3 text-center">
+            <p className="text-xs text-neutral-500">
+              By creating an account, you agree to our{' '}
+              <Link href="/terms">
+                <span className="text-yellow-600 hover:text-yellow-700 underline cursor-pointer">
+                  Terms of Service
+                </span>
+              </Link>
+            </p>
+          </div>
+
           <div className="mt-6 pt-4 border-t border-neutral-800">
             <p className="text-center text-neutral-400">
               Already have an account?{' '}
