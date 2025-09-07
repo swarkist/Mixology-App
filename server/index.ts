@@ -19,6 +19,9 @@ app.set("trust proxy", 1);
 app.use((req, res, next) => {
   const host = req.get('host')?.toLowerCase();
   if (process.env.NODE_ENV === 'production') {
+    // Add HSTS header for enhanced security
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+    
     // Redirect HTTP to HTTPS
     if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
       return res.redirect(308, `https://${host}${req.originalUrl}`);
@@ -83,17 +86,26 @@ app.use("/api/ai/brands/from-image", express.json({ limit: "5mb" })); // OCR end
 app.use(express.json({ limit: "512kb" }));
 app.use(express.urlencoded({ extended: true, limit: "512kb" }));
 
-// CORS allowlist via env secret CORS_ORIGINS (comma-separated)
-const origins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-const corsOptions: cors.CorsOptions = origins.length
-  ? {
-      origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
-        if (!origin) return cb(null, true); // allow same-origin/non-browser tools
-        cb(null, origins.includes(origin));
-      },
-      credentials: true,
-    }
-  : {}; // no origins set -> default allow same-origin only
+// CORS allowlist - include both production domains and development
+const productionOrigins = ['https://www.miximixology.com', 'https://miximixology.com'];
+const developmentOrigins = ['http://localhost:5173', 'http://localhost:5000'];
+const envOrigins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
+
+const allOrigins = [
+  ...productionOrigins,
+  ...developmentOrigins,
+  ...envOrigins
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin: string | undefined, cb: (err: Error | null, allow?: boolean) => void) => {
+    // Allow same-origin/non-browser tools (like Postman, curl)
+    if (!origin) return cb(null, true);
+    // Allow if origin is in our allowlist
+    cb(null, allOrigins.includes(origin));
+  },
+  credentials: true,
+};
 app.use(cors(corsOptions));
 
 // Basic rate limiting (disabled in test environment)
