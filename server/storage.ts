@@ -496,10 +496,24 @@ export class MemStorage {
 
   async searchCocktails(query: string): Promise<Cocktail[]> {
     const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.cocktails.values()).filter(cocktail =>
-      cocktail.name.toLowerCase().includes(lowercaseQuery) ||
-      cocktail.description?.toLowerCase().includes(lowercaseQuery)
-    );
+
+    // Build a map of cocktail ID -> tag names for quick lookup
+    const cocktailTagMap = new Map<number, string[]>();
+    for (const relation of Array.from(this.cocktailTags.values())) {
+      const tag = this.tags.get(relation.tagId);
+      if (!tag) continue;
+      const tagNames = cocktailTagMap.get(relation.cocktailId) || [];
+      tagNames.push(tag.name.toLowerCase());
+      cocktailTagMap.set(relation.cocktailId, tagNames);
+    }
+
+    return Array.from(this.cocktails.values()).filter(cocktail => {
+      const matchesName = cocktail.name.toLowerCase().includes(lowercaseQuery);
+      const matchesDescription = cocktail.description?.toLowerCase().includes(lowercaseQuery);
+      const tagNames = cocktailTagMap.get(cocktail.id) || [];
+      const matchesTags = tagNames.some(tagName => tagName.includes(lowercaseQuery));
+      return matchesName || matchesDescription || matchesTags;
+    });
   }
 
   async getFeaturedCocktails(): Promise<Cocktail[]> {
