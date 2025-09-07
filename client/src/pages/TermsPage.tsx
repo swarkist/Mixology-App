@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TopNavigation from "@/components/TopNavigation";
 
@@ -77,7 +78,7 @@ export const TermsPage = (): JSX.Element => {
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">6. Privacy</h2>
                 <p>
-                  We do not sell or share your data. Your information is only used to provide the service. Data may be processed by third-party providers such as Firebase, Replit hosting, AI integrations, and email services. See our Privacy Policy for details.
+                  We do not sell or share your data. Your information is only used to provide the service. Data may be processed by third-party providers such as Firebase, Replit hosting, AI integrations, and email services. See our <Link href="/privacy" className="text-yellow-400 hover:text-yellow-300 underline">Privacy Policy</Link> for details.
                 </p>
               </section>
 

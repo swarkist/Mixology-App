@@ -9,7 +9,7 @@ export const FooterSection = (): JSX.Element => {
   const footerLinks = [
     {/* title: "About", href: "#" },
     { title: "Contact", href: "#" */},
-    { title: "Privacy Policy", href: "#" },
+    { title: "Privacy Policy", href: "/privacy" },
     { title: "Terms of Service", href: "/terms" },
   ];
 
