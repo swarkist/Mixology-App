@@ -10,7 +10,7 @@ export const FooterSection = (): JSX.Element => {
     { title: "About", href: "#" },
     { title: "Contact", href: "#" },
     { title: "Privacy Policy", href: "#" },
-    { title: "Terms of Service", href: "#" },
+    { title: "Terms of Service", href: "/terms" },
   ];
 
   // Social media icons data
@@ -26,16 +26,16 @@ export const FooterSection = (): JSX.Element => {
         <div className="flex flex-col gap-6 px-5 py-10 w-full">
           
           {/* Navigation Links */}
-          <nav className="flex flex-wrap items-center justify-between gap-[24px_24px] w-full">
-            {/* footerLinks.map((link, index) => (
-              <div key={index} className="flex flex-col w-40 items-center">
+          <nav className="flex flex-wrap items-center justify-center gap-6 w-full">
+            {footerLinks.map((link, index) => (
+              <div key={index} className="flex items-center">
                 <Link href={link.href}>
-                  <span className="font-normal text-[#bab59b] text-base text-center leading-6 w-full [font-family:'Plus_Jakarta_Sans',Helvetica] tracking-[0] hover:text-white transition-colors cursor-pointer">
+                  <span className="font-normal text-[#bab59b] text-sm text-center leading-6 [font-family:'Plus_Jakarta_Sans',Helvetica] tracking-[0] hover:text-white transition-colors cursor-pointer">
                     {link.title}
                   </span>
                 </Link>
               </div>
-            )) */}
+            ))}
           </nav>
 
           {/* Social Media Icons */}

@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import MixiChat from "@/components/MixiChat";
 import NotFound from "@/pages/not-found";
+import { FooterSection } from "@/pages/sections/FooterSection";
 
 import { Frame } from "@/pages/Frame";
 import { CocktailRecipe } from "@/pages/CocktailRecipe";
@@ -26,6 +27,7 @@ import Register from "@/pages/Register";
 import AdminDashboard from "@/pages/AdminDashboard";
 import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
+import TermsPage from "@/pages/TermsPage";
 
 function Router() {
   return (
@@ -110,6 +112,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />
       <Route path="/reset" component={ResetPassword} />
+      <Route path="/terms" component={TermsPage} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>
@@ -121,9 +124,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <Toaster />
-          <Router />
-          <MixiChat />
+          <div className="flex flex-col min-h-screen">
+            <div className="flex-1">
+              <Toaster />
+              <Router />
+              <MixiChat />
+            </div>
+            <FooterSection />
+          </div>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
