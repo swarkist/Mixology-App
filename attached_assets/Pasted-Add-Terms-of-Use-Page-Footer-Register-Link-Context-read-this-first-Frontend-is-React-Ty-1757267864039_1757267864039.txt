@@ -1,0 +1,177 @@
+Add “Terms of Use” Page + Footer + Register Link
+
+Context (read this first):
+
+Frontend is React + TypeScript + Vite with Wouter for routing and shadcn/ui + Tailwind for styling.
+
+Keep code idiomatic to the existing project (file naming, imports, layout patterns).
+
+Accessibility and mobile responsiveness are required.
+
+If a global Footer already exists, extend it; if not, create it and mount it in the app layout so it renders on every page.
+
+The /register page already has a “Create Account” button—add a Terms link below it (small, muted text).
+
+Don’t change authentication logic or RBAC; this task is UI + routing only.
+
+🎯 Objective
+
+Implement a Terms of Use page at /terms, link it site-wide via a Footer, and add a link on the /register page beneath the “Create Account” button.
+
+🧭 Tasks
+1) Create /terms route + page
+
+Add a TermsPage component at client/src/pages/TermsPage.tsx.
+
+Use semantic HTML (<main>, <h1>, <section>, <h2>, <p>, <ul>).
+
+Style with Tailwind and keep typography consistent (heading sizes, spacing, readable line length).
+
+Title: “Terms of Use — Miximixology” (set document title if you already have a utility for that).
+
+Content (use this exact copy, but keep the placeholders for now):
+
+# Miximixology Terms of Use
+
+Effective Date: [Insert Date]
+
+Welcome to Miximixology! By using our site and registering an account, you agree to these Terms of Use.
+
+## 1. Acceptance of Terms
+By creating an account or using Miximixology, you agree to follow these Terms. If you do not agree, please do not use the site. This service is intended for hobby and personal use.
+
+## 2. Accounts
+• You must provide accurate information when registering.
+• You are responsible for keeping your password secure.
+• You are responsible for all activity under your account.
+• You may request account deletion at any time (once available, a delete option will also be provided in your profile).
+
+## 3. User Roles & Access
+Miximixology includes role-based access:
+• Basic Users: Can use features like “My Bar” and “Preferred Brands.”
+• Reviewers: May suggest or edit cocktail/ingredient information.
+• Admins: Manage content and users.
+You agree not to misuse or attempt to bypass these access controls.
+
+## 4. Acceptable Use
+You agree not to:
+• Use the site in any unlawful or harmful way.
+• Attempt to break into or disrupt our systems.
+• Scrape, copy, or redistribute site content without permission.
+
+## 5. Content Ownership
+• Site Content (cocktails, ingredients, recipes): Created and maintained by Miximixology admins.
+• Your Account Data (My Bar, Preferred Brands, preferences): Belongs to you and is only used to provide the service.
+
+## 6. Privacy
+We do not sell or share your data. Your information is only used to provide the service. Data may be processed by third-party providers such as Firebase, Replit hosting, AI integrations, and email services. See our Privacy Policy for details.
+
+## 7. Third-Party Services
+Miximixology relies on third-party services for hosting, database, and AI features. While we choose providers carefully, we cannot control or guarantee their performance or security. Use of our site also means agreeing to those providers’ terms.
+
+## 8. Termination
+We may suspend or deactivate accounts that violate these Terms. You may delete your account at any time (once the feature is live, or by request to the admin).
+
+## 9. Disclaimer & Liability
+Miximixology is provided “as is,” for hobby use. We are not responsible for:
+• Errors in recipes or AI outputs.
+• Harm from consuming cocktails (e.g., allergies, alcohol effects).
+• Outages or issues caused by third-party providers.
+
+## 10. Governing Law
+These Terms are governed by the laws of [Insert State/Country].
+
+## 11. Contact
+Questions? Contact support@miximixology.com.
+
+
+Implementation considerations:
+
+Convert the above copy into JSX with proper tags (no giant paragraph blobs).
+
+Use wouter to register the route: /terms.
+
+If there’s a central router file (e.g., client/src/App.tsx or client/src/main.tsx), add the route there using Wouter’s <Route path="/terms" component={TermsPage} /> (or the established pattern in the app).
+
+2) Add a global Footer with a “Terms” link (site-wide)
+
+If a Footer exists (e.g., client/src/components/Footer.tsx), add a muted link to /terms labeled “Terms”.
+
+If no Footer exists, create client/src/components/Footer.tsx:
+
+Use a small, subdued style (e.g., text-sm text-muted-foreground).
+
+Centered or justified per current design system.
+
+Include “© {currentYear} Miximixology” and a Terms link.
+
+Ensure the Footer renders on every page:
+
+If there is a layout/root component (e.g., client/src/components/Layout.tsx or client/src/App.tsx), import and render <Footer /> beneath routed content.
+
+Keep spacing consistent (padding y, border-t with subtle color if used elsewhere).
+
+3) Add a “Terms” link under the “Create Account” button on /register
+
+Locate the Register page (likely client/src/pages/Register.tsx or under client/src/pages/auth/).
+
+Under the “Create Account” button, add a single line:
+
+Example: By creating an account, you agree to our <Terms>.
+
+Make Terms a link to /terms.
+
+Use small, muted text, and maintain adequate spacing from the button (e.g., mt-3 text-xs text-muted-foreground).
+
+Do not alter form submission or business logic.
+
+🧪 Tests & Verification (Agent should run these checks)
+
+Routing: Navigating to /terms renders the Terms page with correct headings.
+
+Footer: Footer appears on Home, Cocktails list, Ingredient list, Recipe detail, My Bar, Preferred Brands, Admin pages.
+
+Register page: The “Terms” link is visible under the Create Account button and navigates to /terms.
+
+Accessibility:
+
+All links have clear, descriptive text.
+
+Color contrast meets WCAG AA for small text in dark mode.
+
+Page is navigable by keyboard and the Terms page has a single <h1>.
+
+Mobile:
+
+Footer doesn’t overlap content; has sufficient padding.
+
+Terms page typography remains readable (line length, spacing).
+
+No console errors in dev tools.
+
+If any failures or blocked changes occur, stop and ask questions before proceeding. Please summarize any blockers and the current site structure you discovered.
+
+🔧 File Hints (adjust to match actual project)
+
+client/src/pages/TermsPage.tsx (new)
+
+client/src/components/Footer.tsx (new or updated)
+
+client/src/App.tsx or client/src/main.tsx (add route + ensure <Footer /> is mounted globally)
+
+client/src/pages/Register.tsx (add link below Create Account)
+
+✅ Deliverables
+
+TermsPage.tsx implemented with the provided copy (JSX with headings/sections).
+
+Global Footer with a Terms link, mounted so it appears across all pages.
+
+Register page updated with a small Terms link under the primary button.
+
+Short changelog summarizing files touched and screenshots (or GIF) of /terms, Footer on a random page, and the Register page section showing the link.
+
+Confirmed tests (manual or automated) per the checklist above.
+
+Before you code: please confirm you found the correct router & layout files and whether a Footer already exists. If unsure, ask and show me the detected structure.
+After you code: run the app, verify the links visually, and share a brief test report.
