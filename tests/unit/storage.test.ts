@@ -200,10 +200,24 @@ describe('Storage Layer Unit Tests', () => {
 
       // Search for cocktails containing the ingredient
       const results = await testManager.apiRequest('/cocktails/search?ingredient=Filter_Test_Vodka');
-      
+
       expect(results.length).toBeGreaterThan(0);
       const foundCocktail = results.find((c: any) => c.name.includes('Filter_Test_Cocktail'));
       expect(foundCocktail).toBeDefined();
+    });
+
+    it('should search cocktails by tag', async () => {
+      // Create cocktail with a unique tag not present in name or description
+      await testManager.createTestCocktail({
+        name: 'Tag_Search_Cocktail',
+        description: 'A cocktail for tag search tests',
+        instructions: ['Mix'],
+        tags: ['unique_tag_search']
+      });
+
+      const results = await testManager.apiRequest('/cocktails?search=unique_tag_search');
+      const found = results.find((c: any) => c.name.includes('Tag_Search_Cocktail'));
+      expect(found).toBeDefined();
     });
 
     it('should filter ingredients by category', async () => {

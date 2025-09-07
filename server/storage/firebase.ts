@@ -349,10 +349,31 @@ export class FirebaseStorage {
     // In production, consider using Algolia or Elasticsearch for better search
     const cocktails = await this.getAllCocktails();
     const lowerQuery = query.toLowerCase();
-    return cocktails.filter(cocktail => 
-      cocktail.name.toLowerCase().includes(lowerQuery) ||
-      (cocktail.description && cocktail.description.toLowerCase().includes(lowerQuery))
-    );
+
+    // Preload all tags and cocktail-tag relationships
+    const [allTags, cocktailTagSnapshot] = await Promise.all([
+      this.getAllTags(),
+      this.cocktailTagsCollection.get()
+    ]);
+
+    const tagMap = new Map(allTags.map(tag => [tag.id, tag.name.toLowerCase()]));
+    const cocktailTagMap = new Map<number, string[]>();
+    cocktailTagSnapshot.docs.forEach((doc: any) => {
+      const data = doc.data();
+      const tagName = tagMap.get(data.tagId);
+      if (!tagName) return;
+      const list = cocktailTagMap.get(data.cocktailId) || [];
+      list.push(tagName);
+      cocktailTagMap.set(data.cocktailId, list);
+    });
+
+    return cocktails.filter(cocktail => {
+      const matchesName = cocktail.name.toLowerCase().includes(lowerQuery);
+      const matchesDescription = cocktail.description && cocktail.description.toLowerCase().includes(lowerQuery);
+      const tagNames = cocktailTagMap.get(cocktail.id) || [];
+      const matchesTags = tagNames.some(t => t.includes(lowerQuery));
+      return matchesName || matchesDescription || matchesTags;
+    });
   }
 
   async getFeaturedCocktails(): Promise<Cocktail[]> {
