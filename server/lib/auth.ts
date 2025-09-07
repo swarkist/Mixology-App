@@ -60,39 +60,39 @@ export function verifyRefreshToken(token: string): any {
 // Cookie management for secure auth
 export function setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
   const isProduction = process.env.NODE_ENV === 'production';
-  
-  // Access token cookie (shorter expiry)
-  res.cookie('accessToken', accessToken, {
+
+  const baseCookie = {
     httpOnly: true,
     secure: isProduction,
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
+    path: '/',
+    ...(isProduction && { domain: '.miximixology.com' }),
+  };
+
+  res.cookie('accessToken', accessToken, {
+    ...baseCookie,
     maxAge: 30 * 60 * 1000, // 30 minutes
-    path: '/'
   });
 
-  // Refresh token cookie (longer expiry)
   res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: 'lax',
+    ...baseCookie,
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    path: '/'
   });
 }
 
 export function clearAuthCookies(res: Response): void {
-  res.clearCookie('accessToken', { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/'
-  });
-  res.clearCookie('refreshToken', { 
-    httpOnly: true, 
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/'
-  });
+  const isProduction = process.env.NODE_ENV === 'production';
+  
+  const cookieOptions = {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax' as const,
+    path: '/',
+    ...(isProduction && { domain: '.miximixology.com' }),
+  };
+
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', cookieOptions);
 }
 
 // Email normalization
