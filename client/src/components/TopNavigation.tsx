@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Search as SearchIcon, Menu, X, LogOut, LogIn, Shield, User } from "lucide-react";
+import { Search as SearchIcon, Menu, X, LogOut, LogIn, Shield, User, Trash2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
+import { AccountDeletionDialog } from "@/components/AccountDeletionDialog";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -40,6 +44,43 @@ const TopNavigation = (): JSX.Element => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [location, setLocation] = useLocation();
   const { user, logout, isLoading } = useAuth();
+  const { toast } = useToast();
+
+  // Account deletion mutation
+  const deleteAccountMutation = useMutation({
+    mutationFn: () => apiRequest('/api/auth/account', { method: 'DELETE' }),
+    onSuccess: (data) => {
+      // Clear all cached data
+      queryClient.clear();
+      
+      // Clear localStorage if used by the app
+      localStorage.clear();
+      
+      // Show success message
+      toast({
+        title: "Account successfully deleted",
+        description: "Your account and all associated data have been removed.",
+        variant: "default",
+      });
+      
+      // Redirect to home page after 3 seconds
+      setTimeout(() => {
+        setLocation('/');
+      }, 3000);
+    },
+    onError: (error: any) => {
+      console.error('Account deletion error:', error);
+      toast({
+        title: "Failed to delete account",
+        description: error.message || "An error occurred while deleting your account. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  const handleDeleteAccount = () => {
+    deleteAccountMutation.mutate();
+  };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -152,6 +193,19 @@ const TopNavigation = (): JSX.Element => {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuSeparator className="bg-[#383528]" />
+                  <AccountDeletionDialog 
+                    onConfirm={handleDeleteAccount}
+                    isLoading={deleteAccountMutation.isPending}
+                  >
+                    <DropdownMenuItem 
+                      onSelect={(e) => e.preventDefault()}
+                      className="text-red-400 hover:bg-red-500/10 cursor-pointer focus:text-red-400 focus:bg-red-500/10"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Account
+                    </DropdownMenuItem>
+                  </AccountDeletionDialog>
                   <DropdownMenuItem 
                     onClick={() => logout()} 
                     className="text-white hover:bg-[#383528] cursor-pointer"
