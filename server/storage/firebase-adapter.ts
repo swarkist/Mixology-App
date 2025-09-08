@@ -154,6 +154,17 @@ export class FirebaseStorageAdapter implements IStorage {
     }
   }
 
+  async deleteUser(id: number): Promise<void> {
+    try {
+      // Delete user document - Firebase CASCADE DELETE will handle related data
+      // (my_bar, preferred_brands, sessions, password_resets all have onDelete: "cascade")
+      await this.firebase.deleteDocument('users', id.toString());
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      throw new Error('Failed to delete user');
+    }
+  }
+
   // ============= SESSION MANAGEMENT =============
   
   async createSession(session: InsertSession): Promise<Session> {

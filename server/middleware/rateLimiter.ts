@@ -62,3 +62,37 @@ export const scrapingLimiter = rateLimit({
     return process.env.NODE_ENV === 'development';
   }
 });
+
+// Account deletion rate limiter (very strict)
+export const accountDeletionLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 1, // Limit each user to 1 account deletion per 5 minutes
+  message: {
+    error: 'Account deletion rate limit exceeded. Please wait before trying again.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Use user ID as key if available, otherwise fall back to IP
+  keyGenerator: (req) => {
+    return req.user?.id ? `user:${req.user.id}` : `ip:${req.ip}`;
+  },
+  skip: (req) => {
+    // Skip rate limiting in development
+    return process.env.NODE_ENV === 'development';
+  }
+});
+
+// Secondary IP-based limiter for account deletion (prevents abuse)
+export const accountDeletionIPLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 5, // Limit each IP to 5 account deletions per hour
+  message: {
+    error: 'Too many account deletions from this location. Please try again later.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    // Skip rate limiting in development
+    return process.env.NODE_ENV === 'development';
+  }
+});

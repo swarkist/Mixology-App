@@ -31,6 +31,7 @@ export interface IStorage {
     limit?: number; 
   }): Promise<{ users: User[]; total: number }>;
   getLastActiveAdmin(): Promise<User | undefined>;
+  deleteUser(id: number): Promise<void>;
   
   // Sessions Management
   createSession(session: InsertSession): Promise<Session>;
