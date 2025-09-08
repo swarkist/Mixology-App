@@ -4,7 +4,7 @@ import { hashPassword, verifyPassword, signAccessToken, signRefreshToken, setAut
 import { createResetToken, hashToken, generateResetURL } from '../lib/passwordReset';
 import { sendPasswordResetEmail } from '../lib/mailer';
 import { requireAuth } from '../middleware/requireAuth';
-import { authLimiter, passwordResetLimiter } from '../middleware/rateLimiter';
+import { authLimiter, passwordResetLimiter, accountDeletionLimiter, accountDeletionIPLimiter } from '../middleware/rateLimiter';
 import type { IStorage } from '../storage';
 
 // Generic error message for security (no account enumeration)
@@ -428,6 +428,71 @@ export function createAuthRoutes(storage: IStorage): Router {
       res.status(200).json({ 
         success: false, 
         message: GENERIC_ERROR_MESSAGE 
+      });
+    }
+  });
+
+  // DELETE /api/auth/account
+  router.delete('/account', requireAuth(storage), accountDeletionLimiter, accountDeletionIPLimiter, async (req, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      // Check if this is the last active admin
+      if (user.role === 'admin') {
+        const admins = await storage.getAllUsers({ role: 'admin', status: true });
+        const activeAdmins = admins.users.filter(admin => admin.is_active);
+        
+        if (activeAdmins.length <= 1) {
+          return res.status(403).json({ 
+            error: 'Cannot delete the last active admin account'
+          });
+        }
+      }
+
+      // Check if user already deleted (idempotency)
+      const currentUser = await storage.getUserById(user.id);
+      if (!currentUser) {
+        return res.status(200).json({ 
+          status: 'ok', 
+          message: 'Account already removed' 
+        });
+      }
+
+      // Revoke all user sessions
+      await storage.revokeAllUserSessions(user.id);
+
+      // Clear password reset tokens (cleanup expired ones handles user-specific)
+      await storage.cleanExpiredPasswordResets();
+
+      // Delete user (CASCADE DELETE handles my_bar, preferred_brands, sessions)
+      await storage.deleteUser(user.id);
+
+      // Clear current session cookies
+      clearAuthCookies(res);
+
+      // Log account deletion
+      await storage.createAuditLog({
+        user_id: user.id,
+        action: 'account_deleted',
+        resource: 'user',
+        resource_id: user.id.toString(),
+        metadata: { email: currentUser.email },
+        ip: req.ip,
+        user_agent: req.get('User-Agent')
+      });
+
+      res.json({ 
+        status: 'ok', 
+        message: 'Account deleted' 
+      });
+
+    } catch (error) {
+      console.error('Account deletion error:', error);
+      res.status(500).json({ 
+        error: 'Failed to delete account' 
       });
     }
   });
