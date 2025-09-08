@@ -17,10 +17,12 @@ export const TermsPage = (): JSX.Element => {
             <CardTitle className="text-3xl font-bold text-white">
               Miximixology Terms of Use
             </CardTitle>
-            <p className="text-neutral-400 mt-2">
-              Effective Date: [Insert Date]
+
+            <p className="text-neutral-300 mt-3">
+              <strong>This is a hobby site and is provided for personal use only.</strong>
             </p>
           </CardHeader>
+
           <CardContent className="prose prose-invert max-w-none">
             <div className="text-neutral-300 space-y-6 leading-relaxed">
               <p className="text-lg">
@@ -30,7 +32,7 @@ export const TermsPage = (): JSX.Element => {
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">1. Acceptance of Terms</h2>
                 <p>
-                  By creating an account or using Miximixology, you agree to follow these Terms. If you do not agree, please do not use the site. This service is intended for hobby and personal use.
+                  By creating an account or using Miximixology, you agree to follow these Terms. If you do not agree, please do not use the site.
                 </p>
               </section>
 
@@ -40,7 +42,9 @@ export const TermsPage = (): JSX.Element => {
                   <li>You must provide accurate information when registering.</li>
                   <li>You are responsible for keeping your password secure.</li>
                   <li>You are responsible for all activity under your account.</li>
-                  <li>You may request account deletion at any time (once available, a delete option will also be provided in your profile).</li>
+                  <li>
+                    You may request account deletion at any time (once available, a self-delete option will also be provided in your profile).
+                  </li>
                 </ul>
               </section>
 
@@ -48,7 +52,7 @@ export const TermsPage = (): JSX.Element => {
                 <h2 className="text-xl font-semibold text-white mb-3">3. User Roles & Access</h2>
                 <p className="mb-3">Miximixology includes role-based access:</p>
                 <ul className="list-disc pl-6 space-y-2">
-                  <li><strong>Basic Users:</strong> Can use features like "My Bar" and "Preferred Brands."</li>
+                  <li><strong>Basic Users:</strong> Can use features like “My Bar” and “Preferred Brands.”</li>
                   <li><strong>Reviewers:</strong> May suggest or edit cocktail/ingredient information.</li>
                   <li><strong>Admins:</strong> Manage content and users.</li>
                 </ul>
@@ -78,14 +82,18 @@ export const TermsPage = (): JSX.Element => {
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">6. Privacy</h2>
                 <p>
-                  We do not sell or share your data. Your information is only used to provide the service. Data may be processed by third-party providers such as Firebase, Replit hosting, AI integrations, and email services. See our <Link href="/privacy" className="text-yellow-400 hover:text-yellow-300 underline">Privacy Policy</Link> for details.
+                  We do not sell or share your data. Your information is only used to provide the service. Data may be processed by third-party providers such as Firebase, Replit hosting, AI integrations, and email services. See our{" "}
+                  <Link href="/privacy" className="text-yellow-400 hover:text-yellow-300 underline">
+                    Privacy Policy
+                  </Link>{" "}
+                  for details.
                 </p>
               </section>
 
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">7. Third-Party Services</h2>
                 <p>
-                  Miximixology relies on third-party services for hosting, database, and AI features. While we choose providers carefully, we cannot control or guarantee their performance or security. Use of our site also means agreeing to those providers' terms.
+                  Miximixology relies on third-party services for hosting, database, and AI features. While we choose providers carefully, we cannot control or guarantee their performance or security. Use of our site also means agreeing to those providers’ terms.
                 </p>
               </section>
 
@@ -97,9 +105,9 @@ export const TermsPage = (): JSX.Element => {
               </section>
 
               <section>
-                <h2 className="text-xl font-semibold text-white mb-3">9. Disclaimer & Liability</h2>
+                <h2 className="text-xl font-semibold text-white mb-3">9. Disclaimer &amp; Liability</h2>
                 <p className="mb-3">
-                  Miximixology is provided "as is," for hobby use. We are not responsible for:
+                  Miximixology is provided “as is,” for hobby use. We are not responsible for:
                 </p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Errors in recipes or AI outputs.</li>
@@ -107,14 +115,7 @@ export const TermsPage = (): JSX.Element => {
                   <li>Outages or issues caused by third-party providers.</li>
                 </ul>
               </section>
-              {/* This is a comment inside a JSX element
-              <section>
-                <h2 className="text-xl font-semibold text-white mb-3">10. Governing Law</h2>
-                <p>
-                  These Terms are governed by the laws of [Insert State/Country].
-                </p>
-              </section>
-              */}
+
               <section>
                 <h2 className="text-xl font-semibold text-white mb-3">10. Contact</h2>
                 <p>
