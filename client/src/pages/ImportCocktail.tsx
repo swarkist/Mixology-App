@@ -56,7 +56,7 @@ type ImportFormData = z.infer<typeof importFormSchema>;
 
 // Standard measurement units for cocktail ingredients
 const measurementUnits = [
-  "oz", "ml", "cl", "tsp", "tbsp", "cup", "pint", "qt", "gal", "L",
+  "oz", "ml", "cl", "tsp", "barspoon", "tbsp", "cup", "pint", "qt", "gal", "L",
   "dash", "splash", "part", "parts", "drop", "drops", "pinch", "slice", "slices",
   "wedge", "wedges", "sprig", "sprigs", "leaf", "leaves", "piece", "pieces"
 ];
@@ -731,12 +731,12 @@ SAMPLE RECIPE
                                       </SelectTrigger>
                                       <SelectContent className="bg-[#383629] border-[#544f3b] max-h-48">
                                         {measurementUnits.map((unit) => (
-                                          <SelectItem 
-                                            key={unit} 
+                                          <SelectItem
+                                            key={unit}
                                             value={unit}
                                             className="text-white text-xs hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white"
                                           >
-                                            {unit}
+                                            {unit === 'barspoon' ? 'bar spoon' : unit}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>

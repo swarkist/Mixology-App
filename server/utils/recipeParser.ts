@@ -68,7 +68,7 @@ function extractRecipesFromText(text: string): any[] {
       };
     }
     // Ingredient detection (starts with number or fraction)
-    else if (line.match(/^\d+(\.\d+)?\s*(oz|ml|dash|part|cup|tsp|tbsp)/i)) {
+    else if (line.match(/^\d+(\.\d+)?\s*(oz|ml|dash|part|cup|tsp|tbsp|barspoon)/i)) {
       if (currentRecipe) {
         const parts = line.split(/\s+/);
         currentRecipe.ingredients.push({

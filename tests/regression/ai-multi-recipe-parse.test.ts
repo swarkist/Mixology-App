@@ -198,7 +198,7 @@ describe('AI Multi-Recipe Parser with JSON Repair', () => {
       }{
         "recipes": [
           {
-            "name": "Margarita", 
+            "name": "Margarita",
             "ingredients": [{"quantity": "2", "unit": "oz", "item": "Tequila"}],
             "instructions": ["Shake with ice"]
           }
@@ -209,6 +209,13 @@ describe('AI Multi-Recipe Parser with JSON Repair', () => {
       expect(result.recipes).toHaveLength(2);
       expect(result.recipes[0].name).toBe("Old Fashioned");
       expect(result.recipes[1].name).toBe("Margarita");
+    });
+
+    it('should parse text recipes with bar spoon measurements', () => {
+      const text = `Bar Spoon Test\n1 barspoon sugar\nStir`; // plain text input
+      const result = parseRecipesFromAI(text);
+      expect(result.recipes).toHaveLength(1);
+      expect(result.recipes[0].ingredients[0].unit).toBe('barspoon');
     });
 
     it('should normalize "Ingredients:" / "Instructions:" keys', () => {

@@ -120,7 +120,7 @@ export const cocktailIngredients = pgTable("cocktail_ingredients", {
   cocktailId: integer("cocktail_id").notNull().references(() => cocktails.id, { onDelete: "cascade" }),
   ingredientId: integer("ingredient_id").notNull().references(() => ingredients.id, { onDelete: "cascade" }),
   amount: text("amount").notNull(), // e.g., "2", "1.5", "splash"
-  unit: text("unit").notNull(), // oz, ml, parts, dashes, drops, tsp, tbsp, cups, slices, wedges, splash, twist, whole
+  unit: text("unit").notNull(), // oz, ml, parts, dashes, drops, tsp, tbsp, barspoon, cups, slices, wedges, splash, twist, whole
   order: integer("order").default(0).notNull(), // for display order
 });
 
