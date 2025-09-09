@@ -503,6 +503,7 @@ export const AddCocktail = (): JSX.Element => {
                         <SelectItem value="ml" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">ml</SelectItem>
                         <SelectItem value="cl" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">cl</SelectItem>
                         <SelectItem value="tsp" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">tsp</SelectItem>
+                        <SelectItem value="barspoon" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">bar spoon</SelectItem>
                         <SelectItem value="tbsp" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">tbsp</SelectItem>
                         <SelectItem value="cup" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">cup</SelectItem>
                         <SelectItem value="pint" className="text-white hover:bg-[#4a4735] focus:bg-[#4a4735] data-[highlighted]:bg-[#4a4735] data-[highlighted]:text-white">pint</SelectItem>
