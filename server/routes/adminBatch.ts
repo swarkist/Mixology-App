@@ -111,6 +111,15 @@ export default function adminBatchRoutes(storage: IStorage) {
       const snap = await buildQuery(body.collection, body.filters);
       snap.forEach((doc) => {
         const data: any = doc.data() || {};
+        
+        // Client-side filtering for "contains" mode
+        if (body.filters.field === "description" && body.filters.mode === "contains" && body.filters.value) {
+          const description = data.description || "";
+          if (!description.toLowerCase().includes(body.filters.value.toLowerCase())) {
+            return; // Skip this document
+          }
+        }
+        
         const current = { description: data.description || "", tags: data.tags || [] };
         const proposed = applyOperation(current, body.operation);
         const row: RowData = { id: doc.id, name: data.name, current, proposed };
