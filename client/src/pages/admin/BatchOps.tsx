@@ -42,7 +42,7 @@ export default function BatchOps() {
   const [value, setValue] = useState("");
   const [limit, setLimit] = useState("100");
   const [operation, setOperation] = useState("description_set");
-  const [opText, setOpText] = useState("");
+  const [opText, setOpText] = useState("Test description");
 
   // Paste
   const [pasteText, setPasteText] = useState("");
