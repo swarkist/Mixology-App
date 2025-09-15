@@ -15,6 +15,17 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Changes
 
+### September 15, 2025 - Batch Operations Fix & Firebase Admin Issues
+- **CRITICAL BUG FIX**: Resolved Firebase Admin SDK import errors causing application startup failures
+- **Implementation**: Updated Firebase imports in `server/services/batch.ts` and `server/routes/adminBatch.ts` from deprecated `firestore` import to centralized `db` from `../firebase`
+- **Rate Limiting Fix**: Fixed IPv6 address handling in rate limiter by implementing proper `ipKeyGenerator` helper function
+- **Admin Authentication**: Resolved Batch Ops 403 Forbidden errors by ensuring `VITE_ADMIN_API_KEY` environment variable is properly configured for frontend
+- **Zod Schema Fix**: Fixed union type extend issue in admin batch routes by properly extending individual schema types instead of union types
+- **Filtering Logic**: Implemented missing "contains" mode filtering for Batch Operations with case-insensitive client-side text matching
+- **Data Structure**: Fixed backup data structure to properly match RowData interface requirements
+- **Testing**: Verified Batch Operations preview functionality now works correctly for both "exact" and "contains" filter modes
+- **Performance**: Optimized filtering to return only matching results rather than all documents
+
 ### August 23, 2025 - URL Scraping Security Enhancement & Bug Fixes
 - **CRITICAL SECURITY FIX**: Fixed `/api/scrape-url` endpoint authentication vulnerability
 - **Implementation**: Moved endpoint from `registerReadOnlyRoutes` to `registerRoutes` with proper authentication middleware
