@@ -51,6 +51,23 @@ export default function BatchOps() {
   const [preview, setPreview] = useState<PreviewResponse | null>(null);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
 
+  const buildOperationPayload = (operationType: string, opText: string) => {
+    if (operationType === "tags_replace") {
+      // Parse comma-separated tags into array
+      const tags = opText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      return { newTags: tags };
+    } else if (operationType === "tags_add") {
+      const tags = opText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      return { add: tags };
+    } else if (operationType === "tags_remove") {
+      const tags = opText.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      return { remove: tags };
+    } else {
+      // Description operations
+      return { newText: opText };
+    }
+  };
+
   const handlePreview = async () => {
     try {
       let payload: any;
@@ -59,7 +76,7 @@ export default function BatchOps() {
           mode: "query",
           collection,
           filters: { field, mode: filterMode, value, limit: Number(limit) || undefined },
-          operation: { type: operation, payload: { newText: opText } },
+          operation: { type: operation, payload: buildOperationPayload(operation, opText) },
           options: { skipIfSame: true }
         };
       } else {
@@ -102,7 +119,7 @@ export default function BatchOps() {
     if (!preview) return;
     const selectIds = Object.keys(selected).filter((id) => selected[id]);
     try {
-      const payload = { ...(mode === "query" ? { mode: "query", collection, filters: { field, mode: filterMode, value, limit: Number(limit) || undefined }, operation: { type: operation, payload: { newText: opText } } } : { mode: "paste", collection, rows: preview.rows }), selectIds };
+      const payload = { ...(mode === "query" ? { mode: "query", collection, filters: { field, mode: filterMode, value, limit: Number(limit) || undefined }, operation: { type: operation, payload: buildOperationPayload(operation, opText) } } : { mode: "paste", collection, rows: preview.rows }), selectIds };
       const res = await fetch("/api/admin/batch/commit", {
         method: "POST",
         headers: {
