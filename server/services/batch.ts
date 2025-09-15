@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { firestore } from "firebase-admin";
+import { db } from "../firebase";
 
 export interface Operation {
   type:
@@ -119,7 +119,6 @@ export async function buildQuery(
     limit?: number;
   }
 ): Promise<FirebaseFirestore.QuerySnapshot> {
-  const db = firestore();
   let query: FirebaseFirestore.Query = db.collection(collection);
   const { field, mode, value, limit } = filters;
   if (field === "description") {
@@ -166,7 +165,6 @@ export async function updateDocsInChunks(
   rows: RowData[],
   counters: JobCounters
 ): Promise<void> {
-  const db = firestore();
   for (const group of chunk(rows, 450)) {
     const batch = db.batch();
     for (const row of group) {

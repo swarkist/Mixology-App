@@ -1,4 +1,4 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 
 // General rate limiter for auth endpoints
 export const authLimiter = rateLimit({
@@ -74,7 +74,7 @@ export const accountDeletionLimiter = rateLimit({
   legacyHeaders: false,
   // Use user ID as key if available, otherwise fall back to IP
   keyGenerator: (req) => {
-    return req.user?.id ? `user:${req.user.id}` : `ip:${req.ip}`;
+    return req.user?.id ? `user:${req.user.id}` : `ip:${ipKeyGenerator(req)}`;
   },
   skip: (req) => {
     // Skip rate limiting in development

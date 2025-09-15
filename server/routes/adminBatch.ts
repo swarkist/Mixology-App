@@ -4,7 +4,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 import fs from "fs/promises";
-import { firestore } from "firebase-admin";
+import { db } from "../firebase";
 import {
   buildQuery,
   applyOperation,
@@ -89,10 +89,16 @@ export default function adminBatchRoutes(storage: IStorage) {
 
   const previewBody = z.union([queryBody, pasteBody]);
 
-  const commitBody = previewBody.extend({
-    selectIds: z.array(z.string()).optional(),
-    note: z.string().optional()
-  });
+  const commitBody = z.union([
+    queryBody.extend({
+      selectIds: z.array(z.string()).optional(),
+      note: z.string().optional()
+    }),
+    pasteBody.extend({
+      selectIds: z.array(z.string()).optional(),
+      note: z.string().optional()
+    })
+  ]);
 
   async function buildPreview(body: any) {
     const options = body.options || { skipIfSame: true };
@@ -119,7 +125,6 @@ export default function adminBatchRoutes(storage: IStorage) {
         }
       });
     } else {
-      const db = firestore();
       const idMap = new Map<string, any>();
       for (const r of body.rows) {
         if (idMap.has(r.id)) {
@@ -127,7 +132,7 @@ export default function adminBatchRoutes(storage: IStorage) {
         }
         idMap.set(r.id, r);
       }
-      for (const [id, r] of idMap) {
+      for (const [id, r] of Array.from(idMap.entries())) {
         const ref = db.collection(body.collection).doc(id);
         const doc = await ref.get();
         if (!doc.exists) {
@@ -180,9 +185,13 @@ export default function adminBatchRoutes(storage: IStorage) {
       const counters: JobCounters = { matched: rows.length, written: 0, skipped: 0, errors: 0 };
       const timestamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0];
       const backupFile = path.join("server", "backups", `batch_${timestamp}.json`);
-      const backupRows = rows.map((r) => ({ id: r.id, name: r.name, description: r.current.description, tags: r.current.tags }));
+      const backupRows = rows.map((r) => ({ 
+        id: r.id, 
+        name: r.name, 
+        current: r.current, 
+        proposed: r.current 
+      }));
       await writeBackup(backupFile, backupRows);
-      const db = firestore();
       const jobRef = db.collection("admin_jobs").doc();
       await jobRef.set({
         status: "pending",
@@ -210,7 +219,7 @@ export default function adminBatchRoutes(storage: IStorage) {
 
   router.get("/jobs", async (_req, res) => {
     try {
-      const snap = await firestore()
+      const snap = await db
         .collection("admin_jobs")
         .orderBy("startedAt", "desc")
         .limit(20)
@@ -225,7 +234,7 @@ export default function adminBatchRoutes(storage: IStorage) {
   router.get("/jobs/:jobId", async (req, res) => {
     try {
       const jobId = req.params.jobId;
-      const doc = await firestore().collection("admin_jobs").doc(jobId).get();
+      const doc = await db.collection("admin_jobs").doc(jobId).get();
       if (!doc.exists) return res.status(404).json({ error: "Not found" });
       res.json({ jobId: doc.id, ...doc.data() });
     } catch (err: any) {
@@ -236,7 +245,6 @@ export default function adminBatchRoutes(storage: IStorage) {
   router.post("/jobs/:jobId/rollback", limiter, async (req, res) => {
     try {
       const jobId = req.params.jobId;
-      const db = firestore();
       const original = await db.collection("admin_jobs").doc(jobId).get();
       if (!original.exists) {
         return res.status(404).json({ error: "Job not found" });
