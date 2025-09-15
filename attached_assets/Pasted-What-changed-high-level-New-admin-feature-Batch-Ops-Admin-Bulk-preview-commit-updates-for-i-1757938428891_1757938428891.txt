@@ -1,0 +1,63 @@
+What changed (high-level)
+
+New admin feature: “Batch Ops” (Admin → Bulk preview/commit updates for ingredients/cocktails on description + tags).
+
+Server
+
+Added routes under /api/admin/batch:
+
+POST /preview (no writes)
+
+POST /commit (writes with backups + chunks)
+
+GET /jobs/:jobId (status)
+
+POST /jobs/:jobId/rollback (restore from backup)
+
+Security: All routes require admin session and header x-admin-key === process.env.ADMIN_API_KEY, with rate limiting.
+
+Services: new batch utilities for filters, operations, tag normalization, chunking (≤450 writes/batch), and backup JSON writing.
+
+Backups dir: server/backups/ (must exist at runtime; ignored by git).
+
+Wiring: routes mounted at /api/admin/batch in server bootstrap.
+
+Client
+
+New page client/src/pages/admin/BatchOps.tsx with Build Query and Paste/CSV modes, Preview table, Run Batch, History + Rollback.
+
+Admin header: “Batch Ops” button added (to the left of “Back to Site”).
+
+All admin fetches send credentials: "include" (session cookies) and header x-admin-key (runtime/secure source, not hard-coded).
+
+Files added/modified (expected)
+
+server/routes/adminBatch.ts (new)
+
+server/services/batch.ts (new)
+
+client/src/pages/admin/BatchOps.tsx (new)
+
+client/src/pages/AdminDashboard.tsx (modified: added “Batch Ops” button/link)
+
+server/index.ts or server router bootstrap (modified: mounted /api/admin/batch)
+
+.gitignore (updated to ignore server/backups/)
+
+server/backups/ (new folder; should exist at runtime)
+
+client/src/pages/admin/ (new folder)
+
+(If your project splits files differently, names may vary slightly but functionality is the same.)
+
+Environment & runtime expectations
+
+ENV (in Secrets manager):
+
+ADMIN_API_KEY (required; used by server to validate x-admin-key)
+
+(Optional, for AI later) OPENROUTER_API_KEY, OPENROUTER_MODEL
+
+Client admin header: either provide x-admin-key via a safe runtime (e.g., VITE_ADMIN_API_KEY) or omit header and configure server to allow session-only (we currently require both session + header).
+
+Dependencies likely added: zod, express-rate-limit, maybe a CSV parser if used on server; on client, tag chip editor relies on your existing UI kit; TanStack Query already present.
