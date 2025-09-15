@@ -5,6 +5,7 @@ import morgan from "morgan";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { registerRoutes } from "./routes";
+import adminBatchRoutes from "./routes/adminBatch";
 import { setupVite, serveStatic, log } from "./vite";
 // import { MemStorage } from "./storage/memory"; // Not used - using Firebase only
 import { FirebaseStorageAdapter } from "./storage/firebase-adapter";
@@ -247,6 +248,7 @@ async function initializeStorage(): Promise<IStorage> {
 (async () => {
   const storage = await initializeStorage();
   const server = await registerRoutes(app, storage);
+  app.use("/api/admin/batch", adminBatchRoutes(storage));
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;

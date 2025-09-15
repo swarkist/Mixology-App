@@ -1,0 +1,282 @@
+import express from "express";
+import rateLimit from "express-rate-limit";
+import { z } from "zod";
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import fs from "fs/promises";
+import { firestore } from "firebase-admin";
+import {
+  buildQuery,
+  applyOperation,
+  writeBackup,
+  updateDocsInChunks,
+  RowData,
+  JobCounters
+} from "../services/batch";
+import { requireAuth, requireAdmin } from "../middleware/requireAuth";
+import type { IStorage } from "../storage";
+
+export default function adminBatchRoutes(storage: IStorage) {
+  const router = express.Router();
+
+  const limiter = rateLimit({ windowMs: 60 * 1000, max: 10 });
+
+  const requireAdminKey = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    const provided = req.header("x-admin-key") || "";
+    const expected = process.env.ADMIN_API_KEY || "";
+    if (!expected || provided !== expected) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    next();
+  };
+
+  router.use(requireAuth(storage));
+  router.use(requireAdmin);
+  router.use(requireAdminKey);
+
+  const operationSchema = z.discriminatedUnion("type", [
+    z.object({ type: z.literal("description_set"), payload: z.object({ newText: z.string() }) }),
+    z.object({
+      type: z.literal("description_find_replace"),
+      payload: z.object({
+        find: z.string(),
+        replace: z.string().optional(),
+        regex: z.boolean().optional(),
+        caseInsensitive: z.boolean().optional()
+      })
+    }),
+    z.object({ type: z.literal("tags_add"), payload: z.object({ add: z.array(z.string()) }) }),
+    z.object({ type: z.literal("tags_remove"), payload: z.object({ remove: z.array(z.string()) }) }),
+    z.object({ type: z.literal("tags_replace"), payload: z.object({ newTags: z.array(z.string()) }) })
+  ]);
+
+  const optionsSchema = z
+    .object({
+      onlyImportedPlaceholders: z.boolean().optional(),
+      skipIfSame: z.boolean().optional().default(true)
+    })
+    .default({ skipIfSame: true });
+
+  const queryBody = z.object({
+    mode: z.literal("query"),
+    collection: z.union([z.literal("ingredients"), z.literal("cocktails")]),
+    filters: z.object({
+      field: z.union([z.literal("description"), z.literal("tags")]),
+      mode: z.string(),
+      value: z.any().optional(),
+      limit: z.number().optional()
+    }),
+    operation: operationSchema,
+    options: optionsSchema.optional()
+  });
+
+  const pasteRow = z.object({
+    id: z.string(),
+    name: z.string().optional(),
+    proposed: z.object({ description: z.string().optional(), tags: z.array(z.string()).optional() }).partial()
+  });
+
+  const pasteBody = z.object({
+    mode: z.literal("paste"),
+    collection: z.union([z.literal("ingredients"), z.literal("cocktails")]),
+    rows: z.array(pasteRow).max(1000),
+    options: optionsSchema.optional()
+  });
+
+  const previewBody = z.union([queryBody, pasteBody]);
+
+  const commitBody = previewBody.extend({
+    selectIds: z.array(z.string()).optional(),
+    note: z.string().optional()
+  });
+
+  async function buildPreview(body: any) {
+    const options = body.options || { skipIfSame: true };
+    const rows: RowData[] = [];
+    const missing: string[] = [];
+    let skipped = 0;
+    let warnings: { duplicates?: number } = {};
+
+    if (body.mode === "query") {
+      const snap = await buildQuery(body.collection, body.filters);
+      snap.forEach((doc) => {
+        const data: any = doc.data() || {};
+        const current = { description: data.description || "", tags: data.tags || [] };
+        const proposed = applyOperation(current, body.operation);
+        const row: RowData = { id: doc.id, name: data.name, current, proposed };
+        const final = { description: proposed.description ?? current.description, tags: proposed.tags ?? current.tags };
+        const shouldSkip =
+          (options.onlyImportedPlaceholders && current.description && !current.description.startsWith("Imported ingredient")) ||
+          (options.skipIfSame && JSON.stringify(current) === JSON.stringify(final));
+        if (shouldSkip) {
+          skipped++;
+        } else {
+          rows.push(row);
+        }
+      });
+    } else {
+      const db = firestore();
+      const idMap = new Map<string, any>();
+      for (const r of body.rows) {
+        if (idMap.has(r.id)) {
+          warnings.duplicates = (warnings.duplicates || 0) + 1;
+        }
+        idMap.set(r.id, r);
+      }
+      for (const [id, r] of idMap) {
+        const ref = db.collection(body.collection).doc(id);
+        const doc = await ref.get();
+        if (!doc.exists) {
+          missing.push(id);
+          continue;
+        }
+        const data: any = doc.data() || {};
+        const current = { description: data.description || "", tags: data.tags || [] };
+        const proposed = {
+          description: r.proposed?.description ?? current.description,
+          tags: r.proposed?.tags ?? current.tags
+        };
+        const shouldSkip =
+          (options.onlyImportedPlaceholders && current.description && !current.description.startsWith("Imported ingredient")) ||
+          (options.skipIfSame && JSON.stringify(current) === JSON.stringify(proposed));
+        if (shouldSkip) {
+          skipped++;
+          continue;
+        }
+        rows.push({ id, name: r.name, current, proposed });
+      }
+    }
+
+    return { rows: rows.slice(0, 1000), skipped, missing, warnings };
+  }
+
+  router.post("/preview", limiter, async (req, res) => {
+    try {
+      const body = previewBody.parse(req.body);
+      const { rows, skipped, missing, warnings } = await buildPreview(body);
+      res.json({
+        jobId: `temp-${uuidv4()}`,
+        willUpdate: rows.length,
+        skipped,
+        missing,
+        rows,
+        warnings
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  router.post("/commit", limiter, async (req, res) => {
+    try {
+      const body = commitBody.parse(req.body);
+      const { rows } = await buildPreview(body);
+      const selectIds = body.selectIds ? new Set(body.selectIds) : null;
+      const toWrite = selectIds ? rows.filter((r) => selectIds.has(r.id)) : rows;
+      const counters: JobCounters = { matched: rows.length, written: 0, skipped: 0, errors: 0 };
+      const timestamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0];
+      const backupFile = path.join("server", "backups", `batch_${timestamp}.json`);
+      const backupRows = rows.map((r) => ({ id: r.id, name: r.name, description: r.current.description, tags: r.current.tags }));
+      await writeBackup(backupFile, backupRows);
+      const db = firestore();
+      const jobRef = db.collection("admin_jobs").doc();
+      await jobRef.set({
+        status: "pending",
+        mode: body.mode,
+        collection: body.collection,
+        note: body.note || null,
+        counts: counters,
+        backupFile,
+        startedAt: new Date().toISOString()
+      });
+      res.json({ jobId: jobRef.id, status: "pending" });
+      process.nextTick(async () => {
+        try {
+          await jobRef.update({ status: "in_progress" });
+          await updateDocsInChunks(body.collection, toWrite, counters);
+          await jobRef.update({ status: "done", counts: counters, finishedAt: new Date().toISOString() });
+        } catch (e: any) {
+          await jobRef.update({ status: "failed", counts: counters, finishedAt: new Date().toISOString(), errors: [{ message: e.message }] });
+        }
+      });
+    } catch (err: any) {
+      res.status(400).json({ error: err.message });
+    }
+  });
+
+  router.get("/jobs", async (_req, res) => {
+    try {
+      const snap = await firestore()
+        .collection("admin_jobs")
+        .orderBy("startedAt", "desc")
+        .limit(20)
+        .get();
+      const jobs = snap.docs.map((d) => ({ jobId: d.id, ...d.data() }));
+      res.json(jobs);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.get("/jobs/:jobId", async (req, res) => {
+    try {
+      const jobId = req.params.jobId;
+      const doc = await firestore().collection("admin_jobs").doc(jobId).get();
+      if (!doc.exists) return res.status(404).json({ error: "Not found" });
+      res.json({ jobId: doc.id, ...doc.data() });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.post("/jobs/:jobId/rollback", limiter, async (req, res) => {
+    try {
+      const jobId = req.params.jobId;
+      const db = firestore();
+      const original = await db.collection("admin_jobs").doc(jobId).get();
+      if (!original.exists) {
+        return res.status(404).json({ error: "Job not found" });
+      }
+      const data: any = original.data();
+      const backupFile: string = data.backupFile;
+      const content = await fs.readFile(backupFile, "utf8");
+      const rowsFromBackup = JSON.parse(content);
+      const rows: RowData[] = rowsFromBackup.map((r: any) => ({
+        id: r.id,
+        name: r.name,
+        current: { description: r.description, tags: r.tags },
+        proposed: { description: r.description, tags: r.tags }
+      }));
+      const counters: JobCounters = { matched: rows.length, written: 0, skipped: 0, errors: 0 };
+      const newJobRef = db.collection("admin_jobs").doc();
+      await newJobRef.set({
+        status: "pending",
+        mode: "rollback",
+        collection: data.collection,
+        originalJobId: jobId,
+        backupFile,
+        counts: counters,
+        startedAt: new Date().toISOString()
+      });
+      res.json({ status: "pending" });
+      process.nextTick(async () => {
+        try {
+          await newJobRef.update({ status: "in_progress" });
+          await updateDocsInChunks(data.collection, rows, counters);
+          await newJobRef.update({ status: "done", counts: counters, finishedAt: new Date().toISOString() });
+        } catch (e: any) {
+          await newJobRef.update({ status: "failed", counts: counters, finishedAt: new Date().toISOString(), errors: [{ message: e.message }] });
+        }
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  return router;
+}
+

@@ -28,7 +28,8 @@ import {
   Calendar,
   Mail,
   X,
-  Home
+  Home,
+  Wand2
 } from "lucide-react";
 import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
@@ -186,16 +187,29 @@ export default function AdminDashboard() {
                 <p className="text-neutral-400">Manage users and system settings</p>
               </div>
             </div>
-            <Link href="/">
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Back to Site
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/admin/batch-ops">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label="Open Batch Operations"
+                  className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+                >
+                  <Wand2 className="w-4 h-4 mr-2" />
+                  Batch Ops
+                </Button>
+              </Link>
+              <Link href="/">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Back to Site
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
