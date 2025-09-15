@@ -15,6 +15,12 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Changes
 
+### September 15, 2025 - Admin Batch Operations Tool
+- Introduced Batch Ops admin page supporting query and paste modes with preview and commit flows
+- Added secure Express routes for preview, commit, job status, and rollback with admin-key checks and rate limiting
+- Implemented Firestore helpers for chunked writes, tag normalization, and timestamped JSON backups
+- Fixed batch description filters so "exact" and "contains" modes return correct results
+
 ### August 23, 2025 - URL Scraping Security Enhancement & Bug Fixes
 - **CRITICAL SECURITY FIX**: Fixed `/api/scrape-url` endpoint authentication vulnerability
 - **Implementation**: Moved endpoint from `registerReadOnlyRoutes` to `registerRoutes` with proper authentication middleware

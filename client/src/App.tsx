@@ -29,6 +29,7 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword";
 import TermsPage from "@/pages/TermsPage";
 import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import BatchOps from "@/pages/admin/BatchOps";
 
 function Router() {
   return (
@@ -83,6 +84,14 @@ function Router() {
         {() => (
           <ProtectedRoute requireRoles={["admin", "reviewer"]}>
             <AdminDashboard />
+          </ProtectedRoute>
+        )}
+      </Route>
+
+      <Route path="/admin/batch-ops">
+        {() => (
+          <ProtectedRoute requireRoles={["admin"]}>
+            <BatchOps />
           </ProtectedRoute>
         )}
       </Route>
