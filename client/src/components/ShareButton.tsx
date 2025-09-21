@@ -46,52 +46,128 @@ export function ShareButton({ cocktail }: ShareButtonProps) {
     const shareTitle = cocktail.name;
     const shareText = `Check out ${cocktail.name} on Miximixology!`;
 
+    console.log('🍹 Share Debug: Starting share process', {
+      cocktailId: cocktail.id,
+      cocktailName: cocktail.name,
+      imageUrl: cocktail.imageUrl,
+      shareUrl,
+      hasNavigatorShare: !!navigator.share,
+      hasCanShare: !!navigator.canShare,
+      userAgent: navigator.userAgent
+    });
+
     try {
       // Phase 1: Try to share as image (preferred)
       if (cocktail.imageUrl && navigator.canShare) {
+        console.log('🖼️ Share Debug: Attempting image share', {
+          imageUrl: cocktail.imageUrl,
+          isHttps: cocktail.imageUrl.startsWith('https://')
+        });
+
         const imageFile = await imageToPngBlob(cocktail.imageUrl);
+        console.log('🔄 Share Debug: Image conversion result', {
+          success: !!imageFile,
+          fileSize: imageFile?.size,
+          fileType: imageFile?.type,
+          fileName: imageFile?.name
+        });
         
-        if (imageFile && navigator.canShare({ files: [imageFile] })) {
-          const filename = `${slugify(cocktail.name)}.png`;
-          const renamedFile = new File([imageFile], filename, { type: 'image/png' });
-          
-          try {
-            await navigator.share({
-              files: [renamedFile],
-              title: shareTitle,
-              text: shareText
+        if (imageFile) {
+          const canShareFiles = navigator.canShare({ files: [imageFile] });
+          console.log('✅ Share Debug: navigator.canShare check', {
+            canShareFiles,
+            fileObject: imageFile
+          });
+
+          if (canShareFiles) {
+            const filename = `${slugify(cocktail.name)}.png`;
+            const renamedFile = new File([imageFile], filename, { type: 'image/png' });
+            
+            console.log('📤 Share Debug: Attempting navigator.share with image', {
+              filename,
+              fileSize: renamedFile.size,
+              shareData: {
+                files: [renamedFile],
+                title: shareTitle,
+                text: shareText
+              }
             });
-            return; // Success, exit early
-          } catch (shareError) {
-            // User cancelled or share failed, continue to link share
+
+            try {
+              await navigator.share({
+                files: [renamedFile],
+                title: shareTitle,
+                text: shareText
+              });
+              console.log('✅ Share Debug: Image share successful');
+              return; // Success, exit early
+            } catch (shareError) {
+              console.log('❌ Share Debug: Image share failed', {
+                error: shareError,
+                errorName: (shareError as Error)?.name,
+                errorMessage: (shareError as Error)?.message
+              });
+              // User cancelled or share failed, continue to link share
+            }
+          } else {
+            console.log('❌ Share Debug: navigator.canShare returned false for files');
           }
+        } else {
+          console.log('❌ Share Debug: Image conversion failed (CORS or fetch error)');
         }
+      } else {
+        console.log('⏭️ Share Debug: Skipping image share', {
+          hasImageUrl: !!cocktail.imageUrl,
+          hasCanShare: !!navigator.canShare
+        });
       }
 
       // Phase 2: Try to share as link
       if (navigator.share) {
+        console.log('🔗 Share Debug: Attempting link share', {
+          shareData: {
+            title: shareTitle,
+            text: shareText,
+            url: shareUrl
+          }
+        });
+
         try {
           await navigator.share({
             title: shareTitle,
             text: shareText,
             url: shareUrl
           });
+          console.log('✅ Share Debug: Link share successful');
           return; // Success, exit early
         } catch (shareError) {
+          console.log('❌ Share Debug: Link share failed', {
+            error: shareError,
+            errorName: (shareError as Error)?.name,
+            errorMessage: (shareError as Error)?.message
+          });
           // User cancelled or share failed, continue to copy
         }
+      } else {
+        console.log('⏭️ Share Debug: No navigator.share available');
       }
 
       // Phase 3: Copy link to clipboard (final fallback)
+      console.log('📋 Share Debug: Attempting clipboard copy');
       const copied = await copyToClipboard(shareUrl);
+      console.log('📋 Share Debug: Clipboard copy result', { success: copied });
+      
       if (copied) {
         showCopyConfirmation();
+        console.log('✅ Share Debug: Copy fallback successful');
       } else {
+        console.log('❌ Share Debug: All methods failed, showing manual copy');
         // Ultimate fallback: show modal with selectable text
         const message = `Share this cocktail: ${shareUrl}`;
         prompt('Copy this link to share:', shareUrl) || alert(message);
       }
     } catch (error) {
+      console.error('💥 Share Debug: Unexpected error', error);
       toast({
         title: "Share failed",
         description: "Unable to share this cocktail. Please try again.",

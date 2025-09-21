@@ -30,53 +30,87 @@ export function isMobileOrTablet(): boolean {
 
 // Convert image URL to PNG Blob
 export async function imageToPngBlob(imageUrl: string): Promise<File | null> {
+  console.log('🔄 ImageToPng Debug: Starting conversion', { imageUrl });
+  
   try {
     // Ensure HTTPS URL
     if (!imageUrl.startsWith('https://')) {
+      console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', { imageUrl });
       return null;
     }
 
+    console.log('📡 ImageToPng Debug: Fetching image');
     const response = await fetch(imageUrl, {
       mode: 'cors',
       credentials: 'omit'
     });
     
     if (!response.ok) {
+      console.log('❌ ImageToPng Debug: Fetch failed', { 
+        status: response.status,
+        statusText: response.statusText 
+      });
       return null;
     }
 
     const blob = await response.blob();
+    console.log('✅ ImageToPng Debug: Blob created', {
+      size: blob.size,
+      type: blob.type
+    });
     
     // Convert to PNG using Canvas if not already PNG
     if (!blob.type.includes('png')) {
+      console.log('🎨 ImageToPng Debug: Converting to PNG via canvas');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
       
       return new Promise((resolve) => {
         img.onload = () => {
+          console.log('🖼️ ImageToPng Debug: Image loaded for canvas', {
+            width: img.width,
+            height: img.height
+          });
+          
           canvas.width = img.width;
           canvas.height = img.height;
           ctx?.drawImage(img, 0, 0);
           
           canvas.toBlob((pngBlob) => {
             if (pngBlob) {
+              console.log('✅ ImageToPng Debug: Canvas conversion successful', {
+                size: pngBlob.size,
+                type: pngBlob.type
+              });
               resolve(new File([pngBlob], 'cocktail.png', { type: 'image/png' }));
             } else {
+              console.log('❌ ImageToPng Debug: Canvas toBlob failed');
               resolve(null);
             }
           }, 'image/png');
         };
         
-        img.onerror = () => resolve(null);
+        img.onerror = (error) => {
+          console.log('❌ ImageToPng Debug: Image load error', error);
+          resolve(null);
+        };
+        
         img.src = URL.createObjectURL(blob);
+        console.log('🔗 ImageToPng Debug: Set img.src to blob URL');
       });
     }
 
     // Already PNG, create File object
+    console.log('✅ ImageToPng Debug: Already PNG, creating File object');
     return new File([blob], 'cocktail.png', { type: 'image/png' });
   } catch (error) {
     // Silent CORS failure fallback
+    console.log('❌ ImageToPng Debug: Exception caught', {
+      error,
+      message: (error as Error)?.message,
+      name: (error as Error)?.name
+    });
     return null;
   }
 }
