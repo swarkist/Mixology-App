@@ -89,3 +89,10 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* Hide share button on desktop */
+@media (min-width: 1281px) {
+  .share-button-mobile {
+    display: none !important;
+  }
+}

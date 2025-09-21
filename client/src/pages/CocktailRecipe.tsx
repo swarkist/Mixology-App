@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatIngredientMeasurement } from "@/lib/fractionUtils";
 import MixiIconBartender from "@/components/icons/MixiIconBartender";
 import { openMixi } from "@/lib/mixiBus";
+import { ShareButton } from "@/components/ShareButton";
 import noPhotoImage from "@assets/no-photo_1753579606993.png";
 
 export const CocktailRecipe = (): JSX.Element => {
@@ -143,15 +144,9 @@ export const CocktailRecipe = (): JSX.Element => {
               Back to Recipes
             </Button>
           </Link>
-          {/* Social Buttons 
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
-              <Heart className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-[#2a2920]">
-              <Share className="w-4 h-4" />
-            </Button>
-          </div> */}
+            <ShareButton cocktail={cocktail} />
+          </div>
         </div>
       </div>
 

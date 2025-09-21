@@ -1,0 +1,115 @@
+Objective
+Enable a Share button on phones & tablets that opens the native OS share sheet with a PNG image (cocktail photo), plus the cocktail name and short text. If files can’t be shared, fall back to sharing the link (/s/:id), and finally to copy to clipboard. The Share button must be hidden on desktop.
+
+Scope (runtime order of behavior)
+	1.	Share as image (preferred)
+	2.	Share as link (to /s/:id with OG tags already implemented)
+	3.	Copy link (visible confirmation)
+
+Non-Dev Setup (do these in the repo)
+	•	Place a default image at: client/public/og/default-cocktail.png (ideal size ≥ 1200×630).
+	•	Ensure each cocktail exposes:
+	•	id (string), name (string), description? (string), imageUrl? (absolute HTTPS URL).
+	•	No secrets or env vars needed.
+
+⸻
+
+Functional Requirements
+
+FR-1: Device gating (visibility)
+	•	Share button renders only on phones/tablets; desktop must not see it.
+	•	Use capability + layout signals (not brittle UA sniffing):
+	•	navigator.maxTouchPoints > 0 and (pointer: coarse) or (hover: none), and
+	•	viewport width ≤ 1280px, or
+	•	iPadOS quirk: navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1.
+
+FR-2: Build share payload (image first)
+	•	Primary mode: “Photo”
+	•	Source image: recipe.imageUrl if present and HTTPS; otherwise use /og/default-cocktail.png (absolute URL based on window.location.origin).
+	•	Fetch/convert to a PNG Blob → create a File named "<slugified-cocktail-name>.png", type: 'image/png'.
+	•	If the source image fails (CORS or fetch error), immediately fall back to link share (FR-3).
+	•	Share data (on success):
+	•	files: [file]
+	•	title: recipe.name
+	•	text: recipe.description || "Check out <name> on Miximixology!"
+	•	Only proceed if navigator.canShare({ files: [file] }) is true. Otherwise, use link share (FR-3).
+
+FR-3: Link share fallback
+	•	Share URL: https://www.miximixology.com/s/<id> (our OG preview route).
+	•	If navigator.share is available, call:
+navigator.share({ title, text, url: shareUrl }).
+	•	If navigator.share is not available or throws (including user cancel), continue to FR-4.
+
+FR-4: Copy fallback
+	•	Copy the share URL to the clipboard.
+	•	Show visible confirmation (toast or alert): “Link copied!”
+	•	If Clipboard API is blocked, use a <textarea> shim; if that also fails, show a small modal with a read-only input for manual copy.
+
+FR-5: Performance
+	•	Initial JS added ≤ 5KB (no heavy libraries).
+	•	Use small helpers only; no DOM-to-image library (that’s Option B, not in this task).
+
+FR-6: Accessibility
+	•	Button has aria-label="Share cocktail".
+	•	Copy confirmation is screen-reader friendly (role="status" or aria-live="polite").
+	•	Tap target ≥ 44×44px.
+
+FR-7: Security/Privacy
+	•	Only share public data. No tokens/PII in URLs.
+	•	imageUrl must be HTTPS; if CORS blocks reading the image, do link share fallback (FR-3).
+
+FR-8: Config/Flags
+	•	FEATURE_SHARE_ENABLED = true.
+	•	HANDHELD_MAX_WIDTH = 1280.
+
+⸻
+
+UI Requirements
+	•	Use the existing Share icon in the recipe header (the commented spot).
+	•	Style matches current theme (dark/light).
+	•	On copy fallback, show “Link copied!” using the site’s toast if available (alert is acceptable).
+
+⸻
+
+Data Available at Runtime
+	•	recipe.id, recipe.name, recipe.description?, recipe.imageUrl?
+	•	window.location.origin (use production origin if SSR is absent)
+
+⸻
+
+Test Plan (manual)
+
+Devices/Browsers
+	•	iPhone Safari (latest), iPadOS Safari (latest), Android Chrome/Samsung Internet.
+	•	Desktop Chrome/Firefox/Safari (button should be hidden).
+
+Scenarios
+	1.	Happy path (image share)
+	•	Cocktail with valid HTTPS imageUrl.
+	•	navigator.canShare({ files }) is true → native share opens with the image attached.
+	•	Choose Messages: confirm an image is attached and a text/title is present.
+	2.	CORS/Fetch error on image
+	•	Simulate blocked image → should automatically fall back to link share (/s/:id).
+	3.	No native share available
+	•	Should fall back to copy link and show confirmation.
+	4.	User cancels share
+	•	Treat like failure and fall back to copy link.
+	5.	Missing imageUrl
+	•	Should use default-cocktail.png and share succeeds (image mode) or fall back to link if files not supported.
+	6.	Desktop
+	•	Share button not rendered at all.
+	7.	Accessibility
+	•	aria-label present; “Link copied!” announced by screen readers.
+
+Definition of Done
+	•	On phones/tablets, Share attempts image first; if not possible, shares link; else copies link.
+	•	Desktop: no Share button.
+	•	No TypeScript or lint errors; no console errors.
+	•	Initial bundle increase ≤ 5KB.
+
+⸻
+
+Placement & Files (so you know where to put things)
+	•	Default image: client/public/og/default-cocktail.png
+	•	Share button lives in the Recipe Display Page header (reuse the commented icon slot).
+	•	If you add small utilities, keep them under client/src/utils/ (e.g., device gating, blob→file helper). Keep them tiny.

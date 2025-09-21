@@ -163,6 +163,62 @@ function redactUrlForLogging(url: string): string {
 }
 
 export async function registerRoutes(app: Express, storage: IStorage): Promise<Server> {
+  // Social sharing route with OG tags - must come before API routes
+  app.get("/s/:id", async (req, res) => {
+    const cocktailId = parseInt(req.params.id);
+    
+    try {
+      const cocktail = await storage.getCocktail(cocktailId);
+      
+      if (!cocktail) {
+        return res.redirect(302, '/cocktails');
+      }
+
+      const ogTitle = cocktail.name;
+      const ogDescription = cocktail.description || `Check out ${cocktail.name} on Miximixology!`;
+      const ogImage = cocktail.imageUrl || `${req.protocol}://${req.get('host')}/og/default-cocktail.png`;
+      const ogUrl = `${req.protocol}://${req.get('host')}/recipe/${cocktailId}`;
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${ogTitle}</title>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${ogUrl}">
+    <meta property="og:title" content="${ogTitle}">
+    <meta property="og:description" content="${ogDescription}">
+    <meta property="og:image" content="${ogImage}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="Miximixology">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="${ogUrl}">
+    <meta property="twitter:title" content="${ogTitle}">
+    <meta property="twitter:description" content="${ogDescription}">
+    <meta property="twitter:image" content="${ogImage}">
+    
+    <meta http-equiv="refresh" content="0; url=/recipe/${cocktailId}">
+    <script>window.location.href = '/recipe/${cocktailId}';</script>
+</head>
+<body>
+    <p>Redirecting to <a href="/recipe/${cocktailId}">${ogTitle}</a>...</p>
+</body>
+</html>`;
+
+      res.set('Content-Type', 'text/html');
+      return res.send(html);
+    } catch (error) {
+      console.error('Error fetching cocktail for OG tags:', error);
+      return res.redirect(302, '/cocktails');
+    }
+  });
+
   // Health check endpoint (before middleware)
   app.get("/api/health", (req, res) => {
     res.json({ 
