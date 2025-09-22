@@ -31,52 +31,97 @@ export function isMobileOrTablet(): boolean {
 // Convert image URL to PNG Blob
 export async function imageToPngBlob(imageUrl: string): Promise<File | null> {
   console.log('🔄 ImageToPng Debug: Starting conversion', { imageUrl });
-  
+
   try {
-    // Ensure HTTPS URL
-    if (!imageUrl.startsWith('https://')) {
-      console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', { imageUrl });
-      return null;
-    }
+    let sourceBlob: Blob | null = null;
 
-    console.log('📡 ImageToPng Debug: Fetching image');
-    const response = await fetch(imageUrl, {
-      mode: 'cors',
-      credentials: 'omit'
-    });
-    
-    if (!response.ok) {
-      console.log('❌ ImageToPng Debug: Fetch failed', { 
-        status: response.status,
-        statusText: response.statusText 
+    if (imageUrl.startsWith('data:')) {
+      console.log('📦 ImageToPng Debug: Handling data URL');
+      const dataMatch = imageUrl.match(/^data:(?:([^;]+))?;base64,(.+)$/);
+
+      if (!dataMatch?.[2]) {
+        console.log('❌ ImageToPng Debug: Malformed data URL', { imageUrl });
+        return null;
+      }
+
+      const mimeType = dataMatch[1] || 'image/png';
+      const binaryString = atob(dataMatch[2]);
+      const bytes = new Uint8Array(binaryString.length);
+
+      for (let i = 0; i < binaryString.length; i += 1) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      sourceBlob = new Blob([bytes], { type: mimeType });
+      console.log('✅ ImageToPng Debug: Data URL converted to blob', {
+        size: sourceBlob.size,
+        type: sourceBlob.type
       });
+    } else {
+      let resolvedUrl: string;
+      try {
+        resolvedUrl = new URL(imageUrl, window.location.origin).toString();
+      } catch (urlError) {
+        console.log('❌ ImageToPng Debug: Invalid image URL', {
+          imageUrl,
+          urlError
+        });
+        return null;
+      }
+
+      // Ensure HTTPS URL after resolution
+      if (!resolvedUrl.startsWith('https://')) {
+        console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', {
+          imageUrl,
+          resolvedUrl
+        });
+        return null;
+      }
+
+      console.log('📡 ImageToPng Debug: Fetching image', { resolvedUrl });
+      const response = await fetch(resolvedUrl, {
+        mode: 'cors',
+        credentials: 'omit'
+      });
+
+      if (!response.ok) {
+        console.log('❌ ImageToPng Debug: Fetch failed', {
+          status: response.status,
+          statusText: response.statusText
+        });
+        return null;
+      }
+
+      sourceBlob = await response.blob();
+      console.log('✅ ImageToPng Debug: Blob created', {
+        size: sourceBlob.size,
+        type: sourceBlob.type
+      });
+    }
+
+    if (!sourceBlob) {
+      console.log('❌ ImageToPng Debug: No blob available after processing');
       return null;
     }
 
-    const blob = await response.blob();
-    console.log('✅ ImageToPng Debug: Blob created', {
-      size: blob.size,
-      type: blob.type
-    });
-    
     // Convert to PNG using Canvas if not already PNG
-    if (!blob.type.includes('png')) {
+    if (!sourceBlob.type.includes('png')) {
       console.log('🎨 ImageToPng Debug: Converting to PNG via canvas');
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       const img = new Image();
-      
+
       return new Promise((resolve) => {
         img.onload = () => {
           console.log('🖼️ ImageToPng Debug: Image loaded for canvas', {
             width: img.width,
             height: img.height
           });
-          
+
           canvas.width = img.width;
           canvas.height = img.height;
           ctx?.drawImage(img, 0, 0);
-          
+
           canvas.toBlob((pngBlob) => {
             if (pngBlob) {
               console.log('✅ ImageToPng Debug: Canvas conversion successful', {
@@ -90,20 +135,20 @@ export async function imageToPngBlob(imageUrl: string): Promise<File | null> {
             }
           }, 'image/png');
         };
-        
+
         img.onerror = (error) => {
           console.log('❌ ImageToPng Debug: Image load error', error);
           resolve(null);
         };
-        
-        img.src = URL.createObjectURL(blob);
+
+        img.src = URL.createObjectURL(sourceBlob);
         console.log('🔗 ImageToPng Debug: Set img.src to blob URL');
       });
     }
 
     // Already PNG, create File object
     console.log('✅ ImageToPng Debug: Already PNG, creating File object');
-    return new File([blob], 'cocktail.png', { type: 'image/png' });
+    return new File([sourceBlob], 'cocktail.png', { type: 'image/png' });
   } catch (error) {
     // Silent CORS failure fallback
     console.log('❌ ImageToPng Debug: Exception caught', {
