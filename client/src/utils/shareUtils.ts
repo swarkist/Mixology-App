@@ -31,16 +31,30 @@ export function isMobileOrTablet(): boolean {
 // Convert image URL to PNG Blob
 export async function imageToPngBlob(imageUrl: string): Promise<File | null> {
   console.log('🔄 ImageToPng Debug: Starting conversion', { imageUrl });
-  
+
   try {
-    // Ensure HTTPS URL
-    if (!imageUrl.startsWith('https://')) {
-      console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', { imageUrl });
+    let resolvedUrl: string;
+    try {
+      resolvedUrl = new URL(imageUrl, window.location.origin).toString();
+    } catch (urlError) {
+      console.log('❌ ImageToPng Debug: Invalid image URL', {
+        imageUrl,
+        urlError
+      });
       return null;
     }
 
-    console.log('📡 ImageToPng Debug: Fetching image');
-    const response = await fetch(imageUrl, {
+    // Ensure HTTPS URL after resolution
+    if (!resolvedUrl.startsWith('https://')) {
+      console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', {
+        imageUrl,
+        resolvedUrl
+      });
+      return null;
+    }
+
+    console.log('📡 ImageToPng Debug: Fetching image', { resolvedUrl });
+    const response = await fetch(resolvedUrl, {
       mode: 'cors',
       credentials: 'omit'
     });
