@@ -33,45 +33,71 @@ export async function imageToPngBlob(imageUrl: string): Promise<File | null> {
   console.log('🔄 ImageToPng Debug: Starting conversion', { imageUrl });
 
   try {
-    let resolvedUrl: string;
-    try {
-      resolvedUrl = new URL(imageUrl, window.location.origin).toString();
-    } catch (urlError) {
-      console.log('❌ ImageToPng Debug: Invalid image URL', {
-        imageUrl,
-        urlError
-      });
-      return null;
-    }
+    let blob: Blob;
 
-    // Ensure HTTPS URL after resolution
-    if (!resolvedUrl.startsWith('https://')) {
-      console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', {
-        imageUrl,
-        resolvedUrl
-      });
-      return null;
+    // Handle data URLs (base64-encoded images)
+    if (imageUrl.startsWith('data:image/')) {
+      console.log('📄 ImageToPng Debug: Processing data URL');
+      
+      try {
+        // Extract base64 data and convert to blob
+        const response = await fetch(imageUrl);
+        blob = await response.blob();
+        
+        console.log('✅ ImageToPng Debug: Data URL blob created', {
+          size: blob.size,
+          type: blob.type
+        });
+      } catch (dataUrlError) {
+        console.log('❌ ImageToPng Debug: Data URL conversion failed', {
+          error: dataUrlError,
+          message: (dataUrlError as Error)?.message
+        });
+        return null;
+      }
     }
+    // Handle HTTPS URLs (external images)
+    else {
+      let resolvedUrl: string;
+      try {
+        resolvedUrl = new URL(imageUrl, window.location.origin).toString();
+      } catch (urlError) {
+        console.log('❌ ImageToPng Debug: Invalid image URL', {
+          imageUrl,
+          urlError
+        });
+        return null;
+      }
 
-    console.log('📡 ImageToPng Debug: Fetching image', { resolvedUrl });
-    const response = await fetch(resolvedUrl, {
-      mode: 'cors',
-      credentials: 'omit'
-    });
-    
-    if (!response.ok) {
-      console.log('❌ ImageToPng Debug: Fetch failed', { 
-        status: response.status,
-        statusText: response.statusText 
+      // Ensure HTTPS URL after resolution
+      if (!resolvedUrl.startsWith('https://')) {
+        console.log('❌ ImageToPng Debug: Non-HTTPS URL rejected', {
+          imageUrl,
+          resolvedUrl
+        });
+        return null;
+      }
+
+      console.log('📡 ImageToPng Debug: Fetching HTTPS image', { resolvedUrl });
+      const response = await fetch(resolvedUrl, {
+        mode: 'cors',
+        credentials: 'omit'
       });
-      return null;
-    }
+      
+      if (!response.ok) {
+        console.log('❌ ImageToPng Debug: HTTPS fetch failed', { 
+          status: response.status,
+          statusText: response.statusText 
+        });
+        return null;
+      }
 
-    const blob = await response.blob();
-    console.log('✅ ImageToPng Debug: Blob created', {
-      size: blob.size,
-      type: blob.type
-    });
+      blob = await response.blob();
+      console.log('✅ ImageToPng Debug: HTTPS blob created', {
+        size: blob.size,
+        type: blob.type
+      });
+    }
     
     // Convert to PNG using Canvas if not already PNG
     if (!blob.type.includes('png')) {
