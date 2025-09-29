@@ -166,17 +166,26 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   // Social sharing route with OG tags - must come before API routes
   app.get("/s/:id", async (req, res) => {
     const cocktailId = parseInt(req.params.id);
-    
+
     try {
       const cocktail = await storage.getCocktail(cocktailId);
-      
+
       if (!cocktail) {
         return res.redirect(302, '/cocktails');
       }
 
       const ogTitle = cocktail.name;
       const ogDescription = cocktail.description || `Check out ${cocktail.name} on Miximixology!`;
-      const ogImage = cocktail.imageUrl || `${req.protocol}://${req.get('host')}/og/default-cocktail.png`;
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      let ogImage = `${baseUrl}/og/default-cocktail.png`;
+
+      if (cocktail.imageUrl) {
+        if (cocktail.imageUrl.startsWith('data:')) {
+          ogImage = `${baseUrl}/og/cocktail/${cocktailId}.png`;
+        } else {
+          ogImage = cocktail.imageUrl;
+        }
+      }
       const ogUrl = `${req.protocol}://${req.get('host')}/recipe/${cocktailId}`;
 
       const html = `<!DOCTYPE html>
@@ -216,6 +225,51 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
     } catch (error) {
       console.error('Error fetching cocktail for OG tags:', error);
       return res.redirect(302, '/cocktails');
+    }
+  });
+
+  app.get('/og/cocktail/:id.png', async (req, res) => {
+    const cocktailId = parseInt(req.params.id);
+
+    if (Number.isNaN(cocktailId)) {
+      return res.status(400).send('Invalid cocktail id');
+    }
+
+    try {
+      const cocktail = await storage.getCocktail(cocktailId);
+
+      if (!cocktail || !cocktail.imageUrl || !cocktail.imageUrl.startsWith('data:')) {
+        return res.status(404).send('Cocktail image not found');
+      }
+
+      const dataUrlPattern = /^data:(?<mime>[^;,]+)(?:;charset=[^;,]+)?(?<base64>;base64)?,(?<data>[\s\S]+)$/;
+      const matches = cocktail.imageUrl.match(dataUrlPattern);
+
+      if (!matches || !matches.groups) {
+        return res.status(415).send('Unsupported cocktail image format');
+      }
+
+      const { mime, base64, data } = matches.groups as { mime?: string; base64?: string; data?: string };
+
+      if (!data) {
+        return res.status(415).send('Unsupported cocktail image format');
+      }
+
+      let imageBuffer: Buffer;
+
+      if (base64) {
+        imageBuffer = Buffer.from(data.replace(/\s/g, ''), 'base64');
+      } else {
+        imageBuffer = Buffer.from(decodeURIComponent(data));
+      }
+
+      res.setHeader('Content-Type', mime || 'application/octet-stream');
+      res.setHeader('Content-Length', imageBuffer.length);
+
+      return res.send(imageBuffer);
+    } catch (error) {
+      console.error('Error serving cocktail OG image:', error);
+      return res.status(500).send('Failed to load cocktail image');
     }
   });
 
