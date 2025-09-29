@@ -176,7 +176,12 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
 
       const ogTitle = cocktail.name;
       const ogDescription = cocktail.description || `Check out ${cocktail.name} on Miximixology!`;
-      const baseUrl = `${req.protocol}://${req.get('host')}`;
+
+      const forwardedProto = req.get('x-forwarded-proto');
+      const forwardedHost = req.get('x-forwarded-host');
+      const protocol = (forwardedProto || req.protocol).split(',')[0];
+      const host = forwardedHost || req.get('host');
+      const baseUrl = `${protocol}://${host}`;
       let ogImage = `${baseUrl}/og/default-cocktail.png`;
 
       if (cocktail.imageUrl) {
@@ -186,7 +191,7 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
           ogImage = cocktail.imageUrl;
         }
       }
-      const ogUrl = `${req.protocol}://${req.get('host')}/recipe/${cocktailId}`;
+      const ogUrl = `${baseUrl}/recipe/${cocktailId}`;
 
       const html = `<!DOCTYPE html>
 <html lang="en">
