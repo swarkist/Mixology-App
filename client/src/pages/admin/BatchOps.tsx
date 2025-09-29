@@ -12,6 +12,8 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
+import { Shield } from "lucide-react";
 
 interface PreviewRow {
   id: string;
@@ -140,7 +142,33 @@ export default function BatchOps() {
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">Batch Operations</h1>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-yellow-600 rounded-lg flex items-center justify-center">
+                <Shield className="w-5 h-5 text-black" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold">Batch Operations</h1>
+                <p className="text-neutral-400">Bulk update ingredients and cocktails</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/admin">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+                  data-testid="button-back-admin"
+                >
+                  <Shield className="w-4 h-4 mr-2" />
+                  Back to Admin
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
         <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
           <TabsList className="mb-4">
             <TabsTrigger value="query">Build Query</TabsTrigger>
