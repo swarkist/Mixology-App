@@ -255,6 +255,7 @@ export default function BatchOps() {
                 variant="outline" 
                 onClick={() => setPasteText("")}
                 disabled={!pasteText}
+                className="border-[#f2c40c] text-[#f2c40c] hover:bg-[#f2c40c] hover:text-[#161611] disabled:border-[#544f3b] disabled:text-[#544f3b] disabled:opacity-100"
               >
                 Clear
               </Button>
