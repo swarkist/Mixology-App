@@ -169,10 +169,105 @@ export async function updateDocsInChunks(
     const batch = db.batch();
     for (const row of group) {
       const ref = db.collection(collection).doc(row.id);
-      batch.update(ref, row.proposed);
+      
+      // Handle tags separately using junction tables
+      const updateData: any = { ...row.proposed };
+      const tagsToProcess = updateData.tags;
+      delete updateData.tags; // Remove tags from direct update
+      
+      // Update main document fields (description, etc.)
+      if (Object.keys(updateData).length > 0) {
+        batch.update(ref, updateData);
+      }
+      
       counters.written++;
     }
     await batch.commit();
+    
+    // Now handle tags via junction tables (outside the batch to avoid limits)
+    for (const row of group) {
+      if (row.proposed.tags) {
+        await updateTagRelationships(collection, row.id, row.proposed.tags);
+      }
+    }
+  }
+}
+
+async function updateTagRelationships(
+  collection: string,
+  documentId: string,
+  tagNames: string[]
+): Promise<void> {
+  // Get the numeric ID from the document
+  const docSnapshot = await db.collection(collection).doc(documentId).get();
+  if (!docSnapshot.exists) {
+    console.error(`Document ${documentId} not found in collection ${collection}`);
+    return;
+  }
+  const docData = docSnapshot.data();
+  const numericId = docData?.id;
+  if (!numericId || typeof numericId !== 'number') {
+    console.error(`Document ${documentId} does not have a valid numeric id field`);
+    return;
+  }
+  
+  // Deduplicate and normalize tag names
+  const normalizedNames = Array.from(new Set(
+    tagNames
+      .map(name => name.trim().toLowerCase())
+      .filter(name => name.length > 0)
+  ));
+  
+  // Resolve tag names to IDs, creating tags if they don't exist
+  const tagIds: number[] = [];
+  for (const normalizedName of normalizedNames) {
+    // Check if tag exists
+    const existingTagSnapshot = await db.collection('tags')
+      .where('name', '==', normalizedName)
+      .limit(1)
+      .get();
+    
+    let tagId: number;
+    if (!existingTagSnapshot.empty) {
+      const tagData = existingTagSnapshot.docs[0].data();
+      tagId = tagData.id;
+    } else {
+      // Create new tag
+      tagId = Date.now() + Math.floor(Math.random() * 1000);
+      await db.collection('tags').doc(tagId.toString()).set({
+        id: tagId,
+        name: normalizedName,
+        usageCount: 0
+      });
+    }
+    tagIds.push(tagId);
+  }
+  
+  // Determine junction table collection name
+  const junctionCollection = collection === 'cocktails' ? 'cocktail_tags' : 'ingredient_tags';
+  const idField = collection === 'cocktails' ? 'cocktailId' : 'ingredientId';
+  
+  // Delete existing tag relationships
+  const existingRelationships = await db.collection(junctionCollection)
+    .where(idField, '==', numericId)
+    .get();
+  
+  const deleteBatch = db.batch();
+  existingRelationships.docs.forEach(doc => {
+    deleteBatch.delete(doc.ref);
+  });
+  await deleteBatch.commit();
+  
+  // Create new tag relationships
+  for (let i = 0; i < tagIds.length; i++) {
+    const tagId = tagIds[i];
+    const junctionId = Date.now() + Math.floor(Math.random() * 1000) + i;
+    const junctionData: any = {
+      id: junctionId,
+      [idField]: numericId,
+      tagId: tagId
+    };
+    await db.collection(junctionCollection).doc(junctionId.toString()).set(junctionData);
   }
 }
 
