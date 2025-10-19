@@ -187,10 +187,22 @@ export default function adminBatchRoutes(storage: IStorage) {
 
   router.post("/commit", limiter, async (req, res) => {
     try {
+      console.log('[BATCH COMMIT] Starting batch commit');
       const body = commitBody.parse(req.body);
+      console.log('[BATCH COMMIT] Body parsed:', { mode: body.mode, collection: body.collection, selectIdsCount: body.selectIds?.length });
+      
       const { rows } = await buildPreview(body);
+      console.log('[BATCH COMMIT] Preview built, row count:', rows.length);
+      
       const selectIds = body.selectIds ? new Set(body.selectIds) : null;
       const toWrite = selectIds ? rows.filter((r) => selectIds.has(r.id)) : rows;
+      console.log('[BATCH COMMIT] Rows to write:', toWrite.length);
+      
+      if (toWrite.length === 0) {
+        console.log('[BATCH COMMIT] No rows to write, returning');
+        return res.status(400).json({ error: 'No rows selected for update' });
+      }
+      
       const counters: JobCounters = { matched: rows.length, written: 0, skipped: 0, errors: 0 };
       const timestamp = new Date().toISOString().replace(/[:]/g, "-").split(".")[0];
       const backupFile = path.join("server", "backups", `batch_${timestamp}.json`);
@@ -200,8 +212,14 @@ export default function adminBatchRoutes(storage: IStorage) {
         current: r.current, 
         proposed: r.current 
       }));
+      
+      console.log('[BATCH COMMIT] Writing backup to:', backupFile);
       await writeBackup(backupFile, backupRows);
+      console.log('[BATCH COMMIT] Backup written');
+      
       const jobRef = db.collection("admin_jobs").doc();
+      console.log('[BATCH COMMIT] Creating job with ID:', jobRef.id);
+      
       await jobRef.set({
         status: "pending",
         mode: body.mode,
@@ -211,17 +229,24 @@ export default function adminBatchRoutes(storage: IStorage) {
         backupFile,
         startedAt: new Date().toISOString()
       });
+      console.log('[BATCH COMMIT] Job created successfully');
+      
       res.json({ jobId: jobRef.id, status: "pending" });
+      
       process.nextTick(async () => {
         try {
+          console.log('[BATCH COMMIT] Starting background processing for job:', jobRef.id);
           await jobRef.update({ status: "in_progress" });
           await updateDocsInChunks(body.collection, toWrite, counters);
           await jobRef.update({ status: "done", counts: counters, finishedAt: new Date().toISOString() });
+          console.log('[BATCH COMMIT] Job completed successfully:', jobRef.id);
         } catch (e: any) {
+          console.error('[BATCH COMMIT] Job failed:', jobRef.id, e.message);
           await jobRef.update({ status: "failed", counts: counters, finishedAt: new Date().toISOString(), errors: [{ message: e.message }] });
         }
       });
     } catch (err: any) {
+      console.error('[BATCH COMMIT] Error:', err.message, err.stack);
       res.status(400).json({ error: err.message });
     }
   });
