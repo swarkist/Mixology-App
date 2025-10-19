@@ -283,11 +283,11 @@ export const Ingredients = (): JSX.Element => {
 
                   <CardHeader className="pb-3">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
-                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
+                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold hover:bg-[#f3d035] transition-colors cursor-default">
                         {ingredient.category}
                       </Badge>
                       {ingredient.subCategory && (
-                        <Badge className="bg-[#544f3b] text-[#bab59b] font-normal capitalize">
+                        <Badge className="bg-[#544f3b] text-[#bab59b] font-normal capitalize hover:bg-[#6b6550] hover:text-[#f2c40c] transition-colors cursor-default">
                           {ingredient.subCategory}
                         </Badge>
                       )}
