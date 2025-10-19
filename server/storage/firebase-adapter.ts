@@ -183,6 +183,17 @@ export class FirebaseStorageAdapter implements IStorage {
     }
   }
 
+  async updateSessionToken(sessionId: number, tokenHash: string): Promise<void> {
+    try {
+      await this.firebase.updateDocument('sessions', sessionId.toString(), {
+        refresh_token_hash: tokenHash
+      });
+    } catch (error) {
+      console.error('Error updating session token:', error);
+      throw new Error('Failed to update session token');
+    }
+  }
+
   async getSessionByRefreshTokenHash(tokenHash: string): Promise<Session | undefined> {
     try {
       const snapshot = await this.firebase.query('sessions', 'refresh_token_hash', '==', tokenHash);
@@ -440,31 +451,67 @@ export class FirebaseStorageAdapter implements IStorage {
   }
 
   async getMostUsedIngredientTags(limit = 5): Promise<Tag[]> {
-    // TODO: Implement ingredient-specific tag filtering
-    const tags = await this.firebase.getAllTags();
-    return tags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
+    const ingredientTagsSnapshot = await this.firebase.firestore.collection('ingredient_tags').get();
+    const tagIds = new Set<number>();
+    ingredientTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.tagId) tagIds.add(data.tagId);
+    });
+
+    if (tagIds.size === 0) return [];
+
+    const allTags = await this.firebase.getAllTags();
+    const ingredientTags = allTags.filter(tag => tagIds.has(tag.id));
+    return ingredientTags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
   }
 
   async getMostRecentIngredientTags(limit = 5): Promise<Tag[]> {
-    // TODO: Implement ingredient-specific tag filtering
-    const tags = await this.firebase.getAllTags();
-    return tags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+    const ingredientTagsSnapshot = await this.firebase.firestore.collection('ingredient_tags').get();
+    const tagIds = new Set<number>();
+    ingredientTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.tagId) tagIds.add(data.tagId);
+    });
+
+    if (tagIds.size === 0) return [];
+
+    const allTags = await this.firebase.getAllTags();
+    const ingredientTags = allTags.filter(tag => tagIds.has(tag.id));
+    return ingredientTags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
   }
 
   async getMostUsedCocktailTags(limit = 5): Promise<Tag[]> {
-    // TODO: Implement cocktail-specific tag filtering
-    const tags = await this.firebase.getAllTags();
-    return tags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
+    const cocktailTagsSnapshot = await this.firebase.firestore.collection('cocktail_tags').get();
+    const tagIds = new Set<number>();
+    cocktailTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.tagId) tagIds.add(data.tagId);
+    });
+
+    if (tagIds.size === 0) return [];
+
+    const allTags = await this.firebase.getAllTags();
+    const cocktailTags = allTags.filter(tag => tagIds.has(tag.id));
+    return cocktailTags.sort((a, b) => (b.usageCount || 0) - (a.usageCount || 0)).slice(0, limit);
   }
 
   async getMostRecentCocktailTags(limit = 5): Promise<Tag[]> {
-    // TODO: Implement cocktail-specific tag filtering
-    const tags = await this.firebase.getAllTags();
-    return tags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
+    const cocktailTagsSnapshot = await this.firebase.firestore.collection('cocktail_tags').get();
+    const tagIds = new Set<number>();
+    cocktailTagsSnapshot.docs.forEach(doc => {
+      const data = doc.data();
+      if (data.tagId) tagIds.add(data.tagId);
+    });
+
+    if (tagIds.size === 0) return [];
+
+    const allTags = await this.firebase.getAllTags();
+    const cocktailTags = allTags.filter(tag => tagIds.has(tag.id));
+    return cocktailTags.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, limit);
   }
 
   async incrementTagUsage(tagId: number): Promise<void> {
-    // TODO: Implement tag usage increment
+    await this.firebase.incrementTagUsage(tagId);
   }
 
   async deleteTag(id: number): Promise<boolean> {

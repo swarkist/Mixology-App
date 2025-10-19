@@ -6,6 +6,7 @@ import { sendPasswordResetEmail } from '../lib/mailer';
 import { requireAuth } from '../middleware/requireAuth';
 import { authLimiter, passwordResetLimiter, accountDeletionLimiter, accountDeletionIPLimiter } from '../middleware/rateLimiter';
 import type { IStorage } from '../storage';
+import { logger } from '../lib/logger';
 
 // Generic error message for security (no account enumeration)
 const GENERIC_ERROR_MESSAGE = "The information you provided doesn't match our records.";
@@ -57,32 +58,24 @@ export function createAuthRoutes(storage: IStorage): Router {
         is_active: true
       });
 
-      // Create session
-      const refreshToken = signRefreshToken(0); // Temporary session ID
+      // Create session with placeholder token hash
       const session = await storage.createSession({
         user_id: user.id,
-        refresh_token_hash: hashToken(refreshToken),
+        refresh_token_hash: '', // Placeholder
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         ip: req.ip,
         user_agent: req.get('User-Agent') || null
       });
 
-      // Generate tokens
+      // Generate tokens using the actual session ID
       const accessToken = signAccessToken(user);
-      const newRefreshToken = signRefreshToken(session.id);
+      const refreshToken = signRefreshToken(session.id);
 
-      // Update session with correct refresh token
-      await storage.revokeSession(session.id);
-      const finalSession = await storage.createSession({
-        user_id: user.id,
-        refresh_token_hash: hashToken(newRefreshToken),
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        ip: req.ip,
-        user_agent: req.get('User-Agent') || null
-      });
+      // Update session with correct refresh token hash
+      await storage.updateSessionToken(session.id, hashToken(refreshToken));
 
       // Set cookies
-      setAuthCookies(res, accessToken, newRefreshToken);
+      setAuthCookies(res, accessToken, refreshToken);
 
       // Log registration
       await storage.createAuditLog({
@@ -106,7 +99,7 @@ export function createAuthRoutes(storage: IStorage): Router {
       });
 
     } catch (error) {
-      console.error('Registration error:', error);
+      logger.error('Registration error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           success: false, 
@@ -143,34 +136,24 @@ export function createAuthRoutes(storage: IStorage): Router {
         });
       }
 
-      // Generate tokens
-      const accessToken = signAccessToken(user);
-      const refreshToken = signRefreshToken(0); // Temporary
-
-      // Create session
+      // Create session with placeholder token hash
       const session = await storage.createSession({
         user_id: user.id,
-        refresh_token_hash: hashToken(refreshToken),
+        refresh_token_hash: '', // Placeholder
         expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         ip: req.ip,
         user_agent: req.get('User-Agent') || null
       });
 
-      // Generate final refresh token with session ID
-      const finalRefreshToken = signRefreshToken(session.id);
-      
+      // Generate tokens using the actual session ID
+      const accessToken = signAccessToken(user);
+      const refreshToken = signRefreshToken(session.id);
+
       // Update session with correct refresh token hash
-      await storage.revokeSession(session.id);
-      await storage.createSession({
-        user_id: user.id,
-        refresh_token_hash: hashToken(finalRefreshToken),
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        ip: req.ip,
-        user_agent: req.get('User-Agent') || null
-      });
+      await storage.updateSessionToken(session.id, hashToken(refreshToken));
 
       // Set cookies
-      setAuthCookies(res, accessToken, finalRefreshToken);
+      setAuthCookies(res, accessToken, refreshToken);
 
       // Log login
       await storage.createAuditLog({
@@ -194,7 +177,7 @@ export function createAuthRoutes(storage: IStorage): Router {
       });
 
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ 
           success: false, 

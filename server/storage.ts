@@ -35,6 +35,7 @@ export interface IStorage {
   
   // Sessions Management
   createSession(session: InsertSession): Promise<Session>;
+  updateSessionToken(sessionId: number, tokenHash: string): Promise<void>;
   getSessionByRefreshTokenHash(tokenHash: string): Promise<Session | undefined>;
   revokeSession(sessionId: number): Promise<void>;
   revokeAllUserSessions(userId: number): Promise<void>;

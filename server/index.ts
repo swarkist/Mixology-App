@@ -10,6 +10,7 @@ import { setupVite, serveStatic, log } from "./vite";
 // import { MemStorage } from "./storage/memory"; // Not used - using Firebase only
 import { FirebaseStorageAdapter } from "./storage/firebase-adapter";
 import type { IStorage } from "./storage";
+import { logger } from "./lib/logger";
 
 const app = express();
 
@@ -64,7 +65,6 @@ app.use(helmet({
       connectSrc: isProduction
         ? [
             "'self'",
-            "https://api.allorigins.win", // Allow CORS proxy for web scraping
             "https://openrouter.ai" // Allow OpenRouter API
           ]
         : [
@@ -73,7 +73,6 @@ app.use(helmet({
             "wss://localhost:*",
             "http://localhost:*",
             "https://localhost:*",
-            "https://api.allorigins.win", // Allow CORS proxy for web scraping
             "https://openrouter.ai" // Allow OpenRouter API
           ],
       imgSrc: ["'self'", "data:", "blob:", "https:"]
@@ -150,20 +149,20 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
     "/auth/reset-password"   // Password reset confirmation
   ];
   
-  console.log(`Admin check: ${method} ${req.path} - isWrite: ${isWrite}`);
+  logger.log(`Admin check: ${method} ${req.path} - isWrite: ${isWrite}`);
   
   // Allow read-only endpoints
   if (readOnlyEndpoints.includes(req.path)) {
-    console.log(`Allowing read-only endpoint: ${req.path}`);
+    logger.log(`Allowing read-only endpoint: ${req.path}`);
     return next();
   }
   
   // Check if this is an admin-only operation
   const isAdminOperation = adminOnlyEndpoints.some(endpoint => req.path.includes(endpoint));
-  console.log(`Is admin operation: ${isAdminOperation} for path: ${req.path}`);
+  logger.log(`Is admin operation: ${isAdminOperation} for path: ${req.path}`);
   if (!isAdminOperation) {
     // Regular user operation - allow through for role-based middleware to handle
-    console.log(`Allowing regular user operation: ${req.path}`);
+    logger.log(`Allowing regular user operation: ${req.path}`);
     return next();
   }
 
@@ -220,7 +219,7 @@ app.use((req, res, next) => {
 
 // Initialize storage and bootstrap admin
 async function initializeStorage(): Promise<IStorage> {
-  console.log("🔥 Storage Backend Selection: Firebase");
+  logger.log("🔥 Storage Backend Selection: Firebase");
   
   const storage = new FirebaseStorageAdapter();
   

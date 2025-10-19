@@ -1015,6 +1015,20 @@ export class FirebaseStorage {
     return { id: numericId, ...tagData } as Tag;
   }
 
+  async incrementTagUsage(tagId: number): Promise<void> {
+    try {
+      const tag = await this.tagsCollection.doc(tagId.toString()).get();
+      if (!tag.exists) return;
+      
+      const currentCount = (tag.data()?.usageCount || 0) as number;
+      await this.tagsCollection.doc(tagId.toString()).update({
+        usageCount: currentCount + 1
+      });
+    } catch (error) {
+      console.error('Error incrementing tag usage:', error);
+    }
+  }
+
   async deleteTag(id: number): Promise<boolean> {
     try {
       const docRef = this.tagsCollection.doc(id.toString());
