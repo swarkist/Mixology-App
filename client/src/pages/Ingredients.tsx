@@ -282,18 +282,21 @@ export const Ingredients = (): JSX.Element => {
                   />
 
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
-                          {ingredient.category}
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                      <Badge className="bg-[#f2c40c] text-[#161611] font-bold">
+                        {ingredient.category}
+                      </Badge>
+                      {ingredient.subCategory && (
+                        <Badge className="bg-[#544f3b] text-[#bab59b] font-normal capitalize">
+                          {ingredient.subCategory}
                         </Badge>
-                        {ingredient.usedInRecipesCount > 0 && (
-                          <div className="flex items-center gap-1 text-[#bab59b] text-sm">
-                            <BarChart3 className="h-4 w-4" />
-                            <span>{ingredient.usedInRecipesCount}</span>
-                          </div>
-                        )}
-                      </div>
+                      )}
+                      {ingredient.usedInRecipesCount > 0 && (
+                        <div className="flex items-center gap-1 text-[#bab59b] text-sm">
+                          <BarChart3 className="h-4 w-4" />
+                          <span>{ingredient.usedInRecipesCount}</span>
+                        </div>
+                      )}
                     </div>
                     <CardTitle className="text-xl text-white truncate [font-family:'Plus_Jakarta_Sans',Helvetica]" title={ingredient.name}>
                       {ingredient.name}
@@ -301,11 +304,6 @@ export const Ingredients = (): JSX.Element => {
                   </CardHeader>
                   <CardContent className="flex flex-col flex-1">
                     <div className="flex-1">
-                      {ingredient.subCategory && (
-                        <p className="text-[#bab59b] text-sm mb-2 [font-family:'Plus_Jakarta_Sans',Helvetica] capitalize">
-                          {ingredient.subCategory}
-                        </p>
-                      )}
                       {ingredient.description && (
                         <p className="text-[#bab59b] text-sm mb-4 [font-family:'Plus_Jakarta_Sans',Helvetica]">
                           {ingredient.description}
