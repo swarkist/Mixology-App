@@ -15,6 +15,15 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Changes
 
+### October 19, 2025 - Batch Operations Tag Junction Table Fix
+- **CRITICAL BUG FIX**: Fixed batch operations failing to save tags to junction tables (ingredient_tags, cocktail_tags)
+- **Root Cause**: Code was attempting to read non-existent numeric `id` field from document data - Firebase stores numeric IDs as document keys (strings), not as fields in document data
+- **Implementation**: Updated `updateTagRelationships` function in `server/services/batch.ts` to parse document ID string directly using `parseInt(documentId)` instead of reading `docData.id`
+- **Tag Processing**: Tags now properly normalize names, create new tags if needed, clear existing relationships, and rebuild junction tables with correct numeric foreign keys
+- **Observability**: Added comprehensive logging to batch commit endpoint in `server/routes/adminBatch.ts` for easier debugging (request flow, row counts, job creation, background processing)
+- **Testing**: Verified fix works with successful batch operation (job ID: cwJlQxQpsxYUr0Rj8Bhr) - tags now populate correctly on site and in database
+- **Architecture Note**: Firebase Firestore document IDs are the source of truth for numeric IDs; no `id` field exists in document data
+
 ### September 15, 2025 - Batch Operations Fix & Firebase Admin Issues
 - **CRITICAL BUG FIX**: Resolved Firebase Admin SDK import errors causing application startup failures
 - **Implementation**: Updated Firebase imports in `server/services/batch.ts` and `server/routes/adminBatch.ts` from deprecated `firestore` import to centralized `db` from `../firebase`
