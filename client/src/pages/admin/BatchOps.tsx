@@ -249,7 +249,16 @@ export default function BatchOps() {
               className="bg-neutral-900 font-mono h-40 mb-2"
               placeholder="Paste CSV/TSV with headers id,name,description,tags"
             />
-            <Button onClick={handlePreview}>Parse & Preview</Button>
+            <div className="flex gap-2">
+              <Button onClick={handlePreview}>Parse & Preview</Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setPasteText("")}
+                disabled={!pasteText}
+              >
+                Clear
+              </Button>
+            </div>
           </TabsContent>
         </Tabs>
 
