@@ -198,16 +198,10 @@ async function updateTagRelationships(
   documentId: string,
   tagNames: string[]
 ): Promise<void> {
-  // Get the numeric ID from the document
-  const docSnapshot = await db.collection(collection).doc(documentId).get();
-  if (!docSnapshot.exists) {
-    console.error(`Document ${documentId} not found in collection ${collection}`);
-    return;
-  }
-  const docData = docSnapshot.data();
-  const numericId = docData?.id;
-  if (!numericId || typeof numericId !== 'number') {
-    console.error(`Document ${documentId} does not have a valid numeric id field`);
+  // Parse numeric ID from document ID string
+  const numericId = parseInt(documentId);
+  if (isNaN(numericId)) {
+    console.error(`Document ID ${documentId} cannot be parsed as a number`);
     return;
   }
   
