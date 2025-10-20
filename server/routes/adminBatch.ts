@@ -319,6 +319,110 @@ export default function adminBatchRoutes(storage: IStorage) {
     }
   });
 
+  router.get("/list-cocktails", async (_req, res) => {
+    try {
+      // Fetch all cocktails
+      const cocktailsSnapshot = await db.collection("cocktails").get();
+      
+      // Fetch all tags and cocktail_tags
+      const [allTagsSnapshot, cocktailTagsSnapshot] = await Promise.all([
+        db.collection("tags").get(),
+        db.collection("cocktail_tags").get()
+      ]);
+      
+      // Build tag map (tagId -> tag name)
+      const tagMap = new Map<number, string>();
+      allTagsSnapshot.forEach(doc => {
+        const data = doc.data();
+        tagMap.set(parseInt(doc.id), data.name);
+      });
+      
+      // Build cocktail tags map (cocktailId -> tag names array)
+      const cocktailTagsMap = new Map<number, string[]>();
+      cocktailTagsSnapshot.forEach(doc => {
+        const data = doc.data();
+        const cocktailId = data.cocktailId;
+        const tagName = tagMap.get(data.tagId);
+        if (tagName) {
+          if (!cocktailTagsMap.has(cocktailId)) {
+            cocktailTagsMap.set(cocktailId, []);
+          }
+          cocktailTagsMap.get(cocktailId)!.push(tagName);
+        }
+      });
+      
+      // Build result
+      const result = cocktailsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        const cocktailId = parseInt(doc.id);
+        const tags = cocktailTagsMap.get(cocktailId) || [];
+        
+        return {
+          id: doc.id,
+          name: data.name || '',
+          description: data.description || '',
+          tags: tags.join(', ')
+        };
+      });
+      
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  router.get("/list-ingredients", async (_req, res) => {
+    try {
+      // Fetch all ingredients
+      const ingredientsSnapshot = await db.collection("ingredients").get();
+      
+      // Fetch all tags and ingredient_tags
+      const [allTagsSnapshot, ingredientTagsSnapshot] = await Promise.all([
+        db.collection("tags").get(),
+        db.collection("ingredient_tags").get()
+      ]);
+      
+      // Build tag map (tagId -> tag name)
+      const tagMap = new Map<number, string>();
+      allTagsSnapshot.forEach(doc => {
+        const data = doc.data();
+        tagMap.set(parseInt(doc.id), data.name);
+      });
+      
+      // Build ingredient tags map (ingredientId -> tag names array)
+      const ingredientTagsMap = new Map<number, string[]>();
+      ingredientTagsSnapshot.forEach(doc => {
+        const data = doc.data();
+        const ingredientId = data.ingredientId;
+        const tagName = tagMap.get(data.tagId);
+        if (tagName) {
+          if (!ingredientTagsMap.has(ingredientId)) {
+            ingredientTagsMap.set(ingredientId, []);
+          }
+          ingredientTagsMap.get(ingredientId)!.push(tagName);
+        }
+      });
+      
+      // Build result
+      const result = ingredientsSnapshot.docs.map(doc => {
+        const data = doc.data();
+        const ingredientId = parseInt(doc.id);
+        const tags = ingredientTagsMap.get(ingredientId) || [];
+        
+        return {
+          id: doc.id,
+          name: data.name || '',
+          description: data.description || '',
+          tags: tags.join(', ')
+        };
+      });
+      
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   return router;
 }
 
