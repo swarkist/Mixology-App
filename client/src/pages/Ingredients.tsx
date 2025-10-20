@@ -60,10 +60,12 @@ export const Ingredients = (): JSX.Element => {
     // Apply search filter
     if (debounced.trim()) {
       const q = debounced.toLowerCase();
-      filtered = filtered.filter((ingredient: Ingredient) =>
-        ingredient.name?.toLowerCase().includes(q) ||
-        ingredient.description?.toLowerCase().includes(q)
-      );
+      filtered = filtered.filter((ingredient: Ingredient & { tags?: string[] }) => {
+        const matchesName = ingredient.name?.toLowerCase().includes(q);
+        const matchesDescription = ingredient.description?.toLowerCase().includes(q);
+        const matchesTags = ingredient.tags?.some(tag => tag.toLowerCase().includes(q));
+        return matchesName || matchesDescription || matchesTags;
+      });
     }
     
     // Apply category filter

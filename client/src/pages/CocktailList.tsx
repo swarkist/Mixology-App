@@ -125,10 +125,12 @@ export const CocktailList = (): JSX.Element => {
     if (!debounced) return allCocktails;
     
     const q = debounced.toLowerCase();
-    return allCocktails.filter((cocktail: Cocktail) =>
-      cocktail.name?.toLowerCase().includes(q) ||
-      cocktail.description?.toLowerCase().includes(q)
-    );
+    return allCocktails.filter((cocktail: Cocktail & { tags?: string[] }) => {
+      const matchesName = cocktail.name?.toLowerCase().includes(q);
+      const matchesDescription = cocktail.description?.toLowerCase().includes(q);
+      const matchesTags = cocktail.tags?.some(tag => tag.toLowerCase().includes(q));
+      return matchesName || matchesDescription || matchesTags;
+    });
   }, [allCocktails, debounced]);
 
   // Toggle featured status mutation

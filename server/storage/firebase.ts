@@ -65,6 +65,33 @@ export class FirebaseStorage {
     try {
       const snapshot = await this.cocktailsCollection.get();
       
+      // Fetch all tags and cocktail_tags junction table data
+      const [allTagsSnapshot, cocktailTagsSnapshot] = await Promise.all([
+        this.tagsCollection.get(),
+        this.cocktailTagsCollection.get()
+      ]);
+      
+      // Build tag map (tagId -> tag name)
+      const tagMap = new Map<number, string>();
+      allTagsSnapshot.docs.forEach((doc: any) => {
+        const data = doc.data();
+        tagMap.set(parseInt(doc.id), data.name);
+      });
+      
+      // Build cocktail tags map using string IDs (cocktailId string -> tag names array)
+      const cocktailTagsMap = new Map<string, string[]>();
+      cocktailTagsSnapshot.docs.forEach((doc: any) => {
+        const data = doc.data();
+        const cocktailId = data.cocktailId.toString(); // Convert to string for map key
+        const tagName = tagMap.get(data.tagId);
+        if (tagName) {
+          if (!cocktailTagsMap.has(cocktailId)) {
+            cocktailTagsMap.set(cocktailId, []);
+          }
+          cocktailTagsMap.get(cocktailId)!.push(tagName);
+        }
+      });
+      
       return snapshot.docs.map((doc: any) => {
         const data = doc.data();
         
@@ -75,8 +102,11 @@ export class FirebaseStorage {
           id = Date.now() + Math.floor(Math.random() * 1000);
         }
         
+        // Get tags from junction table using string doc ID
+        const tags = cocktailTagsMap.get(doc.id) || [];
+        
         // Ensure all required fields exist with default values
-        const cocktail: Cocktail = {
+        const cocktail: Cocktail & { tags?: string[] } = {
           id,
           name: data.name || 'Untitled Cocktail',
           description: data.description || null,
@@ -86,9 +116,10 @@ export class FirebaseStorage {
           popularityCount: data.popularityCount || 0,
           createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
           updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+          tags, // Include tags from junction table
         };
         
-        return cocktail;
+        return cocktail as any;
       });
     } catch (error) {
       console.error('Error fetching cocktails from Firebase:', error);
@@ -464,6 +495,34 @@ export class FirebaseStorage {
   // Ingredient operations
   async getAllIngredients(): Promise<Ingredient[]> {
     const snapshot = await this.ingredientsCollection.get();
+    
+    // Fetch all tags and ingredient_tags junction table data
+    const [allTagsSnapshot, ingredientTagsSnapshot] = await Promise.all([
+      this.tagsCollection.get(),
+      this.ingredientTagsCollection.get()
+    ]);
+    
+    // Build tag map (tagId -> tag name)
+    const tagMap = new Map<number, string>();
+    allTagsSnapshot.docs.forEach((doc: any) => {
+      const data = doc.data();
+      tagMap.set(parseInt(doc.id), data.name);
+    });
+    
+    // Build ingredient tags map using string IDs (ingredientId string -> tag names array)
+    const ingredientTagsMap = new Map<string, string[]>();
+    ingredientTagsSnapshot.docs.forEach((doc: any) => {
+      const data = doc.data();
+      const ingredientId = data.ingredientId.toString(); // Convert to string for map key
+      const tagName = tagMap.get(data.tagId);
+      if (tagName) {
+        if (!ingredientTagsMap.has(ingredientId)) {
+          ingredientTagsMap.set(ingredientId, []);
+        }
+        ingredientTagsMap.get(ingredientId)!.push(tagName);
+      }
+    });
+    
     return snapshot.docs.map((doc: any) => {
       const data = doc.data();
       // Try to parse doc.id as number, if it fails or is NaN, use a generated ID
@@ -473,8 +532,11 @@ export class FirebaseStorage {
         id = Date.now() + Math.floor(Math.random() * 1000);
       }
       
+      // Get tags from junction table using string doc ID
+      const tags = ingredientTagsMap.get(doc.id) || [];
+      
       // Ensure all required fields exist with default values
-      const ingredient: IngredientWithMyBar = {
+      const ingredient: IngredientWithMyBar & { tags?: string[] } = {
         id,
         name: data.name || 'Untitled Ingredient',
         category: data.category || 'other',
@@ -487,9 +549,10 @@ export class FirebaseStorage {
         usedInRecipesCount: data.usedInRecipesCount || 0,
         createdAt: data.createdAt ? new Date(data.createdAt) : new Date(),
         updatedAt: data.updatedAt ? new Date(data.updatedAt) : new Date(),
+        tags, // Include tags from junction table
       };
 
-      return ingredient;
+      return ingredient as any;
     });
   }
 
