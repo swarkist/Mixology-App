@@ -15,6 +15,16 @@ Development workflow: User now implements independent code changes and requests 
 
 ## Recent Changes
 
+### October 20, 2025 - Batch Operations Junction Table Tag Fetching Fix
+- **CRITICAL BUG FIX**: Fixed batch operations `skipIfSame` logic reading stale tags from document fields instead of junction tables
+- **Root Cause**: Production documents contained legacy `tags` field with outdated data while junction tables (`cocktail_tags`, `ingredient_tags`) were the source of truth; dev documents had different/minimal data in tags field, causing inconsistent behavior between environments
+- **Symptom**: Production batch operations skipped updates when descriptions matched, even when junction table tags were empty and needed updating; workaround required changing descriptions to force updates
+- **Implementation**: Updated `buildPreview` function in `server/routes/adminBatch.ts` to fetch tags from junction tables upfront (matching reference list endpoint pattern), building `tagMap` and `itemTagsMap` before processing documents
+- **Data Loading**: Two bulk reads per preview (tags collection + junction table) ensures current tags derive exclusively from junction tables
+- **skipIfSame Logic**: Now correctly compares actual junction table tags vs proposed tags, eliminating false skips caused by stale document field data
+- **Impact**: Production and dev environments now behave identically; batch operations properly detect when junction table tags differ from CSV/paste data regardless of description changes
+- **Testing**: Architect review confirmed junction table fetch mirrors existing patterns, performance bounded to two bulk reads, and resolves production/dev inconsistency
+
 ### October 20, 2025 - Batch Operations Reference Lists
 - **NEW FEATURE**: Added reference list functionality to Batch Operations page for easy data review
 - **Implementation**: Created two new GET endpoints `/api/admin/batch/list-cocktails` and `/api/admin/batch/list-ingredients` that fetch all items with complete tag information from junction tables
