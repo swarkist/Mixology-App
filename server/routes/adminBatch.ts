@@ -107,6 +107,36 @@ export default function adminBatchRoutes(storage: IStorage) {
     let skipped = 0;
     let warnings: { duplicates?: number } = {};
 
+    // Fetch tags from junction tables instead of document fields
+    const junctionCollection = body.collection === "cocktails" ? "cocktail_tags" : "ingredient_tags";
+    const itemIdField = body.collection === "cocktails" ? "cocktailId" : "ingredientId";
+    
+    const [allTagsSnapshot, junctionSnapshot] = await Promise.all([
+      db.collection("tags").get(),
+      db.collection(junctionCollection).get()
+    ]);
+    
+    // Build tag map (tagId -> tag name)
+    const tagMap = new Map<number, string>();
+    allTagsSnapshot.forEach(doc => {
+      const data = doc.data();
+      tagMap.set(parseInt(doc.id), data.name);
+    });
+    
+    // Build item tags map (itemId -> tag names array)
+    const itemTagsMap = new Map<number, string[]>();
+    junctionSnapshot.forEach(doc => {
+      const data = doc.data();
+      const itemId = data[itemIdField];
+      const tagName = tagMap.get(data.tagId);
+      if (tagName) {
+        if (!itemTagsMap.has(itemId)) {
+          itemTagsMap.set(itemId, []);
+        }
+        itemTagsMap.get(itemId)!.push(tagName);
+      }
+    });
+
     if (body.mode === "query") {
       const snap = await buildQuery(body.collection, body.filters);
       snap.forEach((doc) => {
@@ -120,7 +150,9 @@ export default function adminBatchRoutes(storage: IStorage) {
           }
         }
         
-        const current = { description: data.description || "", tags: data.tags || [] };
+        // Fetch tags from junction table instead of document field
+        const currentTags = itemTagsMap.get(parseInt(doc.id)) || [];
+        const current = { description: data.description || "", tags: currentTags };
         const proposed = applyOperation(current, body.operation);
         const row: RowData = { id: doc.id, name: data.name, current, proposed };
         const final = { description: proposed.description ?? current.description, tags: proposed.tags ?? current.tags };
@@ -149,7 +181,9 @@ export default function adminBatchRoutes(storage: IStorage) {
           continue;
         }
         const data: any = doc.data() || {};
-        const current = { description: data.description || "", tags: data.tags || [] };
+        // Fetch tags from junction table instead of document field
+        const currentTags = itemTagsMap.get(parseInt(id)) || [];
+        const current = { description: data.description || "", tags: currentTags };
         const proposed = {
           description: r.proposed?.description ?? current.description,
           tags: r.proposed?.tags ?? current.tags
