@@ -13,6 +13,47 @@ Homepage input design: Prefers original Figma search field styling with dark inp
 Development constraints: Do not attempt to fix Enter key dialog temporary showing/hiding behavior - user acknowledges this cannot be resolved through code changes.
 Development workflow: User now implements independent code changes and requests reviews rather than full implementations from agent.
 
+## Recent Changes
+
+### October 20, 2025 - Batch Operations Reference Lists
+- **NEW FEATURE**: Added reference list functionality to Batch Operations page for easy data review
+- **Implementation**: Created two new GET endpoints `/api/admin/batch/list-cocktails` and `/api/admin/batch/list-ingredients` that fetch all items with complete tag information from junction tables
+- **UI Enhancement**: Added "Cocktail List" and "Ingredients List" buttons to BatchOps header for quick access to reference data
+- **View State Management**: Implemented clean view switching between batch operations interface and reference table displays
+- **Data Display**: Reference tables show ID, Name, Description, and Tags (comma-separated) for all cocktails or ingredients
+- **Navigation**: Added "Back to Batch Operations" button for seamless navigation between views
+- **Architecture**: Leverages existing junction table queries with proper tag aggregation; inherits admin-only security middleware
+- **Use Case**: Provides admins with quick reference data for offline copying/review without disrupting batch operation workflows
+
+### October 19, 2025 - Batch Operations Tag Junction Table Fix
+- **CRITICAL BUG FIX**: Fixed batch operations failing to save tags to junction tables (ingredient_tags, cocktail_tags)
+- **Root Cause**: Code was attempting to read non-existent numeric `id` field from document data - Firebase stores numeric IDs as document keys (strings), not as fields in document data
+- **Implementation**: Updated `updateTagRelationships` function in `server/services/batch.ts` to parse document ID string directly using `parseInt(documentId)` instead of reading `docData.id`
+- **Tag Processing**: Tags now properly normalize names, create new tags if needed, clear existing relationships, and rebuild junction tables with correct numeric foreign keys
+- **Observability**: Added comprehensive logging to batch commit endpoint in `server/routes/adminBatch.ts` for easier debugging
+- **Architecture Note**: Firebase Firestore document IDs are the source of truth for numeric IDs; no `id` field exists in document data
+
+### September 15, 2025 - Batch Operations Fix & Firebase Admin Issues
+- **CRITICAL BUG FIX**: Resolved Firebase Admin SDK import errors causing application startup failures
+- **Implementation**: Updated Firebase imports in batch services from deprecated `firestore` import to centralized `db` from `../firebase`
+- **Rate Limiting Fix**: Fixed IPv6 address handling in rate limiter by implementing proper `ipKeyGenerator` helper function
+- **Admin Authentication**: Resolved Batch Ops 403 Forbidden errors by ensuring `VITE_ADMIN_API_KEY` environment variable is properly configured for frontend
+- **Zod Schema Fix**: Fixed union type extend issue in admin batch routes by properly extending individual schema types
+- **Filtering Logic**: Implemented missing "contains" mode filtering for Batch Operations with case-insensitive client-side text matching
+- **Performance**: Optimized filtering to return only matching results rather than all documents
+
+### August 23, 2025 - URL Scraping Security Enhancement & Bug Fixes
+- **CRITICAL SECURITY FIX**: Fixed `/api/scrape-url` endpoint authentication vulnerability
+- **Implementation**: Moved endpoint from `registerReadOnlyRoutes` to `registerRoutes` with proper authentication middleware
+- **Access Control**: Now requires session authentication and admin/reviewer roles
+- **Rate Limiting**: Implemented scraping-specific rate limiter (10 requests/minute per authenticated user)
+- **Reliability**: Removed unreliable AllOrigins proxy dependency; implemented direct server-side fetching
+- **Caching**: Added 10-minute in-memory caching with LRU eviction to prevent duplicate requests
+- **Data Extraction**: Enhanced structured data extraction with JSON-LD, OpenGraph, and canonical URL support
+- **Error Handling**: Comprehensive error codes with deterministic HTTP status mapping and user-friendly hints
+- **JavaScript Bug Fix**: Resolved `undefined is not an object` error in ImportCocktail component with proper null safety checks
+- **Import Workflow**: Verified complete AI-powered recipe import functionality from URL extraction to cocktail creation
+
 ## System Architecture
 
 ### Frontend Architecture
@@ -61,3 +102,33 @@ Development workflow: User now implements independent code changes and requests 
 - **Security**: Helmet, CORS, `express-rate-limit`, Morgan.
 - **AI Integration**: OpenRouter API, YouTube transcript extraction, Cheerio.
 - **Image Processing**: Custom image compression utilities.
+
+### Development & Testing Dependencies
+- **Testing**: Vitest with comprehensive regression test suite covering authentication, API functionality, data isolation, UI filtering consistency, performance, and API endpoint validation.
+- **Security Testing**: Dedicated test suites for endpoint security validation, including authentication bypass prevention, role-based access control verification, and rate limiting validation.
+
+## Current Status & Production Readiness
+
+### Security Status
+✅ **Authenticated Endpoints**: All write operations require authentication  
+✅ **Role-Based Access Control**: Three-tier RBAC (basic/reviewer/admin) implemented  
+✅ **Rate Limiting**: Comprehensive rate limiting across all sensitive endpoints  
+✅ **Data Validation**: Zod schema validation on all inputs  
+✅ **Session Security**: Secure session management with proper cookie handling  
+
+### Feature Completeness
+✅ **Core Functionality**: Full CRUD operations for cocktails, ingredients, and user data  
+✅ **AI Integration**: Complete recipe import and chatbot functionality  
+✅ **User Management**: Admin dashboard with user role management  
+✅ **Data Integrity**: Proper foreign key relationships and data consistency  
+✅ **Mobile Optimization**: Responsive design across all pages  
+✅ **PWA Support**: Progressive web app capabilities with offline functionality  
+✅ **Batch Operations**: Admin tools for bulk updates with reference list viewing
+
+### Recent Testing Status
+- **Authentication Tests**: All security tests passing
+- **Import Functionality**: URL extraction and AI parsing verified working
+- **Database Operations**: CRUD operations functioning correctly
+- **Tag Management**: Complete tag system operational with junction table support
+- **Mobile Interface**: Responsive design validated on multiple devices
+- **Batch Operations**: Tag updates and reference lists verified functional
