@@ -13,7 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { Shield } from "lucide-react";
+import { Shield, List } from "lucide-react";
 
 interface PreviewRow {
   id: string;
@@ -31,12 +31,21 @@ interface PreviewResponse {
   warnings?: { duplicates?: number };
 }
 
+interface ReferenceItem {
+  id: string;
+  name: string;
+  description: string;
+  tags: string;
+}
+
 const adminKey = import.meta.env.VITE_ADMIN_API_KEY as string | undefined;
 
 export default function BatchOps() {
   const { toast } = useToast();
+  const [view, setView] = useState<"batch" | "cocktails" | "ingredients">("batch");
   const [mode, setMode] = useState<"query" | "paste">("query");
   const [collection, setCollection] = useState("ingredients");
+  const [referenceData, setReferenceData] = useState<ReferenceItem[]>([]);
 
   // Query form state
   const [field, setField] = useState("description");
@@ -139,6 +148,42 @@ export default function BatchOps() {
     }
   };
 
+  const handleLoadCocktails = async () => {
+    try {
+      const res = await fetch("/api/admin/batch/list-cocktails", {
+        method: "GET",
+        headers: {
+          ...(adminKey ? { "x-admin-key": adminKey } : {})
+        },
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Failed to load cocktails");
+      const data: ReferenceItem[] = await res.json();
+      setReferenceData(data);
+      setView("cocktails");
+    } catch (err: any) {
+      toast({ title: "Failed to load cocktails", description: err.message, variant: "destructive" });
+    }
+  };
+
+  const handleLoadIngredients = async () => {
+    try {
+      const res = await fetch("/api/admin/batch/list-ingredients", {
+        method: "GET",
+        headers: {
+          ...(adminKey ? { "x-admin-key": adminKey } : {})
+        },
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Failed to load ingredients");
+      const data: ReferenceItem[] = await res.json();
+      setReferenceData(data);
+      setView("ingredients");
+    } catch (err: any) {
+      toast({ title: "Failed to load ingredients", description: err.message, variant: "destructive" });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-black text-white p-4">
       <div className="max-w-5xl mx-auto">
@@ -155,6 +200,26 @@ export default function BatchOps() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+                onClick={handleLoadCocktails}
+                data-testid="button-cocktail-list"
+              >
+                <List className="w-4 h-4 mr-2" />
+                Cocktail List
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+                onClick={handleLoadIngredients}
+                data-testid="button-ingredient-list"
+              >
+                <List className="w-4 h-4 mr-2" />
+                Ingredients List
+              </Button>
               <Link href="/admin">
                 <Button
                   variant="outline"
@@ -169,11 +234,27 @@ export default function BatchOps() {
             </div>
           </div>
         </div>
-        <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="query">Build Query</TabsTrigger>
-            <TabsTrigger value="paste">Paste/CSV</TabsTrigger>
-          </TabsList>
+        
+        {view !== "batch" && (
+          <div className="mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-yellow-600 text-yellow-600 hover:bg-yellow-600 hover:text-black"
+              onClick={() => setView("batch")}
+              data-testid="button-back-batch"
+            >
+              Back to Batch Operations
+            </Button>
+          </div>
+        )}
+
+        {view === "batch" && (<>
+          <Tabs value={mode} onValueChange={(v) => setMode(v as any)}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="query">Build Query</TabsTrigger>
+              <TabsTrigger value="paste">Paste/CSV</TabsTrigger>
+            </TabsList>
           <TabsContent value="query">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -263,60 +344,93 @@ export default function BatchOps() {
           </TabsContent>
         </Tabs>
 
-        {preview && (
-          <div className="mt-8">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <p className="text-sm">Will update: {preview.willUpdate} &nbsp; Skipped: {preview.skipped} &nbsp; Missing: {preview.missing.length}</p>
+          {preview && (
+            <div className="mt-8">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="text-sm">Will update: {preview.willUpdate} &nbsp; Skipped: {preview.skipped} &nbsp; Missing: {preview.missing.length}</p>
+                </div>
+                <Checkbox
+                  aria-label="Select all"
+                  checked={preview.rows.every((r) => selected[r.id])}
+                  onCheckedChange={(c) => handleSelectAll(Boolean(c))}
+                />
               </div>
-              <Checkbox
-                aria-label="Select all"
-                checked={preview.rows.every((r) => selected[r.id])}
-                onCheckedChange={(c) => handleSelectAll(Boolean(c))}
-              />
+              <Table className="mb-4">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8"></TableHead>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Current</TableHead>
+                    <TableHead>Proposed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {preview.rows.map((r) => (
+                    <TableRow key={r.id}>
+                      <TableCell>
+                        <Checkbox
+                          checked={selected[r.id]}
+                          onCheckedChange={(c) => setSelected({ ...selected, [r.id]: Boolean(c) })}
+                        />
+                      </TableCell>
+                      <TableCell>{r.id}</TableCell>
+                      <TableCell>{r.name}</TableCell>
+                      <TableCell>
+                        <div className="max-w-xs text-xs text-neutral-400">
+                          {r.current.description}
+                          {r.current.tags && r.current.tags.length > 0 && (
+                            <div>Tags: {r.current.tags.join(", ")}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="max-w-xs text-xs text-neutral-400">
+                          {r.proposed.description}
+                          {r.proposed.tags && r.proposed.tags.length > 0 && (
+                            <div>Tags: {r.proposed.tags.join(", ")}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Button onClick={handleCommit}>Run Batch</Button>
             </div>
-            <Table className="mb-4">
+          )}
+        </>)}
+        
+        {(view === "cocktails" || view === "ingredients") && (
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">
+              {view === "cocktails" ? "Cocktail List" : "Ingredients List"}
+            </h2>
+            <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-8"></TableHead>
                   <TableHead>ID</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Current</TableHead>
-                  <TableHead>Proposed</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Tags</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {preview.rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selected[r.id]}
-                        onCheckedChange={(c) => setSelected({ ...selected, [r.id]: Boolean(c) })}
-                      />
+                {referenceData.map((item) => (
+                  <TableRow key={item.id}>
+                    <TableCell>{item.id}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell className="max-w-md">
+                      <div className="text-xs text-neutral-400">{item.description}</div>
                     </TableCell>
-                    <TableCell>{r.id}</TableCell>
-                    <TableCell>{r.name}</TableCell>
-                    <TableCell>
-                      <div className="max-w-xs text-xs text-neutral-400">
-                        {r.current.description}
-                        {r.current.tags && r.current.tags.length > 0 && (
-                          <div>Tags: {r.current.tags.join(", ")}</div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs text-xs text-neutral-400">
-                        {r.proposed.description}
-                        {r.proposed.tags && r.proposed.tags.length > 0 && (
-                          <div>Tags: {r.proposed.tags.join(", ")}</div>
-                        )}
-                      </div>
+                    <TableCell className="max-w-md">
+                      <div className="text-xs text-neutral-400">{item.tags}</div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            <Button onClick={handleCommit}>Run Batch</Button>
           </div>
         )}
       </div>
