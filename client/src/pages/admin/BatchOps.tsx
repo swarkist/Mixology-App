@@ -441,16 +441,21 @@ export default function BatchOps() {
 function parsePaste(text: string) {
   const lines = text.trim().split(/\r?\n/);
   if (lines.length === 0) return [];
-  const headers = lines.shift()!.split(/[\t,]/).map((h) => h.trim().toLowerCase());
+  
+  // Detect delimiter: prefer tab, fall back to comma
+  const firstLine = lines[0];
+  const delimiter = firstLine.includes('\t') ? '\t' : ',';
+  
+  const headers = lines.shift()!.split(delimiter).map((h) => h.trim().toLowerCase());
   return lines.map((line) => {
-    const cells = line.split(/[\t,]/);
+    const cells = line.split(delimiter);
     const obj: any = { id: "" };
     cells.forEach((cell, i) => {
       const h = headers[i];
       if (h === "id" || h === "document id") obj.id = cell.trim();
       if (h === "name") obj.name = cell.trim();
       if (h === "description") obj.proposed = { ...(obj.proposed || {}), description: cell.trim() };
-      if (h === "tags") obj.proposed = { ...(obj.proposed || {}), tags: cell.split(/\||,/).map((t) => t.trim()) };
+      if (h === "tags") obj.proposed = { ...(obj.proposed || {}), tags: cell.split(/\||,/).map((t) => t.trim()).filter((t) => t.length > 0) };
     });
     return obj;
   });
