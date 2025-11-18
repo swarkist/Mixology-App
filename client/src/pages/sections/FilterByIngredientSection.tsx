@@ -191,25 +191,24 @@ export const FilterByIngredientSection = (): JSX.Element => {
             {popularRecipes && popularRecipes.length > 5 && (
               <div className="flex gap-3">
                 {popularRecipes.slice(5).map((recipe, index) => (
-                  <Card
-                    key={`recipe-extra-${index}`}
-                    className="w-44 bg-transparent border-0"
-                  >
-                    <CardContent className="p-0 space-y-3">
-                      <div
-                        className="w-full h-[247px] rounded-lg bg-cover bg-center"
-                        style={{ backgroundImage: `url(${recipe.imageUrl || noPhotoImage})` }}
-                      />
-                      <div className="space-y-1 pb-3">
-                        <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                          {recipe.name}
-                        </h3>
-                        <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
-                          {recipe.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <Link key={`recipe-extra-${index}`} href={`/recipe/${recipe.id}`}>
+                    <Card className="w-44 bg-transparent border-0 cursor-pointer hover:transform hover:scale-105 transition-transform">
+                      <CardContent className="p-0 space-y-3">
+                        <div
+                          className="w-full h-[247px] rounded-lg bg-cover bg-center"
+                          style={{ backgroundImage: `url(${recipe.imageUrl || noPhotoImage})` }}
+                        />
+                        <div className="space-y-1 pb-3">
+                          <h3 className="font-medium text-white text-base [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {recipe.name}
+                          </h3>
+                          <p className="font-normal text-[#bab59b] text-sm [font-family:'Plus_Jakarta_Sans',Helvetica]">
+                            {recipe.description}
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}
