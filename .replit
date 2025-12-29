@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["firebase-tools"]
+packages = ["firebase-tools", "glib", "nss", "nspr", "atk", "at-spi2-atk", "cups", "dbus", "libdrm", "expat", "xorg.libX11", "xorg.libXcomposite", "xorg.libXdamage", "xorg.libXext", "xorg.libXfixes", "xorg.libXrandr", "xorg.libxcb", "pango", "cairo", "alsa-lib", "mesa", "at-spi2-core", "gtk3", "libxkbcommon"]
 
 [deployment]
 deploymentTarget = "autoscale"

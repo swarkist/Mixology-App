@@ -21,10 +21,20 @@
 ## Phase 1: Infrastructure
 
 ```
-[ ] WTEST-001: Configure Playwright with TypeScript
+[x] WTEST-001: Configure Playwright with TypeScript
     Priority: P1
     Estimate: 2h
     Dependencies: []
+    COMPLETED: 2025-12-29
+    - Created playwright.config.ts with TypeScript, Chromium project, baseURL localhost:5000
+    - Created e2e/ directory structure (e2e/fixtures/, e2e/pages/)
+    - Created e2e/fixtures/base.ts with global network tripwire fixture:
+      * Allows localhost/127.0.0.1 and app baseURL
+      * Stubs fonts.googleapis.com, replit.com/public, cdnjs with empty responses
+      * BLOCKS dangerous APIs: openrouter.ai, api.openai.com, youtube.com/api
+    - Created e2e/example.spec.ts with 3 smoke tests (all passing)
+    - Installed @playwright/test package + system deps (glib, nss, gtk3, etc.)
+    - Files: playwright.config.ts, e2e/fixtures/base.ts, e2e/example.spec.ts
 
 [ ] WTEST-002: Create page object models for core pages
     Priority: P1
