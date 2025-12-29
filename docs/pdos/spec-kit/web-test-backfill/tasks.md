@@ -36,10 +36,23 @@
     - Installed @playwright/test package + system deps (glib, nss, gtk3, etc.)
     - Files: playwright.config.ts, e2e/fixtures/base.ts, e2e/example.spec.ts
 
-[ ] WTEST-002: Create page object models for core pages
+[x] WTEST-002: Create page object models for core pages
     Priority: P1
     Estimate: 3h
     Dependencies: [WTEST-001]
+    COMPLETED: 2025-12-29
+    - Created 8 page object models in e2e/pages/:
+      * home.page.ts - HomePage (search, navigation, cocktail/ingredient cards)
+      * login.page.ts - LoginPage (email, password, submit, error)
+      * register.page.ts - RegisterPage (username, email, password, confirm)
+      * cocktails.page.ts - CocktailsPage (search, filter, cocktail cards)
+      * cocktail-detail.page.ts - CocktailDetailPage (title, ingredients, instructions)
+      * ingredients.page.ts - IngredientsPage (search, filter, ingredient cards)
+      * my-bar.page.ts - MyBarPage (ingredient list, categories, cocktail count)
+      * admin.page.ts - AdminPage (user list, search, role filter)
+    - Created e2e/pages/index.ts barrel export
+    - All page objects use flexible locators (data-testid OR fallback selectors)
+    - Tests still passing (3/3)
 
 [ ] WTEST-003: Set up test fixtures (users, cocktails, ingredients)
     Priority: P1
