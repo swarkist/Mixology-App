@@ -54,10 +54,24 @@
     - All page objects use flexible locators (data-testid OR fallback selectors)
     - Tests still passing (3/3)
 
-[ ] WTEST-003: Set up test fixtures (users, cocktails, ingredients)
+[x] WTEST-003: Set up test fixtures (users, cocktails, ingredients)
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-001]
+    COMPLETED: 2025-12-29
+    - Created e2e/fixtures/test-data.ts:
+      * testUsers (admin, reviewer, basic, newUser factory)
+      * testCocktails (margarita, mojito, oldFashioned)
+      * testIngredients (tequila, lime, mint, bourbon, bitters)
+      * testBrands (patronSilver, makersMarkTest)
+      * generateUniqueEmail() and generateUniqueUsername() helpers
+    - Created e2e/fixtures/api-helpers.ts:
+      * apiLogin, apiRegister, apiLogout
+      * apiGetCocktails, apiGetIngredients
+      * apiCreateCocktail, apiDeleteCocktail
+      * apiCreateIngredient, apiDeleteIngredient
+      * apiHealthCheck
+    - Tests still passing (3/3)
 
 [ ] WTEST-004: Create auth helper utilities (login, logout functions)
     Priority: P1
