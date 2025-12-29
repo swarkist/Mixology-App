@@ -1,0 +1,39 @@
+PROMPT
+	•	Create PDOS artifacts for the combined repo (web + backend/api). Documentation-only: DO NOT modify app code.
+	•	Treat all existing functionality as Pre-PDOS Legacy baseline (frozen).
+	•	Delta-only governance: no refactors/rewrites unless a PDOS tasks.md explicitly authorizes it.
+
+Create these files (new only; do not overwrite existing):
+	1.	docs/pdos/baseline/web-api-baseline-snapshot.md
+	•	Include: current major features (web + api), known limitations, key entry points (web routes + server routes), and test setup status.
+	2.	docs/pdos/prd/prd.web-mvp-feature-sync.md (delta-only; web channel)
+	3.	docs/pdos/prd/prd.api-mvp-feature-sync.md (delta-only; api channel)
+	4.	Spec-Kit (web feature sync):
+	•	docs/pdos/spec-kit/web-mvp-feature-sync/plan.md
+	•	docs/pdos/spec-kit/web-mvp-feature-sync/spec.md
+	•	docs/pdos/spec-kit/web-mvp-feature-sync/tasks.md
+	5.	Spec-Kit (api feature sync):
+	•	docs/pdos/spec-kit/api-mvp-feature-sync/plan.md
+	•	docs/pdos/spec-kit/api-mvp-feature-sync/spec.md
+	•	docs/pdos/spec-kit/api-mvp-feature-sync/tasks.md
+	6.	Spec-Kit (test backfill):
+	•	docs/pdos/spec-kit/web-test-backfill/plan.md
+	•	docs/pdos/spec-kit/web-test-backfill/spec.md
+	•	docs/pdos/spec-kit/web-test-backfill/tasks.md
+	•	docs/pdos/spec-kit/api-test-backfill/plan.md
+	•	docs/pdos/spec-kit/api-test-backfill/spec.md
+	•	docs/pdos/spec-kit/api-test-backfill/tasks.md
+	7.	Agents:
+	•	docs/pdos/agents/agents.web-api-pdos.md
+	8.	Execution prompt:
+	•	docs/pdos/execution/replit-execution-prompt.web-api.md
+
+In replit-execution-prompt.web-api.md, add non-negotiable test enforcement:
+	•	Any behavior change MUST include tests (new or updated).
+	•	Bug fix workflow: failing test → fix → pass.
+	•	UI-visible changes require at least one test.
+	•	Do not delete flaky tests; fix or replace.
+	•	Always run full test suite before declaring completion.
+	•	Do not run third-party integration tests by default. All external calls (OpenRouter, OCR, etc.) must be mocked unless a task explicitly authorizes an integration test run.
+
+Output: confirm all files created and no code files modified.
