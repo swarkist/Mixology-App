@@ -1,0 +1,91 @@
+PDOS EXECUTION PROMPT — WEB-MIXI-T01 (Delta-only)
+
+Repl: Mixi-Mixology (combined Web + API)
+Scope: WEB test backfill ONLY (no product behavior changes)
+
+AUTHORITY (Non-Negotiable)
+- You may ONLY implement the task WEB-MIXI-T01 as defined in:
+  docs/pdos/spec-kit/web-test-backfill/tasks.md
+- Treat all existing code as Pre-PDOS Legacy baseline. Do NOT refactor, rewrite, or reorganize unrelated code.
+
+HARD RULES
+- Delta-only changes. No unrelated cleanup.
+- Do NOT modify production behavior unless strictly required to make code testable (e.g., adding testIDs, exporting a pure helper).
+- Do NOT add/modify any API endpoints.
+- Do NOT add any network/third-party calls in tests. All external calls MUST be mocked.
+- If you discover missing/unclear requirements, STOP and report findings (no speculative implementation).
+
+TEST ENFORCEMENT (Non-Negotiable)
+- Testing is required: add or update tests for every new behavior covered by WEB-MIXI-T01 and run the full suite before completion.
+- Bug fix workflow (if you find an issue):
+  1) Write a failing test reproducing the bug
+  2) Fix the bug (minimal)
+  3) Ensure test passes
+- Never delete flaky tests—fix or replace them with focused tests.
+
+TASK: WEB-MIXI-T01 — Mixi Streaming (Web) Unit/Integration Tests (Mocked)
+
+GOAL
+Create dedicated tests for the web channel Mixi streaming behavior that:
+- Verify streaming chunk handling and accumulation
+- Verify completion behavior
+- Verify error and abort/cancel behavior
+- Verify that NO test hits OpenRouter or real network
+
+DISCOVERY (Read-only first)
+1) Locate the web UI/component(s) for Mixi chat (e.g., chat modal/component/page).
+2) Locate the web client wrapper used for Mixi streaming:
+   - likely server endpoint: POST /api/mixi/chat (SSE)
+   - likely client helper(s): client/src/lib/* (aiRequest/modelRouter/etc.) or direct fetch usage
+3) Identify where streaming parsing happens (client-side SSE parsing OR server proxy).
+
+REPORT BEFORE CHANGING CODE
+- Post a short “Discovery Summary” with file paths:
+  - Mixi UI component(s)
+  - Mixi client helper(s)
+  - Any SSE parsing utilities
+  - Any hooks used (TanStack Query or custom)
+Then proceed.
+
+IMPLEMENTATION REQUIREMENTS
+A) Tests must be deterministic and run offline.
+- Mock fetch (or the streaming reader abstraction) so tests simulate SSE.
+- If the UI uses EventSource or fetch streaming:
+  - mock that interface rather than performing real HTTP.
+
+B) Minimum test coverage (acceptance)
+Write a new dedicated test file (or files) under the existing tests structure (Vitest):
+- Confirms that streaming chunks are appended in order into the displayed assistant message
+- Confirms stream completion behavior (DONE sentinel and/or close)
+- Confirms abort/cancel stops further updates and re-enables input
+- Confirms error path:
+  - shows appropriate error UI state (toast, inline message, etc.)
+  - does not crash
+  - allows retry (input re-enabled)
+- Confirms no third-party calls:
+  - ensure no request leaves the process (mock global fetch)
+  - if there is an OpenRouter wrapper used indirectly, stub it
+
+C) Minimal “testability” edits allowed
+Only if required to write reliable tests, you may:
+- add testIDs to Mixi UI elements (input, send button, messages list, close button)
+- export a pure helper function (e.g., prompt builder / stream accumulator) from an existing module
+Do NOT change styles, layout, or behavior beyond what’s necessary for test hooks.
+
+D) Don’t expand scope
+- Do not add new UX, new features, or new error messaging beyond what exists.
+- Do not convert whole components to new patterns.
+
+DELIVERABLES
+1) A new test file(s) for Mixi web streaming with the acceptance coverage above.
+2) If you add any testIDs/exports, list them explicitly and confirm “no behavior change”.
+3) Run the FULL test suite and paste results.
+
+OUTPUT FORMAT (Completion Summary)
+- Files Changed (table)
+- Tests Added/Updated (list with counts)
+- How mocking works (brief)
+- Test command(s) run + results
+- Confirm: “No tests hit real network/OpenRouter”
+
+START NOW.

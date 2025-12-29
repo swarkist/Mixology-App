@@ -1,4 +1,9 @@
 import { vi, beforeEach, afterEach } from 'vitest';
+import * as React from 'react';
+import '@testing-library/jest-dom';
+
+// Make React available globally for JSX in jsdom environment
+(globalThis as any).React = React;
 
 // Mock environment variables
 process.env.NODE_ENV = 'test';
@@ -53,4 +58,10 @@ if (typeof global !== 'undefined') {
     unobserve: vi.fn(),
     disconnect: vi.fn(),
   }));
+
+  // Enable React 18 act() environment
+  (global as any).IS_REACT_ACT_ENVIRONMENT = true;
+
+  // Mock scrollIntoView for jsdom
+  Element.prototype.scrollIntoView = vi.fn();
 }

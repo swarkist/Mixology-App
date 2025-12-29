@@ -984,6 +984,7 @@ export default function MixiChat() {
               onClick={handleClose}
               className="text-[#bab49c] hover:text-white h-auto p-1"
               aria-label="Close chat"
+              data-testid="mixi-chat-close-button"
             >
               <X className="h-5 w-5 text-inherit" />
             </Button>
@@ -991,7 +992,7 @@ export default function MixiChat() {
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-2 md:px-4">
-          <div className="py-3 md:py-5 w-full space-y-2">
+          <div className="py-3 md:py-5 w-full space-y-2" data-testid="mixi-chat-messages">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -1029,7 +1030,7 @@ export default function MixiChat() {
             ))}
 
             {isStreaming && (
-              <div className="flex items-end gap-2 md:gap-3 p-2 md:p-4">
+              <div className="flex items-end gap-2 md:gap-3 p-2 md:p-4" data-testid="mixi-chat-streaming-indicator">
                 <div className="bg-center bg-no-repeat aspect-square bg-cover rounded-full w-8 md:w-10 shrink-0 flex items-center justify-center bg-[#393628]">
                   <MixiIconBartender size={20} className="text-[#f3d035] md:w-6 md:h-6" />
                 </div>
@@ -1061,6 +1062,7 @@ export default function MixiChat() {
                   placeholder="Type your message..."
                   className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-white focus:outline-0 focus:ring-0 border-none bg-[#393628] focus:border-none h-full placeholder:text-[#bab49c] px-3 md:px-4 rounded-r-none border-r-0 pr-2 text-sm md:text-base font-normal leading-normal"
                   disabled={isStreaming}
+                  data-testid="mixi-chat-input"
                 />
                 <div className="flex border-none bg-[#393628] items-center justify-center pr-2 md:pr-4 rounded-r-xl border-l-0">
                   <div className="flex items-center justify-end">
@@ -1068,6 +1070,7 @@ export default function MixiChat() {
                       onClick={sendMessage}
                       disabled={!input.trim() || isStreaming}
                       className="min-w-[60px] md:min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-7 md:h-8 px-3 md:px-4 bg-[#f3d035] hover:bg-[#f3d035]/90 text-[#181711] text-xs md:text-sm font-medium leading-normal"
+                      data-testid="mixi-chat-send-button"
                     >
                       <span className="truncate">Send</span>
                     </Button>
