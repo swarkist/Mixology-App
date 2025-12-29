@@ -89,10 +89,22 @@
     - Auth fixture extends base fixture with network tripwire
     - Tests still passing (3/3)
 
-[ ] WTEST-005: Configure test environment isolation
+[x] WTEST-005: Configure test environment isolation
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-001]
+    COMPLETED: 2025-12-29
+    - Created e2e/fixtures/isolation.ts:
+      * TestIsolation fixture with unique test IDs
+      * generateUniqueEmail/Username per test
+      * Cleanup task registration and execution
+      * Fresh browser context per test with cookie clearing
+      * withFreshContext() helper for isolated test sessions
+      * saveAuthState/loadAuthState for session persistence
+    - Created e2e/fixtures/index.ts barrel export:
+      * Exports baseTest, authTest, and isolation test
+      * Exports all test data and API helpers
+    - Tests still passing (3/3)
 ```
 
 ---
