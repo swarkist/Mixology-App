@@ -73,10 +73,21 @@
       * apiHealthCheck
     - Tests still passing (3/3)
 
-[ ] WTEST-004: Create auth helper utilities (login, logout functions)
+[x] WTEST-004: Create auth helper utilities (login, logout functions)
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-002]
+    COMPLETED: 2025-12-29
+    - Created e2e/fixtures/auth.ts with Playwright fixture extension:
+      * login(email, password) - browser-based login flow
+      * loginAsAdmin() - quick admin login
+      * loginAsReviewer() - quick reviewer login
+      * loginAsBasic() - quick basic user login
+      * logout() - logout flow with fallback cookie clear
+      * isLoggedIn() - check login state via DOM
+      * getCurrentUser() - API call to get current user
+    - Auth fixture extends base fixture with network tripwire
+    - Tests still passing (3/3)
 
 [ ] WTEST-005: Configure test environment isolation
     Priority: P1
