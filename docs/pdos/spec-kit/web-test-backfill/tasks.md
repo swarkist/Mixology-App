@@ -333,10 +333,23 @@
     - Allows full UI form testing without real authentication
     - Backend API auth remains enforced (tests mock API responses)
 
-[ ] WTEST-033: Write brand-ingredient association tests
+[x] WTEST-033: Write brand-ingredient association tests
     Priority: P2
     Estimate: 2h
     Dependencies: [WTEST-032]
+    COMPLETED: 2025-12-30
+    - Created e2e/user/brand-ingredient-association.spec.ts with 23 tests:
+      * Endpoint existence (POST and DELETE paths verified)
+      * Parameter parsing (numeric IDs, non-numeric handling)
+      * Response format (JSON, message field present)
+      * Edge cases (zero, negative, large IDs)
+      * UI flow (preferred brands page, add page auth, login prompt)
+      * HTTP method validation (GET, PUT, PATCH responses)
+    
+    FROZEN BASELINE NOTE:
+    Endpoints POST/DELETE /api/preferred-brands/:brandId/ingredients/:ingredientId
+    lack auth middleware in server/routes.ts. Tests verify current behavior;
+    auth protection documented as future enhancement.
 ```
 
 ---
