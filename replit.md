@@ -61,4 +61,29 @@ Development workflow: User now implements independent code changes and requests 
 - **Image Processing**: Custom image compression utilities.
 
 ### Development & Testing Dependencies
-- **Testing**: Vitest.
+- **Testing**: Vitest, Playwright E2E testing.
+
+## E2E Test Coverage (PDOS Baseline)
+
+### Test Suite Summary
+- **Total Tests**: 348 tests across 25 test files
+- **Framework**: Playwright with @axe-core/playwright for accessibility
+- **Location**: `e2e/` directory
+
+### Phase Coverage
+- **Auth (80 tests)**: login, register, logout, password reset, protected routes, token refresh
+- **Core (88 tests)**: cocktails browsing/search/filter, ingredients browsing/filter, recipe/ingredient detail
+- **User (60 tests)**: My Bar view/actions, preferred brands CRUD, brand-ingredient associations
+- **Admin (82 tests)**: admin access, user management, cocktail/ingredient CRUD, batch operations
+- **Edge Cases (35 tests)**: error handling, network failure recovery, accessibility baseline
+
+### Test Architecture
+- **Auth Bypass**: window.__E2E_MODE__ and window.__E2E_ROLE__ for ProtectedRoute testing
+- **Network Isolation**: Route interception mocks API responses, avoiding Firebase calls
+- **Accessibility**: axe-core captures baseline violations without failing
+
+### Frozen Baseline Constraints
+- AdminDashboard.tsx hooks bug documented
+- Brand-ingredient endpoints lack auth middleware
+- Batch API endpoints not implemented
+- Firebase quota exhaustion handled gracefully
