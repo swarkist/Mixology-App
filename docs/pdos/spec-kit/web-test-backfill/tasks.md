@@ -490,10 +490,31 @@
     - button-name (critical): Buttons missing discernible text
     - Tests capture violations for future delta work without failing
 
-[ ] WTEST-053: Add visual regression snapshots
+[x] WTEST-053: Add visual regression snapshots
     Priority: P3
     Estimate: 3h
     Dependencies: [WTEST-020]
+    COMPLETED: 2025-12-30
+    - Created e2e/fixtures/visual.ts with helpers:
+      * setupVisualPage: viewport, frozen time, disabled animations
+      * setupE2EAuth: E2E mode role injection
+      * Mock data generators for cocktails, ingredients, my-bar, preferred-brands
+      * waitForStableUI: network idle + spinner detection
+    
+    - Created e2e/visual/visual-regression.spec.ts with 12 tests:
+      * Public pages: Home, Cocktails list, Cocktail detail, Ingredients list, Ingredient detail
+      * Authenticated pages (E2E mode): My Bar, Preferred Brands
+      * Admin pages (E2E mode): Batch Operations
+      * Auth forms: Login, Register
+      * Responsive views: Mobile cocktails, Tablet home
+    
+    - 12 baseline snapshots stored in:
+      e2e/visual/visual-regression.spec.ts-snapshots/
+    
+    FILES:
+    - e2e/fixtures/visual.ts
+    - e2e/visual/visual-regression.spec.ts
+    - e2e/visual/visual-regression.spec.ts-snapshots/*.png (12 files)
 ```
 
 ---
@@ -508,7 +529,7 @@
 
 ## Summary
 
-**Total Tests**: 348 across 25 test files
+**Total Tests**: 357 across 26 test files
 **Completion Date**: 2025-12-30
 
 ### Phase Summary
@@ -519,6 +540,7 @@
 | User | 60 | Complete |
 | Admin | 82 | Complete |
 | Edge Cases | 35 | Complete |
+| Visual Regression | 12 | Complete |
 
 ### Key Decisions
 1. Route interception for Firebase isolation

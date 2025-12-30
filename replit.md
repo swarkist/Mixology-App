@@ -66,7 +66,7 @@ Development workflow: User now implements independent code changes and requests 
 ## E2E Test Coverage (PDOS Baseline)
 
 ### Test Suite Summary
-- **Total Tests**: 348 tests across 25 test files
+- **Total Tests**: 357 tests across 26 test files
 - **Framework**: Playwright with @axe-core/playwright for accessibility
 - **Location**: `e2e/` directory
 
@@ -76,6 +76,7 @@ Development workflow: User now implements independent code changes and requests 
 - **User (60 tests)**: My Bar view/actions, preferred brands CRUD, brand-ingredient associations
 - **Admin (82 tests)**: admin access, user management, cocktail/ingredient CRUD, batch operations
 - **Edge Cases (35 tests)**: error handling, network failure recovery, accessibility baseline
+- **Visual Regression (12 tests)**: screenshot comparison for UI consistency
 
 ### Test Architecture
 - **Auth Bypass**: window.__E2E_MODE__ and window.__E2E_ROLE__ for ProtectedRoute testing
