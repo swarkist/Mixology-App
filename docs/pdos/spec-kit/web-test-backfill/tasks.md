@@ -173,10 +173,18 @@
       * Role-based access (batch-ops requires admin)
     - Tests are resilient to Firebase quota issues
 
-[ ] WTEST-015: Write token refresh tests
+[x] WTEST-015: Write token refresh tests
     Priority: P2
     Estimate: 2h
     Dependencies: [WTEST-010]
+    COMPLETED: 2025-12-30
+    - Created e2e/auth/token-refresh.spec.ts with 19 tests:
+      * Access token expiry handling (missing, invalid, malformed, expired format)
+      * Session validation (auth check, logout, cookie clearing)
+      * Cookie handling (failed login, empty cookies, refresh-only cookie)
+      * Protected routes behavior (admin, create ops, public endpoints)
+      * Multiple session handling (concurrent logout, consistent state)
+      * Browser context (redirect on protected pages, public page access)
 ```
 
 ---
