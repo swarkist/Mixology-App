@@ -184,40 +184,93 @@
 ## Phase 3: Core Feature Tests
 
 ```
-[ ] WTEST-020: Write cocktail browsing tests
+[x] WTEST-020: Write cocktail browsing tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-003]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/cocktails-browsing.spec.ts with 13 tests:
+      * Page accessibility (navigation, content display, unauthenticated access)
+      * Cocktail list display (cards, empty state, API error handling)
+      * Cocktail card elements (names, clickable cards)
+      * Navigation (detail navigation, nav links)
+      * Loading states, API integration
+    - All tests pass with mocked API responses
 
-[ ] WTEST-021: Write cocktail search tests
+[x] WTEST-021: Write cocktail search tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-020]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/cocktails-search.spec.ts with 10 tests:
+      * Search input (visibility, text input)
+      * Search functionality (filtering, empty results, clear)
+      * Search API integration (query sending, error handling)
+      * URL state (query params, restore from URL)
+    - All tests pass
 
-[ ] WTEST-022: Write cocktail filter tests
+[x] WTEST-022: Write cocktail filter tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-020]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/cocktails-filter.spec.ts with 14 tests:
+      * Filter UI elements (options, category filters)
+      * Filter functionality (spirit type, multiple, clear)
+      * Filter state (URL params, restore, combined filters)
+      * Filter API integration, sort functionality
+    - All tests pass
 
-[ ] WTEST-023: Write recipe detail page tests
+[x] WTEST-023: Write recipe detail page tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-020]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/recipe-detail.spec.ts with 17 tests:
+      * Page accessibility (navigation, non-existent recipe)
+      * Recipe content display (name, ingredients, instructions)
+      * Recipe image handling
+      * Navigation (back button, cocktails list)
+      * API integration, recipe actions, ingredient amounts
+    - All tests pass with mocked API
 
-[ ] WTEST-024: Write ingredient browsing tests
+[x] WTEST-024: Write ingredient browsing tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-003]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/ingredients-browsing.spec.ts with 12 tests:
+      * Page accessibility (navigation, content, unauthenticated)
+      * Ingredient list display (cards, empty state, API errors)
+      * Ingredient card elements (names, categories)
+      * Navigation, API integration, category grouping
+    - All tests pass
 
-[ ] WTEST-025: Write ingredient filter tests
+[x] WTEST-025: Write ingredient filter tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-024]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/ingredients-filter.spec.ts with 16 tests:
+      * Filter UI elements (options, category tabs, search)
+      * Category filtering (spirit, citrus, all by default)
+      * Search filtering (term, empty results, clear)
+      * Combined filters, filter state (URL params)
+      * API integration
+    - All tests pass
 
-[ ] WTEST-026: Write ingredient detail page tests
+[x] WTEST-026: Write ingredient detail page tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-024]
+    COMPLETED: 2025-12-30
+    - Created e2e/core/ingredient-detail.spec.ts with 16 tests:
+      * Page accessibility (navigation, non-existent)
+      * Ingredient content display (name, category, description)
+      * Related cocktails display
+      * Navigation (back, cocktails list, related cocktail)
+      * API integration, brand associations, ingredient actions
+    - All tests pass
 ```
 
 ---
