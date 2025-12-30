@@ -336,15 +336,43 @@
 ## Phase 5: Admin Feature Tests
 
 ```
-[ ] WTEST-040: Write admin dashboard access tests
+[x] WTEST-040: Write admin dashboard access tests
     Priority: P1
     Estimate: 2h
     Dependencies: [WTEST-014]
+    COMPLETED: 2025-12-30
+    - Created e2e/admin/admin-access.spec.ts with 12 tests:
+      * API authentication requirements (GET users, PATCH role, PATCH status)
+      * Route protection via /admin/batch-ops (unauthenticated redirect, basic/reviewer role blocking, admin access)
+      * API validation (role enum, boolean status, numeric user ID, empty body rejection)
+    
+    TECHNICAL NOTE:
+    AdminDashboard.tsx has React hooks ordering issue (useQuery after conditional returns)
+    which is frozen baseline code. Tests use /admin/batch-ops for ProtectedRoute verification
+    since BatchOps.tsx doesn't have the same issue.
 
-[ ] WTEST-041: Write user management tests
+[x] WTEST-041: Write user management tests
     Priority: P1
     Estimate: 3h
     Dependencies: [WTEST-040]
+    COMPLETED: 2025-12-30
+    - Created e2e/admin/user-management.spec.ts with 34 tests:
+      * GET /api/admin/users (auth, pagination, search, role/status filters)
+      * PATCH /api/admin/users/:id/role (auth, valid roles, validation, error cases)
+      * PATCH /api/admin/users/:id/status (auth, boolean values, validation, error cases)
+      * Role filter validation (basic, reviewer, admin)
+      * Pagination boundaries (page, limit, max limit)
+      * Authorization enforcement (unauthenticated rejection)
+    
+    COVERAGE STRATEGY:
+    Tests verify endpoint existence, auth protection, and parameter acceptance.
+    Positive-path testing (authenticated 200 responses) requires either:
+    - Real Firebase session credentials (violates network isolation)
+    - Backend test mode to bypass auth (requires frozen baseline modification)
+    Current approach provides regression detection for endpoint structure and auth enforcement.
+    
+    FUTURE ENHANCEMENT:
+    Add session fixture injection or test authentication mode to enable positive-path validation.
 
 [ ] WTEST-042: Write cocktail CRUD tests (admin)
     Priority: P2
