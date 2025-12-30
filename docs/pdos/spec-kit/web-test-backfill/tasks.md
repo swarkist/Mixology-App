@@ -310,29 +310,20 @@
     Estimate: 3h
     Dependencies: [WTEST-014]
     COMPLETED: 2025-12-30
-    - Created e2e/user/preferred-brands-crud.spec.ts with 14 tests:
+    - Created e2e/user/preferred-brands-crud.spec.ts with 19 tests:
       * Page accessibility (navigation, heading)
       * Unauthenticated state (login prompt visible)
       * READ - List brands (API call verified, brand name visible, error handling, add link visible)
-      * CREATE - POST endpoint auth validation and response verification
-      * UPDATE - PATCH endpoint auth validation and response verification
-      * DELETE - DELETE endpoint auth validation and response verification
+      * CREATE - Add form page rendering, name input display, POST API call on submit, auth validation
+      * UPDATE - Edit form rendering, PATCH API call on submit, auth validation
+      * DELETE - Delete button visibility, DELETE API call on click, auth validation
       * Search functionality (input visibility, filtering shows matching item)
     
-    TECHNICAL LIMITATION - ProtectedRoute Form Tests:
-    Full form-based CRUD tests for Add/Edit pages cannot be achieved with current
-    architecture. The ProtectedRoute component's auth query resolves before Playwright
-    route interception can provide mocked responses. Attempted solutions:
-      * queueMicrotask delay in ProtectedRoute redirect - insufficient delay
-      * Query cache clearing via window exposure - cache still populated before mock
-      * beforeEach route setup - routes not established fast enough
-    
-    This affects only ProtectedRoute-wrapped pages (Add/Edit Brand). The following
-    work correctly with auth mocking:
-      * My Bar page (inline auth check) - full toggle/delete UI tested
-      * Preferred Brands list (inline auth check) - full search/filter UI tested
-    
-    Recommended future enhancement: localStorage session injection or test credentials
+    E2E AUTH BYPASS IMPLEMENTATION:
+    - Added window.__E2E_MODE__ and window.__E2E_ROLE__ flags to ProtectedRoute
+    - Playwright tests inject these flags via page.addInitScript() before navigation
+    - Allows full UI form testing without real authentication
+    - Backend API auth remains enforced (tests mock API responses)
 
 [ ] WTEST-033: Write brand-ingredient association tests
     Priority: P2

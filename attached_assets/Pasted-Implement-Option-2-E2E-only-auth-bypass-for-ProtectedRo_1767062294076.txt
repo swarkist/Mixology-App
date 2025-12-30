@@ -1,0 +1,42 @@
+Implement Option 2: E2E-only auth bypass for ProtectedRoute to unblock form-based E2E tests.
+
+Context:
+- Playwright route interception cannot reliably mock /api/auth/me before TanStack Query runs on mount.
+- This causes immediate redirect to /login for ProtectedRoute-wrapped pages, blocking Add/Edit form tests.
+- We must keep test network isolation: no real login/test accounts, no third-party calls.
+
+Requirements:
+1) Add an E2E-only bypass in ProtectedRoute (or the auth gating layer it uses):
+   - If import.meta.env.VITE_E2E === 'true':
+       - Do NOT redirect to /login
+       - Treat route as authenticated for gating purposes
+       - Allow role override for admin routes using import.meta.env.VITE_E2E_ROLE (admin|reviewer|basic), default basic
+   - When VITE_E2E is not true, behavior must be unchanged.
+
+2) Ensure API authorization is NOT bypassed:
+   - Protected backend endpoints must still require auth as before.
+   - The bypass is only for client routing so we can access forms and assert UI.
+
+3) Update Playwright fixtures so tests can set role per suite:
+   - e2e/fixtures/base.ts or auth fixture:
+     - Provide helper: setE2ERole('admin'|'reviewer'|'basic') by setting process.env.VITE_E2E_ROLE before launching context,
+       or by using storageState/localStorage if needed.
+   - Keep the global network tripwire in place.
+
+4) Add/complete E2E tests for ProtectedRoute-wrapped Add/Edit pages that were blocked:
+   - My Bar already covered; focus on Add Preferred Brand, Add/Edit pages, and any other ProtectedRoute forms.
+   - Use mocked /api endpoints; do not depend on real DB state.
+
+5) Update docs/pdos/spec-kit/web-test-backfill/tasks.md:
+   - Mark the newly completed tasks with [x]
+   - Add completion notes under each affected task
+   - Do not change task IDs or order
+
+6) Run Playwright after completing the phase:
+   - All tests must pass before marking tasks complete.
+
+Deliverables:
+- Minimal code change in ProtectedRoute (E2E flag only)
+- E2E tests for the previously blocked forms now passing
+- Updated tasks.md checkboxes + notes
+- Playwright suite passing

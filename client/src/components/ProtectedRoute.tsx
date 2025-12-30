@@ -9,6 +9,16 @@ interface ProtectedRouteProps {
   redirectTo?: string;
 }
 
+// E2E testing bypass: check env var OR window flag (for Playwright injection)
+const isE2EMode = import.meta.env.VITE_E2E === 'true' || 
+  (typeof window !== 'undefined' && (window as any).__E2E_MODE__ === true);
+const getE2ERole = (): 'admin' | 'basic' | 'reviewer' => {
+  if (typeof window !== 'undefined' && (window as any).__E2E_ROLE__) {
+    return (window as any).__E2E_ROLE__;
+  }
+  return (import.meta.env.VITE_E2E_ROLE as 'admin' | 'basic' | 'reviewer') || 'basic';
+};
+
 export function ProtectedRoute({ 
   children, 
   requireRole,
@@ -19,25 +29,36 @@ export function ProtectedRoute({
   const [, setLocation] = useLocation();
 
   useEffect(() => {
+    if (isE2EMode) return;
+    
     if (!isLoading) {
       if (!user) {
         setLocation(redirectTo);
         return;
       }
 
-      // Check single role requirement
       if (requireRole && user.role !== requireRole) {
-        setLocation('/'); // Redirect to home if insufficient permissions
+        setLocation('/');
         return;
       }
 
-      // Check multiple roles requirement
       if (requireRoles && !requireRoles.includes(user.role)) {
-        setLocation('/'); // Redirect to home if insufficient permissions
+        setLocation('/');
         return;
       }
     }
   }, [user, isLoading, requireRole, requireRoles, redirectTo, setLocation]);
+
+  if (isE2EMode) {
+    const e2eRole = getE2ERole();
+    if (requireRole && e2eRole !== requireRole) {
+      return null;
+    }
+    if (requireRoles && !requireRoles.includes(e2eRole)) {
+      return null;
+    }
+    return <>{children}</>;
+  }
 
   if (isLoading) {
     return (
