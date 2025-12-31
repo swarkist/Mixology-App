@@ -26,7 +26,7 @@
     Estimate: 2h
     Dependencies: []
     COMPLETED: 2025-12-29
-    - Created playwright.config.ts with TypeScript, Chromium project, baseURL localhost:5000
+    - Created playwright.config.ts with TypeScript, Chromium project, baseURL localhost:5050
     - Created e2e/ directory structure (e2e/fixtures/, e2e/pages/)
     - Created e2e/fixtures/base.ts with global network tripwire fixture:
       * Allows localhost/127.0.0.1 and app baseURL

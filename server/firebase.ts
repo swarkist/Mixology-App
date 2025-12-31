@@ -19,18 +19,27 @@ if (isProduction) {
 }
 
 // Initialize Firebase Admin SDK with environment-specific credentials
-const raw = process.env[serviceAccountEnvKey];
-if (!raw) {
-  throw new Error(`${serviceAccountEnvKey} secret not set for ${isProduction ? 'production' : 'development'} environment`);
-}
+// CHECK FOR EMULATORS FIRST
+const isEmulator = !!process.env.FIRESTORE_EMULATOR_HOST;
+
+let app: admin.app.App;
 
 // Check if app already exists
 const existingApp = admin.apps.find(app => app?.name === appName);
 
-let app: admin.app.App;
 if (existingApp) {
   app = existingApp;
+} else if (isEmulator) {
+  console.log(`🔥 Using Firebase Emulator (Project: ${appName})`);
+  app = admin.initializeApp({
+    projectId: appName
+  }, appName);
 } else {
+  // CLOUD MODE - Require credentials
+  const raw = process.env[serviceAccountEnvKey];
+  if (!raw) {
+    throw new Error(`${serviceAccountEnvKey} secret not set for ${isProduction ? 'production' : 'development'} environment`);
+  }
   const serviceAccount = JSON.parse(raw);
   app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -41,4 +50,4 @@ export const db = getFirestore(app);
 export { admin };
 
 // Log which database we're connected to
-console.log(`🔥 Connected to Firebase project: ${appName}`);
+console.log(`🔥 Connected to Firebase project: ${appName} ${isEmulator ? '(EMULATOR)' : '(CLOUD)'}`);

@@ -1,6 +1,6 @@
 # Miximixology API Reference
 
-**Base URL:** `https://your-domain.com` (or development: `http://localhost:5000`)
+**Base URL:** `https://your-domain.com` (or development: `http://localhost:5050`)
 
 **Content-Type:** `application/json`
 

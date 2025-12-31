@@ -38,14 +38,14 @@ export function createAuthRoutes(storage: IStorage): Router {
   router.post('/register', authLimiter, async (req, res) => {
     try {
       const { email, password } = registerSchema.parse(req.body);
-      
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
         // Return generic message (no account enumeration)
-        return res.status(200).json({ 
-          success: false, 
-          message: GENERIC_ERROR_MESSAGE 
+        return res.status(200).json({
+          success: false,
+          message: GENERIC_ERROR_MESSAGE
         });
       }
 
@@ -101,14 +101,14 @@ export function createAuthRoutes(storage: IStorage): Router {
     } catch (error) {
       logger.error('Registration error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
-          message: error.errors[0].message 
+        return res.status(400).json({
+          success: false,
+          message: error.errors[0].message
         });
       }
-      res.status(500).json({ 
-        success: false, 
-        message: 'Registration failed' 
+      res.status(500).json({
+        success: false,
+        message: 'Registration failed'
       });
     }
   });
@@ -117,22 +117,22 @@ export function createAuthRoutes(storage: IStorage): Router {
   router.post('/login', authLimiter, async (req, res) => {
     try {
       const { email, password } = loginSchema.parse(req.body);
-      
+
       // Find user
       const user = await storage.getUserByEmail(email);
       if (!user || !user.is_active) {
-        return res.status(200).json({ 
-          success: false, 
-          message: GENERIC_ERROR_MESSAGE 
+        return res.status(200).json({
+          success: false,
+          message: GENERIC_ERROR_MESSAGE
         });
       }
 
       // Verify password
       const isValid = await verifyPassword(password, user.password_hash);
       if (!isValid) {
-        return res.status(200).json({ 
-          success: false, 
-          message: GENERIC_ERROR_MESSAGE 
+        return res.status(200).json({
+          success: false,
+          message: GENERIC_ERROR_MESSAGE
         });
       }
 
@@ -179,14 +179,14 @@ export function createAuthRoutes(storage: IStorage): Router {
     } catch (error) {
       logger.error('Login error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
-          message: error.errors[0].message 
+        return res.status(400).json({
+          success: false,
+          message: error.errors[0].message
         });
       }
-      res.status(500).json({ 
-        success: false, 
-        message: 'Login failed' 
+      res.status(500).json({
+        success: false,
+        message: 'Login failed'
       });
     }
   });
@@ -195,14 +195,14 @@ export function createAuthRoutes(storage: IStorage): Router {
   router.post('/logout', async (req, res) => {
     try {
       const refreshToken = req.cookies.refreshToken;
-      
+
       if (refreshToken) {
         const tokenHash = hashToken(refreshToken);
         const session = await storage.getSessionByRefreshTokenHash(tokenHash);
-        
+
         if (session) {
           await storage.revokeSession(session.id);
-          
+
           // Log logout if we can identify the user
           if (req.user) {
             await storage.createAuditLog({
@@ -243,7 +243,7 @@ export function createAuthRoutes(storage: IStorage): Router {
       }
 
       const csrfToken = generateCSRFToken();
-      
+
       res.json({
         user: {
           id: fullUser.id,
@@ -253,7 +253,7 @@ export function createAuthRoutes(storage: IStorage): Router {
         },
         csrfToken
       });
-      
+
     } catch (error) {
       console.error('Get profile error:', error);
       res.status(500).json({ error: 'Failed to get profile' });
@@ -264,15 +264,15 @@ export function createAuthRoutes(storage: IStorage): Router {
   router.post('/forgot', passwordResetLimiter, async (req, res) => {
     try {
       const { email } = forgotPasswordSchema.parse(req.body);
-      
+
       // Always return success message (no account enumeration)
       const successMessage = "If an account with that email exists, you will receive a password reset link shortly.";
-      
+
       const user = await storage.getUserByEmail(email);
       if (user && user.is_active) {
         // Create reset token
         const { token, expires_at } = createResetToken(user.id);
-        
+
         await storage.createPasswordReset({
           user_id: user.id,
           token_hash: hashToken(token),
@@ -280,11 +280,11 @@ export function createAuthRoutes(storage: IStorage): Router {
         });
 
         // Send reset email
-        const baseURL = process.env.NODE_ENV === 'production' 
+        const baseURL = process.env.NODE_ENV === 'production'
           ? 'https://miximixology.com'
-          : `http://localhost:5000`;
+          : `http://localhost:${process.env.PORT || 5000}`;
         const resetURL = generateResetURL(baseURL, token);
-        
+
         await sendPasswordResetEmail(email, resetURL);
 
         // Log password reset request
@@ -299,23 +299,23 @@ export function createAuthRoutes(storage: IStorage): Router {
         });
       }
 
-      res.status(200).json({ 
-        success: true, 
-        message: successMessage 
+      res.status(200).json({
+        success: true,
+        message: successMessage
       });
 
     } catch (error) {
       console.error('Forgot password error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
-          message: error.errors[0].message 
+        return res.status(400).json({
+          success: false,
+          message: error.errors[0].message
         });
       }
       // Still return success to prevent enumeration
-      res.status(200).json({ 
-        success: true, 
-        message: "If an account with that email exists, you will receive a password reset link shortly." 
+      res.status(200).json({
+        success: true,
+        message: "If an account with that email exists, you will receive a password reset link shortly."
       });
     }
   });
@@ -324,23 +324,23 @@ export function createAuthRoutes(storage: IStorage): Router {
   router.post('/reset', authLimiter, async (req, res) => {
     try {
       const { token, new_password } = resetPasswordSchema.parse(req.body);
-      
+
       const tokenHash = hashToken(token);
       const resetRecord = await storage.getPasswordResetByTokenHash(tokenHash);
-      
+
       if (!resetRecord || resetRecord.used_at || new Date() > new Date(resetRecord.expires_at)) {
-        return res.status(200).json({ 
-          success: false, 
-          message: GENERIC_ERROR_MESSAGE 
+        return res.status(200).json({
+          success: false,
+          message: GENERIC_ERROR_MESSAGE
         });
       }
 
       // Get user
       const user = await storage.getUserById(resetRecord.user_id);
       if (!user || !user.is_active) {
-        return res.status(200).json({ 
-          success: false, 
-          message: GENERIC_ERROR_MESSAGE 
+        return res.status(200).json({
+          success: false,
+          message: GENERIC_ERROR_MESSAGE
         });
       }
 
@@ -389,8 +389,8 @@ export function createAuthRoutes(storage: IStorage): Router {
         user_agent: req.get('User-Agent')
       });
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         message: 'Password reset successfully',
         user: {
           id: user.id,
@@ -403,14 +403,14 @@ export function createAuthRoutes(storage: IStorage): Router {
     } catch (error) {
       console.error('Reset password error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          success: false, 
-          message: error.errors[0].message 
+        return res.status(400).json({
+          success: false,
+          message: error.errors[0].message
         });
       }
-      res.status(200).json({ 
-        success: false, 
-        message: GENERIC_ERROR_MESSAGE 
+      res.status(200).json({
+        success: false,
+        message: GENERIC_ERROR_MESSAGE
       });
     }
   });
@@ -427,9 +427,9 @@ export function createAuthRoutes(storage: IStorage): Router {
       if (user.role === 'admin') {
         const admins = await storage.getAllUsers({ role: 'admin', status: true });
         const activeAdmins = admins.users.filter(admin => admin.is_active);
-        
+
         if (activeAdmins.length <= 1) {
-          return res.status(403).json({ 
+          return res.status(403).json({
             error: 'Cannot delete the last active admin account'
           });
         }
@@ -438,9 +438,9 @@ export function createAuthRoutes(storage: IStorage): Router {
       // Check if user already deleted (idempotency)
       const currentUser = await storage.getUserById(user.id);
       if (!currentUser) {
-        return res.status(200).json({ 
-          status: 'ok', 
-          message: 'Account already removed' 
+        return res.status(200).json({
+          status: 'ok',
+          message: 'Account already removed'
         });
       }
 
@@ -467,15 +467,15 @@ export function createAuthRoutes(storage: IStorage): Router {
         user_agent: req.get('User-Agent')
       });
 
-      res.json({ 
-        status: 'ok', 
-        message: 'Account deleted' 
+      res.json({
+        status: 'ok',
+        message: 'Account deleted'
       });
 
     } catch (error) {
       console.error('Account deletion error:', error);
-      res.status(500).json({ 
-        error: 'Failed to delete account' 
+      res.status(500).json({
+        error: 'Failed to delete account'
       });
     }
   });

@@ -23,7 +23,7 @@ app.use((req, res, next) => {
   if (process.env.NODE_ENV === 'production') {
     // Add HSTS header for enhanced security
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-    
+
     // Redirect HTTP to HTTPS
     if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
       return res.redirect(308, `https://${host}${req.originalUrl}`);
@@ -43,16 +43,16 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: isProduction 
-        ? ["'self'", "https://replit.com"] 
+      scriptSrc: isProduction
+        ? ["'self'", "https://replit.com"]
         : [
-            "'self'",
-            "'unsafe-inline'", // Allow inline scripts for Vite HMR
-            "'unsafe-eval'",   // Allow eval for Vite development
-            "https://localhost:*",
-            "http://localhost:*",
-            "https://replit.com"
-          ],
+          "'self'",
+          "'unsafe-inline'", // Allow inline scripts for Vite HMR
+          "'unsafe-eval'",   // Allow eval for Vite development
+          "https://localhost:*",
+          "http://localhost:*",
+          "https://replit.com"
+        ],
       styleSrc: [
         "'self'",
         "'unsafe-inline'", // Allow inline styles for dynamic styling
@@ -64,17 +64,17 @@ app.use(helmet({
       ],
       connectSrc: isProduction
         ? [
-            "'self'",
-            "https://openrouter.ai" // Allow OpenRouter API
-          ]
+          "'self'",
+          "https://openrouter.ai" // Allow OpenRouter API
+        ]
         : [
-            "'self'",
-            "ws://localhost:*",
-            "wss://localhost:*",
-            "http://localhost:*",
-            "https://localhost:*",
-            "https://openrouter.ai" // Allow OpenRouter API
-          ],
+          "'self'",
+          "ws://localhost:*",
+          "wss://localhost:*",
+          "http://localhost:*",
+          "https://localhost:*",
+          "https://openrouter.ai" // Allow OpenRouter API
+        ],
       imgSrc: ["'self'", "data:", "blob:", "https:"]
     }
   }
@@ -88,7 +88,10 @@ app.use(express.urlencoded({ extended: true, limit: "512kb" }));
 
 // CORS allowlist - include both production domains and development
 const productionOrigins = ['https://www.miximixology.com', 'https://miximixology.com'];
-const developmentOrigins = ['http://localhost:5173', 'http://localhost:5000'];
+const developmentOrigins = [
+  'http://localhost:5173',
+  `http://localhost:${process.env.PORT || 5000}`,
+];
 const envOrigins = (process.env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
 
 const allOrigins = [
@@ -135,7 +138,7 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
     "/recalculate-",        // Bulk operations
     "/reset-popularity",    // Admin cocktail operations
   ];
-  
+
   // Read-only endpoints that use POST but don't need admin key
   const readOnlyEndpoints = [
     "/scrape-url",          // Web scraping
@@ -148,15 +151,15 @@ const requireAdminForWrites: import("express").RequestHandler = (req, res, next)
     "/auth/forgot-password", // Password reset
     "/auth/reset-password"   // Password reset confirmation
   ];
-  
+
   logger.log(`Admin check: ${method} ${req.path} - isWrite: ${isWrite}`);
-  
+
   // Allow read-only endpoints
   if (readOnlyEndpoints.includes(req.path)) {
     logger.log(`Allowing read-only endpoint: ${req.path}`);
     return next();
   }
-  
+
   // Check if this is an admin-only operation
   const isAdminOperation = adminOnlyEndpoints.some(endpoint => req.path.includes(endpoint));
   logger.log(`Is admin operation: ${isAdminOperation} for path: ${req.path}`);
@@ -220,9 +223,9 @@ app.use((req, res, next) => {
 // Initialize storage and bootstrap admin
 async function initializeStorage(): Promise<IStorage> {
   logger.log("🔥 Storage Backend Selection: Firebase");
-  
+
   const storage = new FirebaseStorageAdapter();
-  
+
   // Bootstrap admin user if ADMIN_EMAIL is set
   const adminEmail = process.env.ADMIN_EMAIL;
   if (adminEmail) {
@@ -240,7 +243,7 @@ async function initializeStorage(): Promise<IStorage> {
       console.error('Error during admin bootstrap:', error);
     }
   }
-  
+
   return storage;
 }
 
@@ -266,14 +269,11 @@ async function initializeStorage(): Promise<IStorage> {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
+  // Serve on port from environment or default to 5000
+  const port = parseInt(process.env.PORT || "5000", 10);
   server.listen({
     port,
     host: "0.0.0.0",
-    reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
   });

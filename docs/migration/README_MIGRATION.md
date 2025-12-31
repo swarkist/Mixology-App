@@ -1,372 +1,68 @@
-# Local Development Guide (Non-Replit)
+# Backend Migration to Local Development
 
-This guide explains how to run the Miximixology API server locally outside of Replit for native mobile app development.
+This guide covers migrating the backend from Replit to a local dev environment.
 
----
+## Quick Start (Emulator Mode) - Option B
 
-## 1. Installation & Running
+This is the recommended way to run the backend locally without needing cloud credentials.
 
 ### Prerequisites
+- **Node.js 20 LTS** recommended
+- **Java** (required for Firebase Emulators)
+- **firebase-tools**: `npm install -g firebase-tools`
 
-- Node.js 18+ (LTS recommended)
-- npm or yarn
-
-### Install Dependencies
-
+### 1. Setup Environment
+Copy the example environment file:
 ```bash
-git clone <your-repo-url>
-cd miximixology
+cp .env.example .env
+```
+Ensure your `.env` has the following emulator configuration (should be default in `.env.example`):
+```env
+# Emulator Config
+GCLOUD_PROJECT=miximixology-dev
+FIREBASE_PROJECT_ID=miximixology-dev
+FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
+FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099
+```
 
+### 2. Install Dependencies
+```bash
 npm install
 ```
+*Note: If `concurrently` is missing, run `npm install -D concurrently`.*
 
-### Start the Server
-
+### 3. Run the Stack
+Start both the Firebase Emulators and the API Server with one command:
 ```bash
-npm run dev
+npm run dev:local
 ```
 
-### Default Port
+This will:
+1.  Start Firestore Emulator on `:8080`
+2.  Start Auth Emulator on `:9099`
+3.  Start Emulator UI on `:4000` (Visit http://localhost:4000)
+4.  Start API Server on `:5050`
 
-The server runs on **port 5000** by default.
+### 4. Connect Mobile App
+Your API is running on `0.0.0.0:5050`.
+- **Mobile API URL**: `http://192.168.50.2:5050`
 
-- Local access: `http://localhost:5000`
-- LAN access (for mobile devices): `http://192.168.50.2:5000`
+The API acts as a gateway:
+`Mobile -> API (:5050) -> Local Emulators (localhost:8080/9099)`
 
-To access from a physical device on the same Wi-Fi network, use your machine's local IP address.
+Your mobile app **does not** need to connect to the emulators directly.
 
 ---
 
-## 2. Required Environment Variables
+## Troubleshooting
 
-Create a `.env` file in the project root with the following variables:
+### Emulators fail to start
+- Ensure Java is installed/available in PATH.
+- Check if ports 8080, 9099, or 4000 are already in use.
 
-```env
-# ===========================================
-# FIREBASE CONFIGURATION (Required)
-# ===========================================
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"..."}
+### "Command not found: firebase"
+- Install the CLI: `npm install -g firebase-tools`
 
-# ===========================================
-# AUTHENTICATION (Required)
-# ===========================================
-JWT_SECRET=your-jwt-secret-min-32-chars
-REFRESH_SECRET=your-refresh-secret-min-32-chars
-SESSION_SECRET=your-session-secret
-
-# ===========================================
-# CORS CONFIGURATION (Required for Mobile)
-# ===========================================
-# Comma-separated list of allowed origins
-CORS_ORIGINS=http://localhost:8081,http://192.168.50.2:5000,exp://192.168.50.2:8081
-
-# ===========================================
-# OPTIONAL SERVICES
-# ===========================================
-# OpenRouter API for AI features (recipe parsing, chat)
-OPENROUTER_API_KEY=your-openrouter-api-key
-
-# Admin API key for bulk operations
-ADMIN_API_KEY=your-admin-api-key
-
-# Email service for password reset
-SMTP_HOST=smtp.example.com
-SMTP_PORT=587
-SMTP_USER=your-smtp-user
-SMTP_PASS=your-smtp-password
-SMTP_FROM=noreply@example.com
-
-# ===========================================
-# ENVIRONMENT
-# ===========================================
-NODE_ENV=development
-PORT=5000
-```
-
-> **IMPORTANT:** Never commit real secrets to version control. Use `.env.example` with placeholder values.
-
----
-
-## 3. Firebase Connection
-
-### SDK Used
-
-The API uses the **Firebase Admin SDK** (server-side) to connect to Firestore. This provides full read/write access without client-side authentication rules.
-
-### Required Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `FIREBASE_PROJECT_ID` | Your Firebase project ID (e.g., `miximixology-dev`) |
-| `FIREBASE_SERVICE_ACCOUNT_JSON` | Full JSON content of your service account key file |
-
-### Getting Service Account Credentials
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project
-3. Navigate to **Project Settings** → **Service Accounts**
-4. Click **Generate new private key**
-5. Copy the entire JSON content into `FIREBASE_SERVICE_ACCOUNT_JSON`
-
-### Connection Code Reference
-
-The Firebase connection is initialized in `server/storage/firebase.ts`:
-
-```typescript
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
-
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-
-initializeApp({
-  credential: cert(serviceAccount),
-  projectId: process.env.FIREBASE_PROJECT_ID
-});
-
-const db = getFirestore();
-```
-
----
-
-## 4. CORS Configuration for Expo/React Native
-
-### Default Allowed Origins
-
-The server allows these origins by default:
-
-- `https://www.miximixology.com` (production)
-- `https://miximixology.com` (production)
-- `http://localhost:5173` (Vite dev)
-- `http://localhost:5000` (API dev)
-
-### Adding Mobile App Origins
-
-For Expo/React Native development, add your origins to `CORS_ORIGINS`:
-
-```env
-CORS_ORIGINS=http://localhost:8081,http://192.168.50.2:5000,exp://192.168.50.2:8081,http://192.168.50.2:8081
-```
-
-**Common Expo Origins:**
-- `exp://192.168.50.2:8081` - Expo Go app
-- `http://192.168.50.2:8081` - Expo dev client
-- `http://localhost:8081` - Expo web
-
-### CORS Behavior
-
-- Requests without an `Origin` header (curl, Postman) are always allowed
-- Credentials (cookies) are supported with `credentials: true`
-- Preflight requests (OPTIONS) are handled automatically
-
-### Troubleshooting CORS
-
-If you see CORS errors:
-
-1. Check that your device's request includes the correct `Origin` header
-2. Verify the origin is in `CORS_ORIGINS` environment variable
-3. Restart the server after changing environment variables
-4. For Expo, ensure you're using the correct IP address
-
----
-
-## 5. Health Check Endpoint
-
-### GET /api/health
-
-Returns server status information.
-
-**Request:**
-```bash
-curl http://192.168.50.2:5000/api/health
-```
-
-**Response:**
-```json
-{
-  "status": "ok",
-  "env": "development",
-  "version": "1.0.0",
-  "timestamp": "2025-12-30T22:00:00.000Z"
-}
-```
-
-**Fields:**
-| Field | Description |
-|-------|-------------|
-| `status` | Server health status (`ok`) |
-| `env` | Current environment (`development`, `production`) |
-| `version` | Package version from package.json |
-| `timestamp` | Current server time (ISO 8601) |
-
----
-
-## 6. Example curl Commands
-
-Replace `192.168.50.2` with your machine's local IP address.
-
-### Health Check
-
-```bash
-curl http://192.168.50.2:5000/api/health
-```
-
-### List All Cocktails
-
-```bash
-curl http://192.168.50.2:5000/api/cocktails
-```
-
-### Get Featured Cocktails
-
-```bash
-curl http://192.168.50.2:5000/api/cocktails?featured=true
-```
-
-### Get Popular Cocktails
-
-```bash
-curl http://192.168.50.2:5000/api/cocktails?popular=true
-```
-
-### Get Cocktail Details (with ingredients, instructions, tags)
-
-```bash
-curl http://192.168.50.2:5000/api/cocktails/1754355116391
-```
-
-### Search Cocktails
-
-```bash
-curl "http://192.168.50.2:5000/api/cocktails?search=margarita"
-```
-
-### List All Ingredients
-
-```bash
-curl http://192.168.50.2:5000/api/ingredients
-```
-
-### Get Ingredient Details
-
-```bash
-curl http://192.168.50.2:5000/api/ingredients/1754352312497
-```
-
-### Register a New User
-
-```bash
-curl -X POST http://192.168.50.2:5000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"test@example.com","password":"password123"}'
-```
-
-### Login
-
-```bash
-curl -X POST http://192.168.50.2:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -c cookies.txt \
-  -d '{"email":"test@example.com","password":"password123"}'
-```
-
-### Get Current User (Authenticated)
-
-```bash
-curl http://192.168.50.2:5000/api/auth/me \
-  -b cookies.txt
-```
-
----
-
-## 7. Mobile App Integration Notes
-
-### Authentication Flow
-
-The API uses HTTP-only cookies for authentication. For React Native:
-
-1. **Use a cookie-aware HTTP client** (e.g., `fetch` with `credentials: 'include'`)
-2. **Store cookies automatically** - The native networking layer handles cookie storage
-3. **Include credentials in all requests**:
-
-```javascript
-fetch('http://192.168.50.2:5000/api/auth/me', {
-  method: 'GET',
-  credentials: 'include',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-```
-
-### Image Handling
-
-Images may be returned as:
-- HTTP URLs (external images)
-- Base64 data URIs (`data:image/png;base64,...`)
-- `null` (no image)
-
-For React Native, handle both formats:
-
-```javascript
-const imageSource = imageUrl 
-  ? imageUrl.startsWith('data:') 
-    ? { uri: imageUrl }
-    : { uri: imageUrl }
-  : require('./placeholder.png');
-```
-
-### Rate Limiting
-
-The API has rate limiting enabled:
-- 300 requests per 15-minute window per IP
-- Auth endpoints: 5 requests per minute
-- Password reset: 3 requests per hour
-
----
-
-## 8. Troubleshooting
-
-### "Firebase quota exceeded" Error
-
-This occurs when the Firestore daily read quota is exhausted. Solutions:
-1. Wait for the quota to reset (daily)
-2. Upgrade to a paid Firebase plan
-3. Use a separate development Firebase project
-
-### "CORS blocked" Error
-
-1. Add your origin to `CORS_ORIGINS` in `.env`
-2. Restart the server
-3. Verify the origin header matches exactly
-
-### Connection Refused
-
-1. Check the server is running (`npm run dev`)
-2. Verify you're using the correct IP address
-3. Ensure port 5000 is not blocked by firewall
-4. On macOS, check System Preferences → Security → Firewall
-
-### Cannot Connect from Physical Device
-
-1. Ensure both device and computer are on the same Wi-Fi network
-2. Find your computer's local IP: `ifconfig` (macOS/Linux) or `ipconfig` (Windows)
-3. Try pinging the IP from the device
-4. Temporarily disable firewall to test
-
----
-
-## 9. Development vs Production
-
-| Aspect | Development | Production |
-|--------|-------------|------------|
-| `NODE_ENV` | `development` | `production` |
-| HTTPS | Not required | Required |
-| CORS | Liberal | Strict allowlist |
-| Rate Limiting | Enabled | Enabled |
-| Error Details | Verbose | Minimal |
-| CSP | Relaxed | Strict |
-
----
-
-*Last updated: December 30, 2025*
+### API cannot connect to Firestore
+- Ensure `FIRESTORE_EMULATOR_HOST` is set in `.env`.
+- Check server logs for `🔥 Using Firebase Emulator`.
