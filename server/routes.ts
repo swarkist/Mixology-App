@@ -282,8 +282,9 @@ export async function registerRoutes(app: Express, storage: IStorage): Promise<S
   app.get("/api/health", (req, res) => {
     res.json({ 
       status: "ok", 
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'development'
+      env: process.env.NODE_ENV || 'development',
+      version: process.env.npm_package_version || '1.0.0',
+      timestamp: new Date().toISOString()
     });
   });
 
